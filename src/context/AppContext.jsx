@@ -53,9 +53,10 @@ export function AppProvider({ children }) {
     return SUPER_ADMIN_EMAILS.includes(clean) || adminEmails.some(e => e.toLowerCase().trim() === clean);
   };
 
-  // Optional Google OAuth Client ID (for real Google Identity Services popup)
+  // Google OAuth Client ID (for real Google Identity Services popup)
+  const DEFAULT_GOOGLE_CLIENT_ID = '782343280980-essi85hu3m14a10suicn7b16ve13tn5n.apps.googleusercontent.com';
   const [googleClientId, setGoogleClientIdState] = useState(() => {
-    return import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('rtec_google_client_id') || '';
+    return import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('rtec_google_client_id') || DEFAULT_GOOGLE_CLIENT_ID;
   });
 
   const updateGoogleClientId = (clientId) => {
