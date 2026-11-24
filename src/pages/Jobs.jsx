@@ -42,7 +42,7 @@ export default function Jobs() {
     type: 'Full-time',
     department: 'Yarn Engineering',
     experience: '1-3 Years',
-    salary: '৳ 40,000 - ৳ 55,000 / month',
+    salary: '',
     deadline: '2026-12-31',
     description: '',
     posterName: user?.name ? `${user.name} (${user.batch || 'Graduate'})` : '',
@@ -364,7 +364,7 @@ export default function Jobs() {
                       <input
                         type="text"
                         required
-                        placeholder="যেমন: Tanvir Ahmed (1st Batch)"
+                        placeholder={lang === 'bn' ? 'যেমন: আপনার নাম (ব্যাচ)' : 'e.g., Your Name (Batch)'}
                         value={newJobData.posterName}
                         onChange={(e) => setNewJobData({ ...newJobData, posterName: e.target.value })}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"

@@ -93,63 +93,44 @@ export default function Events() {
           </p>
         </div>
 
-        {/* Flagship Countdown Hero: Master Invitation Pass */}
-        <div className="ticket-pass rounded-2xl overflow-hidden plaque-espresso border border-[#C5A880]/35 p-6 sm:p-10 mb-12 shadow-2xl relative">
-          
-          <div className="relative z-10 max-w-4xl space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#BD452F]/20 text-[#DE644E] text-[11px] font-mono-tech border border-[#BD452F]/40 uppercase">
-              <Sparkles className="w-3.5 h-3.5 text-[#DE644E]" />
-              <span>{lang === 'bn' ? 'কাউন্টডাউন টাইমার • লাইভ' : 'FLAGSHIP GALA COUNTDOWN'}</span>
-            </div>
+        {/* Flagship Countdown Hero (Shown when an upcoming event exists) */}
+        {events.length > 0 && (
+          <div className="ticket-pass rounded-2xl overflow-hidden plaque-espresso border border-[#C5A880]/35 p-6 sm:p-10 mb-12 shadow-2xl relative">
+            <div className="relative z-10 max-w-4xl space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#BD452F]/20 text-[#DE644E] text-[11px] font-mono-tech border border-[#BD452F]/40 uppercase">
+                <Sparkles className="w-3.5 h-3.5 text-[#DE644E]" />
+                <span>{lang === 'bn' ? 'পরবর্তী ইভেন্ট • লাইভ' : 'FEATURED EVENT'}</span>
+              </div>
 
-            <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] leading-tight">
-              {lang === 'bn'
-                ? '১ম গ্র্যান্ড আরটেক অ্যালামনাই পুনর্মিলনী ২০২৬'
-                : '1st Grand RTEC Alumni Reunion Gala 2026'}
-            </h2>
-            
-            <p className="text-xs sm:text-sm text-[#DCD3C1] font-sans leading-relaxed max-w-2xl">
-              {lang === 'bn'
-                ? 'সকল ৮টি ব্যাচের (১ম হতে ৮ম ব্যাচ) প্রাক্তন ও বর্তমান প্রকৌশলী, সম্মানিত শিক্ষকবৃন্দ ও অতিথিবৃন্দের স্মরণীয় মিলনমেলা। ২৫ ডিসেম্বর ২০২৬, আরটেক সেন্ট্রাল ক্যাম্পাস, পীরগঞ্জ, রংপুর।'
-                : 'Uniting 8 cohorts of distinguished textile engineers, faculty scholars, and patrons for an unforgettable evening at RTEC central campus, Pirganj.'}
-            </p>
+              <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] leading-tight">
+                {lang === 'bn' ? (events[0].titleBn || events[0].title) : (events[0].title || events[0].titleBn)}
+              </h2>
 
-            {/* Architectural Countdown Boxes */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-4 pt-2 max-w-md font-mono-tech">
-              {[
-                { label: lang === 'bn' ? 'দিন (DAYS)' : 'DAYS', val: timeLeft.days },
-                { label: lang === 'bn' ? 'ঘণ্টা (HRS)' : 'HOURS', val: timeLeft.hours },
-                { label: lang === 'bn' ? 'মিনিট (MIN)' : 'MINS', val: timeLeft.minutes },
-                { label: lang === 'bn' ? 'সেকেন্ড (SEC)' : 'SECS', val: timeLeft.seconds }
-              ].map((item, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-[#141311] border border-[#C5A880]/20 text-center">
-                  <span className="block text-xl sm:text-3xl font-black text-[#DFCA9E] font-serif-regal">
-                    {String(item.val).padStart(2, '0')}
+              <p className="text-xs sm:text-sm text-[#DCD3C1] font-sans leading-relaxed max-w-2xl">
+                {lang === 'bn' ? (events[0].descriptionBn || events[0].descriptionEn) : (events[0].descriptionEn || events[0].descriptionBn)}
+              </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <button
+                  onClick={() => {
+                    setSelectedEvent(events[0]);
+                    setRegisterModalOpen(true);
+                  }}
+                  className="btn-agency btn-agency-terracotta px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
+                >
+                  <Ticket className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'টিকেট সংরক্ষণ করুন (RSVP)' : 'Reserve Pass Now'}</span>
+                </button>
+
+                {events[0].registrationFee && (
+                  <span className="text-xs font-mono-tech text-[#A89884]">
+                    {lang === 'bn' ? `টিকেট ফি: ${events[0].registrationFee}` : `Fee: ${events[0].registrationFee}`}
                   </span>
-                  <span className="text-[9px] text-[#A89884] block mt-0.5">{item.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-              <button
-                onClick={() => {
-                  setSelectedEvent(events[0]);
-                  setRegisterModalOpen(true);
-                }}
-                className="btn-agency btn-agency-terracotta px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-              >
-                <Ticket className="w-4 h-4" />
-                <span>{lang === 'bn' ? 'গালা টিকিট সংরক্ষণ করুন (RSVP)' : 'Reserve Gala Pass Now'}</span>
-              </button>
-
-              <span className="text-xs font-mono-tech text-[#A89884]">
-                {lang === 'bn' ? 'টিকেট ফি: ৳ ১,০০০ (গালা ডিনার ও গিফট হ্যাম্পার সহ)' : 'Fee: ৳ 1,000 (Includes Gala Dinner & Kit)'}
-              </span>
+                )}
+              </div>
             </div>
           </div>
-
-        </div>
+        )}
 
         {/* Section Heading */}
         <div className="mb-6 flex items-center justify-between">
@@ -165,6 +146,23 @@ export default function Events() {
             TOTAL: {events.length} SESSIONS
           </span>
         </div>
+
+        {/* Empty State when no scheduled events */}
+        {events.length === 0 && (
+          <div className="text-center py-16 px-4 rounded-3xl plaque-elevated border border-[#C5A880]/25 space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-[#854D0E] dark:text-[#DFCA9E] flex items-center justify-center mx-auto border border-amber-500/25">
+              <Ticket className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-serif-regal font-bold text-[#0C0A09] dark:text-[#FDFBF7]">
+              {lang === 'bn' ? 'বর্তমানে কোনো আসন্ন ইভেন্ট নির্ধারিত নেই' : 'No Upcoming Events Scheduled'}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] max-w-md mx-auto leading-relaxed font-medium">
+              {lang === 'bn'
+                ? 'পুনর্মিলনী, সেমিনার বা ক্যাম্পাস ইভেন্ট ঘোষিত হলে এখানে অফিসিয়াল টিকেট ও রেজিস্ট্রেশন তালিকা প্রদর্শিত হবে।'
+                : 'Official reunion schedules, seminars, and event registration passes will appear here once announced by RTEC Administration.'}
+            </p>
+          </div>
+        )}
 
         {/* Authentic Perforated Admission Tickets Grid */}
         <div className="space-y-6">

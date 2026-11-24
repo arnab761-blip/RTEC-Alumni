@@ -1,7 +1,7 @@
 # Rangpur Textile Engineering College (RTEC), Pirganj, Rangpur
 ## 3D Interactive Campus Tour & Full Alumni Platform (৩ডি ক্যাম্পাস ট্যুর ও পূর্ণাঙ্গ অ্যালামনাই ওয়েবসাইট)
 
-![RTEC Campus](https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80)
+![RTEC Campus](/images/slider/slide-01-main-gate.webp)
 
 An ultra-modern, high-performance, responsive 3D interactive storytelling campus tour and complete multi-page alumni portal built specifically for **Rangpur Textile Engineering College (RTEC)**, Pirganj, Rangpur, Bangladesh.
 

@@ -12,7 +12,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Entrance & Security',
     categoryBn: 'প্রবেশদ্বার ও নিরাপত্তা',
     icon: 'DoorOpen',
-    image: 'https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-01-main-gate.webp',
     descriptionBn: 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের প্রধান প্রবেশদ্বার। পীরগঞ্জ-পীরগাছা মহাসড়কের পাশে অবস্থিত এই রাজকীয় ফটক দিয়ে ক্যাম্পাসের মূল অভ্যন্তরীণ যোগাযোগ শুরু হয়। ফটকের উপরে রয়েছে কলেজের দৃষ্টিনন্দন নামফলক।',
     descriptionEn: 'The monumental main gate of Rangpur Textile Engineering College on the Pirganj regional highway. Welcoming all students, faculty, and esteemed alumni to the premier textile hub of North Bengal.',
     facts: [
@@ -20,7 +20,7 @@ export const CAMPUS_LANDMARKS = [
       'গেটের উপরে দ্বৈত ভাষায় সুবিশাল নামফলক ও কলেজ মনোগ্রাম',
       'ক্যাম্পাসের মূল চত্বরের সাথে সরাসরি পিচঢালা সংযোগ সড়ক'
     ],
-    stats: { established: '2011', security: '24/7 Monitored', access: 'Biometric & ID' }
+    stats: { established: '2018', security: '24/7 Monitored', access: 'Biometric & ID' }
   },
   {
     id: 'academic',
@@ -34,7 +34,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Academics & Admin',
     categoryBn: 'প্রশাসনিক ও শিক্ষা ভবন',
     icon: 'Building2',
-    image: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-04-academic-building.webp',
     descriptionBn: 'ড. এম এ ওয়াজেদ মিয়া টেক্সটাইল একাডেমিক ভবন। এখানে অধ্যক্ষ মহোদয়ের দপ্তর, রেজিস্ট্রার শাখা, অত্যাধুনিক মাল্টিমিডিয়া লেকচার গ্যালারি, শিক্ষকবৃন্দের অফিস ও চারটি প্রধান টেক্সটাইল ডিপার্টমেন্টের ক্লাসরুম অবস্থিত।',
     descriptionEn: 'Dr. MA Wazed Miah Academic Complex, housing state-of-the-art lecture galleries, executive administrative wings, faculty chambers, and specialized smart classrooms for Yarn, Fabric, Wet Process & Apparel Engineering.',
     facts: [
@@ -56,7 +56,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Research & Study',
     categoryBn: 'গবেষণা ও পাঠাগার',
     icon: 'BookOpen',
-    image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'টেক্সটাইল প্রযুক্তি, মেটেরিয়াল সায়েন্স এবং সাধারণ বিজ্ঞানের সুবিশাল গ্রন্থভাণ্ডার। এখানে ১৫,০০০+ বই, আন্তর্জাতিক জার্নাল এবং ডিজিটাল ই-লাইব্রেরি কর্নার রয়েছে যেখানে শিক্ষার্থীরা সরাসরি বিশ্বমানের পেপার পড়তে পারে।',
     descriptionEn: 'RTEC Central Library, housing over 15,000 engineering titles, subscribed international research journals (AATCC, TRJ), air-conditioned quiet reading zones, and high-speed digital cataloging terminals.',
     facts: [
@@ -78,7 +78,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Technology & CAD',
     categoryBn: 'তথ্যপ্রযুক্তি ও ডিজাইন ল্যাব',
     icon: 'Monitor',
-    image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'টেক্সটাইল ডিজাইন, উইভিং প্যাটার্ন এবং গার্মেন্টস মার্কার মেকিংয়ের জন্য বিশেষায়িত কম্পিউটার ল্যাব। হাই-কনফিগ পিসিতে রয়েছে টেক্সটাইল ক্যাড ও ক্যাম সফটওয়্যার।',
     descriptionEn: 'Specialized Computer and Textile CAD/CAM Laboratory equipped with 80+ high-performance workstations for weave pattern simulation, garment digitizing, marker making, and engineering simulations.',
     facts: [
@@ -100,7 +100,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Cultural & Testing',
     categoryBn: 'সাংস্কৃতিক ও ফ্যাব্রিক ল্যাব',
     icon: 'Drama',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-11-research-club.webp',
     descriptionBn: 'সুবিশাল ৮০০ আসনের কেন্দ্রীয় অডিটোরিয়াম। অ্যালামনাই রিইউনিয়ন, জাতীয় টেক্সটাইল সেমিনার, সমাবর্তন ও সাংস্কৃতিক উৎসবের প্রাণকেন্দ্র। পেছনে রয়েছে ফ্যাব্রিক ম্যানুফ্যাকচারিং টেস্ট ফেসিলিটি।',
     descriptionEn: 'The 800-capacity Grand College Auditorium, hosting national textile conferences, annual alumni galas, technical summits, and stage performances, paired with the Fabric Manufacturing testing wing.',
     facts: [
@@ -122,7 +122,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Heavy Machinery & Mills',
     categoryBn: 'ভারী শিল্প ও তাঁত শেড',
     icon: 'Cog',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের গর্ব—শিল্প কারখানার সমতুল্য ভারী উইভিং শেড। এখানে রয়েছে আধুনিক এয়ার-জেট লুম, রেপিয়ার লুম, শাটললেস উইভিং মেশিন ও সেমি-অটো স্পিনিং ড্রাফটিং মেশিন।',
     descriptionEn: 'Industrial-grade Weaving and Yarn Spinning Machinery shed. Equipped with Air-jet looms, modern Rapier looms, circular knitting frames, and automated testing machinery for live factory-floor simulations.',
     facts: [
@@ -144,7 +144,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Garments & Production',
     categoryBn: 'গার্মেন্টস ও পোশাক ল্যাব',
     icon: 'Scissors',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-05-textile-lab.webp',
     descriptionBn: 'আধুনিক পোশাক উৎপাদন ও ওয়াশিং ল্যাবরেটরি। জুঁকি (Juki) ও ব্রাদার (Brother) ইন্ডাস্ট্রিয়াল সিউইং মেশিন, অটো স্প্রেডিং টেবিল, ফিউজিং মেশিন এবং গার্মেন্টস ফিনিশিং সেকশন।',
     descriptionEn: 'Apparel Manufacturing and Pattern Engineering Laboratory. Fully replicated export-quality garment line featuring automated fabric spreading tables, CAD cutters, heavy-duty industrial sewing and fusing lines.',
     facts: [
@@ -166,7 +166,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Sports & Athletics',
     categoryBn: 'খেলাধুলা ও অ্যাথলেটিকস',
     icon: 'Trophy',
-    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-10-sports-ground.webp',
     descriptionBn: 'আন্তর্জাতিক স্ট্যান্ডার্ড মাপের এক্রিলিক কোটিং বাস্কেটবল গ্রাউন্ড। ক্যাম্পাসের পশ্চিম পাশে অবস্থিত, যেখানে বিকেলে শিক্ষার্থীরা বাস্কেটবল টুর্নামেন্ট ও প্র্যাকটিসে মেতে ওঠে।',
     descriptionEn: 'Standard championship-grade basketball court located on the western recreation wing, equipped with safety fencing, backboards, and high-intensity night floodlights.',
     facts: [
@@ -188,7 +188,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Aquatics & Fitness',
     categoryBn: 'সাঁতার ও ফিটনেস',
     icon: 'Waves',
-    image: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'আরটেকের পশ্চিম প্রান্তে মনোরম প্রাকৃতিক পরিবেশে অবস্থিত ক্যাম্পাস সুইমিং পুল। সাঁতার অনুশীলন ও শিক্ষার্থীদের ফিটনেস বজায় রাখার জন্য একটি অত্যন্ত জনপ্রিয় স্পট।',
     descriptionEn: 'Campus Olympic-style swimming pool featuring crystalline water, tiled diving deck, lane markers, and adjoining changing facilities for student recreation and annual aquatic competitions.',
     facts: [
@@ -210,7 +210,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Main Stadium & Ground',
     categoryBn: 'মূল স্টেডিয়াম ও খেলার মাঠ',
     icon: 'Shield',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-14-aerial-campus-view.jpg',
     descriptionBn: 'ক্যাম্পাসের উত্তর-পশ্চিম কোণে অবস্থিত আরটেকের সুবিশাল সেন্ট্রাল খেলার মাঠ। ক্রিকেট ও ফুটবল ম্যাচ, বার্ষিক স্পোর্টস ডে, ড্রোন কম্পিটিশন এবং সমাবর্তনের প্যারেড গ্রাউন্ড।',
     descriptionEn: 'The sprawling RTEC Central Stadium and Playground. The grand venue for inter-engineering cricket and football tourneys, track-and-field athletics, and festive convocation galas.',
     facts: [
@@ -232,7 +232,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Female Dormitory',
     categoryBn: 'ছাত্রী নিবাস ও ডাইনিং',
     icon: 'Home',
-    image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'ছাত্রীদের জন্য সম্পূর্ণ নিরাপদ ও আধুনিক আবাসিক হল। সুসজ্জিত রিডিং রুম, সেন্ট্রাল ডাইনিং হল, কমন রুম ও ইনডোর গেমস সুবিধা সমৃদ্ধ। কঠোর নিরাপত্তা বেষ্টনী দ্বারা পরিবেষ্টিত।',
     descriptionEn: 'Secure and welcoming residential dormitory for female textile engineering students. Features quiet reading libraries, spacious shared rooms, dining hall, and round-the-clock female warden supervision.',
     facts: [
@@ -254,7 +254,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Faculty Residence',
     categoryBn: 'শিক্ষক ও কর্মকর্তাদের আবাসন',
     icon: 'Trees',
-    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'শিক্ষক ও কর্মকর্তাদের জন্য নির্মিত ছায়াঘেরা শান্ত আবাসন চত্বর। ফুল বাগান ও বৃক্ষরাজিতে ঘেরা এই ভবনগুলোতে সম্মানিত শিক্ষকমণ্ডলী ও তাঁদের পরিবারবর্গ বসবাস করেন।',
     descriptionEn: 'Peaceful residential enclave dedicated to faculty members, assistant professors, and technical administrative staff, surrounded by lush gardens, flowering hedges, and fruit trees.',
     facts: [
@@ -276,7 +276,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Male Dormitory',
     categoryBn: 'ছাত্রদের প্রধান আবাসিক হল',
     icon: 'Award',
-    image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-09-campus-life.webp',
     descriptionBn: 'রংপুরের ঐতিহাসিক শহীদ আবু সাঈদের অমর স্মৃতির প্রতি শ্রদ্ধা জানিয়ে নামাঙ্কিত ছেলেদের প্রধান আবাসিক হল। বিশাল চারতলা ভবন, অভ্যন্তরীণ স্কয়ার চত্বর, ক্যান্টিন ও প্রাণবন্ত ছাত্র রাজনীতির স্মৃতিবিজড়িত কেন্দ্র।',
     descriptionEn: 'The primary male student hall named in solemn commemoration of Rangpur hero Shahid Abu Sayed. A multi-winged 4-story dormitory housing hundreds of aspiring textile engineers with vibrant community life.',
     facts: [
@@ -298,7 +298,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Executive Residence',
     categoryBn: 'অধ্যক্ষের বাসভবন ও বাংলো',
     icon: 'Building',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    image: '',
     descriptionBn: 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের অধ্যক্ষ মহোদয়ের সরকারি বাংলো ও বাসভবন। ক্যাম্পাসের উত্তর-পূর্ব কোণে করতোয়া নদীর প্রাকৃতিক সান্নিধ্যে মনোরম স্থাপত্যে নির্মিত।',
     descriptionEn: 'The official executive residence and bungalow of the College Principal. Nestled in the serene northeastern corner near the Karatoya River banks with manicured lawns and private drive.',
     facts: [
@@ -320,7 +320,7 @@ export const CAMPUS_LANDMARKS = [
     category: 'Spiritual & Worship',
     categoryBn: 'উপাসনা ও জামে মসজিদ',
     icon: 'Moon',
-    image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/slider/slide-07-mosque.webp',
     descriptionBn: 'প্রধান ফটকের ডানপাশে অবস্থিত সুন্দর শুভ্র ও সবুজ গম্বুজ বিশিষ্ট ক্যাম্পাস জামে মসজিদ। পাঁচ ওয়াক্ত সালাত ও জুমার নামাজে শিক্ষক, শিক্ষার্থী ও কর্মচারীদের মিলনস্থল।',
     descriptionEn: 'The tranquil Central Campus Mosque near the Main Gate, featuring an emerald dome, tall minaret, and marble wudu fountains, welcoming over 500 worshippers for daily and Jumuah prayers.',
     facts: [

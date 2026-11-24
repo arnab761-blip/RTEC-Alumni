@@ -192,7 +192,7 @@ export default function Teachers() {
               >
                 <div>
                   {/* Photo Header */}
-                  <div className="relative h-64 w-full overflow-hidden bg-[#141311]">
+                  <div className="relative h-64 w-full overflow-hidden bg-[#141311] on-dark-media">
                     <UserAvatar
                       src={teacher.photo}
                       name={teacher.name}

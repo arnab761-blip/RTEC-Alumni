@@ -182,17 +182,21 @@ app.post('/api/retry-connection', async (req, res) => {
   });
 });
 
+const SUPER_ADMIN_EMAILS = ['megasonic298@gmail.com', 'arnab.rts761@gmail.com'];
+
 // ==========================================================
 // 2. BOOTSTRAP ENDPOINT: Sync all live collections on load
 // ==========================================================
 app.get('/api/bootstrap', requireDb, async (req, res) => {
   try {
-    // Ensure primary admin exists
-    await AdminEmail.findOneAndUpdate(
-      { email: 'megasonic298@gmail.com' },
-      { $setOnInsert: { email: 'megasonic298@gmail.com', addedBy: 'system', note: 'Primary Super Administrator' } },
-      { upsert: true }
-    );
+    // Ensure both primary super admins exist
+    for (const superEmail of SUPER_ADMIN_EMAILS) {
+      await AdminEmail.findOneAndUpdate(
+        { email: superEmail },
+        { $setOnInsert: { email: superEmail, addedBy: 'system', note: 'Super Administrator' } },
+        { upsert: true }
+      );
+    }
 
     const [students, alumni, teachers, events, jobs, news, submissions, disputes, adminEmailDocs, settingsDocs] = await Promise.all([
       Student.find({}).sort({ batch: 1, regNo: 1 }).lean(),
@@ -210,10 +214,10 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
     const settingsMap = {};
     (settingsDocs || []).forEach(s => { settingsMap[s.key] = s.value; });
 
-    const adminEmails = adminEmailDocs.map(a => a.email.toLowerCase().trim());
-    if (!adminEmails.includes('megasonic298@gmail.com')) {
-      adminEmails.unshift('megasonic298@gmail.com');
-    }
+    const adminEmails = Array.from(new Set([
+      ...SUPER_ADMIN_EMAILS,
+      ...adminEmailDocs.map(a => a.email.toLowerCase().trim())
+    ]));
 
     res.json({
       success: true,
@@ -717,10 +721,10 @@ app.post('/api/disputes/reset-reg', requireDb, async (req, res) => {
 app.get('/api/admin-emails', requireDb, async (req, res) => {
   try {
     const docs = await AdminEmail.find({}).sort({ createdAt: 1 }).lean();
-    const emails = docs.map(d => d.email.toLowerCase().trim());
-    if (!emails.includes('megasonic298@gmail.com')) {
-      emails.unshift('megasonic298@gmail.com');
-    }
+    const emails = Array.from(new Set([
+      ...SUPER_ADMIN_EMAILS,
+      ...docs.map(d => d.email.toLowerCase().trim())
+    ]));
     res.json({ success: true, adminEmails: emails, list: docs });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -748,8 +752,8 @@ app.post('/api/admin-emails', requireDb, async (req, res) => {
 app.delete('/api/admin-emails/:email', requireDb, async (req, res) => {
   try {
     const emailToDelete = req.params.email.toLowerCase().trim();
-    if (emailToDelete === 'megasonic298@gmail.com') {
-      return res.status(403).json({ success: false, error: 'Cannot remove primary super admin email' });
+    if (SUPER_ADMIN_EMAILS.includes(emailToDelete)) {
+      return res.status(403).json({ success: false, error: 'Cannot remove super admin email' });
     }
     await AdminEmail.findOneAndDelete({ email: emailToDelete });
     res.json({ success: true, message: `Removed ${emailToDelete} from admin emails` });

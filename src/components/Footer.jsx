@@ -12,7 +12,8 @@ import {
 import { FacebookBadge } from './SocialIcons.jsx';
 
 export default function Footer() {
-  const { lang, collegeLogo, footerContact } = useApp();
+  const { lang, collegeLogo, footerContact, user, isAdminEmail } = useApp();
+  const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const rtecLogoSrc = collegeLogo ? formatDriveImageUrl(collegeLogo) : '/images/rtec-logo.png';
 
   const phone = footerContact?.phone || '+880 521-55421';
@@ -96,14 +97,16 @@ export default function Footer() {
                 <ExternalLink className="w-2.5 h-2.5 opacity-70" />
               </a>
 
-              <Link
-                to="/admin"
-                className="hover:text-[#8E2E1D] dark:hover:text-[#FDFBF7] transition flex items-center gap-1.5 text-[11px] font-mono-tech font-bold text-[#854D0E] dark:text-[#DFCA9E] bg-amber-50 dark:bg-[#1E1C18] px-2.5 py-1 rounded-md border border-[#C5A880]/50 dark:border-[#C5A880]/40 shadow-sm"
-                title="Admin Portal"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DFCA9E] shrink-0" />
-                <span>{lang === 'bn' ? 'এডমিন পোর্টাল' : 'Admin'}</span>
-              </Link>
+              {isAuthorizedAdmin && (
+                <Link
+                  to="/admin"
+                  className="hover:text-[#8E2E1D] dark:hover:text-[#FDFBF7] transition flex items-center gap-1.5 text-[11px] font-mono-tech font-bold text-[#854D0E] dark:text-[#DFCA9E] bg-amber-50 dark:bg-[#1E1C18] px-2.5 py-1 rounded-md border border-[#C5A880]/50 dark:border-[#C5A880]/40 shadow-sm"
+                  title="Admin Portal"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DFCA9E] shrink-0" />
+                  <span>{lang === 'bn' ? 'এডমিন পোর্টাল' : 'Admin'}</span>
+                </Link>
+              )}
             </div>
           </div>
 

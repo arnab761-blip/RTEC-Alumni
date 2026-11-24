@@ -83,21 +83,32 @@ export default function News() {
                 className="plaque-elevated rounded-2xl overflow-hidden flex flex-col justify-between border border-[#C5A880]/25 group shadow-md"
               >
                 <div>
-                  <div className="relative h-48 w-full overflow-hidden bg-slate-900">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
-                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-emerald-600 text-white text-xs font-bold shadow">
-                      {item.category}
-                    </span>
-                    <span className="absolute bottom-3 left-3 text-xs text-slate-200 font-mono font-semibold drop-shadow">
-                      {item.date}
-                    </span>
-                  </div>
+                  {item.image ? (
+                    <div className="relative h-48 w-full overflow-hidden bg-slate-900 on-dark-media">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+                      <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-emerald-600 text-white keep-white text-xs font-bold shadow">
+                        {item.category}
+                      </span>
+                      <span className="absolute bottom-3 left-3 text-xs text-white keep-white font-mono font-semibold drop-shadow">
+                        {item.date}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="px-5 pt-5 flex items-center justify-between gap-2">
+                      <span className="px-2.5 py-1 rounded-md bg-emerald-600 text-white keep-white text-xs font-bold shadow">
+                        {item.category}
+                      </span>
+                      <span className="text-xs text-[#374151] dark:text-[#DCD3C1] font-mono font-semibold">
+                        {item.date}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="p-5">
                     <h3 className="font-bold text-[#FDFBF7] text-base group-hover:text-[#BD452F] dark:group-hover:text-emerald-300 transition-colors line-clamp-2">

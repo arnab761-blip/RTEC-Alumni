@@ -36,7 +36,8 @@ import GoogleSignInModal, { GoogleLogo } from './GoogleSignInModal.jsx';
 
 export default function Navbar() {
   const location = useLocation();
-  const { user, logout, lang, setLang, collegeLogo, theme, toggleTheme } = useApp();
+  const { user, logout, lang, setLang, collegeLogo, theme, toggleTheme, isAdminEmail } = useApp();
+  const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
@@ -254,25 +255,25 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Right Controls: Admin Button + Google Login / Profile + 3-line Index Menu */}
+            {/* Right Controls: Authorized Admin Button (hidden for normal users) + Google Login / Profile + 3-line Index Menu */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Admin Quick Link */}
-              <Link
-                to="/admin"
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono-tech font-bold uppercase tracking-wider transition border shrink-0 flex items-center gap-1 active:scale-95 shadow-sm ${
-                  location.pathname === '/admin'
-                    ? 'bg-[#BD452F] text-white border-[#8E2E1D] shadow-md font-black'
-                    : user?.role === 'admin'
-                      ? 'bg-[#BD452F] text-white border-[#8E2E1D] shadow-sm hover:bg-[#9C3320] font-black'
-                      : 'bg-white dark:bg-[#1E1C18] text-[#854D0E] dark:text-[#DFCA9E] border-[#C5A880]/40 dark:border-[#C5A880]/30 hover:border-[#854D0E] dark:hover:border-[#C5A880]'
-                }`}
-                title={lang === 'bn' ? 'এডমিন পোর্টাল' : 'Administration'}
-              >
-                <ShieldCheck className={`w-3.5 h-3.5 ${user?.role === 'admin' || location.pathname === '/admin' ? 'text-white' : 'text-[#854D0E] dark:text-[#DFCA9E]'}`} />
-                <span className={`text-[10px] sm:text-xs font-bold ${user?.role === 'admin' || location.pathname === '/admin' ? 'text-white font-black' : ''}`}>
-                  {lang === 'bn' ? 'এডমিন' : 'Admin'}
-                </span>
-              </Link>
+              {/* Admin Quick Link - ONLY visible when logged in with an authorized Admin Gmail */}
+              {isAuthorizedAdmin && (
+                <Link
+                  to="/admin"
+                  className={`px-2.5 py-1 rounded-lg text-xs font-mono-tech font-bold uppercase tracking-wider transition border shrink-0 flex items-center gap-1 active:scale-95 shadow-sm ${
+                    location.pathname === '/admin'
+                      ? 'bg-[#BD452F] text-white border-[#8E2E1D] shadow-md font-black'
+                      : 'bg-[#BD452F] text-white border-[#8E2E1D] shadow-sm hover:bg-[#9C3320] font-black'
+                  }`}
+                  title={lang === 'bn' ? 'এডমিন পোর্টাল' : 'Administration'}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                  <span className="text-[10px] sm:text-xs font-black text-white">
+                    {lang === 'bn' ? 'এডমিন' : 'Admin'}
+                  </span>
+                </Link>
+              )}
 
               {/* User Account / Profile Controls */}
               {user && user.role !== 'guest' ? (
@@ -327,14 +328,16 @@ export default function Navbar() {
                           <span>{lang === 'bn' ? 'গুগল দিয়ে সাইন ইন / পরিবর্তন' : 'Continue with Google / Switch'}</span>
                         </button>
 
-                        <Link
-                          to="/admin"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="dropdown-menu-item dropdown-item-admin"
-                        >
-                          <ShieldCheck className="w-4 h-4 shrink-0" />
-                          <span>{lang === 'bn' ? 'এডমিন কনসোল' : 'Admin Console'}</span>
-                        </Link>
+                        {isAuthorizedAdmin && (
+                          <Link
+                            to="/admin"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="dropdown-menu-item dropdown-item-admin"
+                          >
+                            <ShieldCheck className="w-4 h-4 shrink-0" />
+                            <span>{lang === 'bn' ? 'এডমিন কনসোল' : 'Admin Console'}</span>
+                          </Link>
+                        )}
 
                         <Link
                           to="/student-portal"
@@ -555,19 +558,23 @@ export default function Navbar() {
                   </button>
                 </div>
 
-                {/* Central Quick Auth & Admin Hub in Drawer (Always visible to everyone) */}
-                <div className="mb-5 p-4 rounded-2xl bg-amber-500/10 dark:bg-[#1E1C18] border border-amber-500/30 dark:border-[#C5A880]/30 shadow-md space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-amber-500/20 dark:border-[#C5A880]/20">
-                    <span className="text-[10px] font-mono-tech uppercase font-bold text-amber-800 dark:text-[#DFCA9E] flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>{lang === 'bn' ? 'অ্যাকাউন্ট ও প্রশাসন হাব' : 'Auth & Admin Hub'}</span>
+                {/* Central Quick Account Hub in Drawer */}
+                <div className="mb-5 p-4 rounded-2xl bg-amber-50 dark:bg-[#1E1C18] border border-amber-300 dark:border-[#C5A880]/30 shadow-md space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-amber-300/60 dark:border-[#C5A880]/20">
+                    <span className="text-[10px] font-mono-tech uppercase font-bold text-[#78350F] dark:text-[#DFCA9E] flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E]" />
+                      <span>
+                        {isAuthorizedAdmin
+                          ? (lang === 'bn' ? 'অ্যাকাউন্ট ও প্রশাসন হাব' : 'Account & Admin Hub')
+                          : (lang === 'bn' ? 'অ্যাকাউন্ট ও পোর্টাল হাব' : 'Account & Student Hub')}
+                      </span>
                     </span>
                     {user && user.role !== 'guest' ? (
-                      <span className="text-[9px] font-mono-tech px-2 py-0.5 rounded-full font-bold uppercase bg-emerald-500/20 text-emerald-800 dark:text-emerald-300">
+                      <span className="text-[9px] font-mono-tech px-2 py-0.5 rounded-full font-bold uppercase bg-emerald-100 text-emerald-900 border border-emerald-400 dark:bg-emerald-500/20 dark:text-emerald-200 dark:border-emerald-500/40">
                         {user.role}
                       </span>
                     ) : (
-                      <span className="text-[9px] font-mono-tech px-2 py-0.5 rounded-full font-bold uppercase bg-slate-500/20 text-slate-700 dark:text-slate-300">
+                      <span className="text-[9px] font-mono-tech px-2 py-0.5 rounded-full font-bold uppercase bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100">
                         GUEST
                       </span>
                     )}
@@ -583,10 +590,10 @@ export default function Navbar() {
                           className="w-8 h-8 rounded-full border border-amber-500/40 shrink-0"
                         />
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-900 dark:text-[#FDFBF7] truncate">
+                          <p className="text-xs font-bold text-[#0C0A09] dark:text-[#FDFBF7] truncate">
                             {lang === 'bn' ? user.nameBn || user.name : user.name}
                           </p>
-                          <p className="text-[10px] text-slate-500 dark:text-[#A89884] font-mono truncate">
+                          <p className="text-[10px] text-[#374151] dark:text-[#DCD3C1] font-mono truncate">
                             {user.email}
                           </p>
                         </div>
@@ -594,7 +601,7 @@ export default function Navbar() {
                       <button
                         type="button"
                         onClick={logout}
-                        className="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 dark:bg-rose-500/20 dark:hover:bg-rose-500/35 text-rose-800 dark:text-rose-200 text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer border border-rose-300 dark:border-rose-500/40"
                         title={lang === 'bn' ? 'লগআউট' : 'Logout'}
                       >
                         <LogOut className="w-3 h-3" />
@@ -611,30 +618,41 @@ export default function Navbar() {
                         setDrawerOpen(false);
                         setIsGoogleModalOpen(true);
                       }}
-                      className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 hover:bg-slate-50 dark:hover:bg-[#25221E] text-xs font-bold text-slate-800 dark:text-[#EDE8DF] transition shadow-sm cursor-pointer"
+                      className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 hover:bg-slate-50 dark:hover:bg-[#25221E] text-xs font-bold text-[#0C0A09] dark:text-[#FDFBF7] transition shadow-sm cursor-pointer"
                     >
                       <GoogleLogo className="w-3.5 h-3.5 shrink-0" />
                       <span>{lang === 'bn' ? 'গুগল সাইন ইন' : 'Google Login'}</span>
                     </button>
 
-                    <Link
-                      to="/admin"
-                      onClick={() => setDrawerOpen(false)}
-                      className={`flex items-center justify-center gap-1.5 p-2 rounded-xl text-xs font-bold transition shadow-sm ${
-                        user?.role === 'admin'
-                          ? 'bg-rose-600 hover:bg-rose-500 text-white'
-                          : 'bg-amber-600 hover:bg-amber-500 text-white'
-                      }`}
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                      <span>{lang === 'bn' ? 'এডমিন কনসোল' : 'Admin Console'}</span>
-                    </Link>
+                    {isAuthorizedAdmin ? (
+                      <Link
+                        to="/admin"
+                        onClick={() => setDrawerOpen(false)}
+                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl text-xs font-bold transition shadow-sm bg-[#BD452F] hover:bg-[#9C3320] text-white"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span>{lang === 'bn' ? 'এডমিন কনসোল' : 'Admin Console'}</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        to={user && user.role !== 'guest' ? '/profile' : '/student-portal'}
+                        onClick={() => setDrawerOpen(false)}
+                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl text-xs font-bold transition shadow-sm bg-emerald-700 hover:bg-emerald-600 text-white"
+                      >
+                        <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+                        <span>
+                          {user && user.role !== 'guest'
+                            ? (lang === 'bn' ? 'আমার প্রোফাইল' : 'My Profile')
+                            : (lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'Student Portal')}
+                        </span>
+                      </Link>
+                    )}
                   </div>
                 </div>
 
                 {/* Directory Links List */}
                 <div className="space-y-2.5 flex-1">
-                  <span className="text-[10px] font-mono-tech uppercase tracking-wider text-[#854D0E] dark:text-[#A89884] block mb-2 font-bold">
+                  <span className="text-[10px] font-mono-tech uppercase tracking-wider text-[#854D0E] dark:text-[#DFCA9E] block mb-2 font-bold">
                     {lang === 'bn' ? '— বিশেষায়িত পোর্টাল সূচি' : '— SPECIALIZED ARCHIVES'}
                   </span>
 
@@ -646,36 +664,36 @@ export default function Navbar() {
                         key={item.to}
                         to={item.to}
                         onClick={() => setDrawerOpen(false)}
-                        className={`drawer-archive-card flex items-start gap-3.5 p-3.5 rounded-xl border transition-all ${
+                        className={`flex items-start gap-3.5 p-3.5 rounded-xl border transition-all ${
                           isActive
-                            ? 'bg-[#FBF0EE] dark:bg-[#BD452F]/25 border-2 border-[#BD452F] ring-2 ring-[#BD452F]/20 shadow-lg scale-[1.01]'
-                            : 'bg-white dark:bg-[#1E1C18] border-[#C5A880]/30 dark:border-[#C5A880]/15 hover:border-[#854D0E]/60 dark:hover:border-[#C5A880]/40 hover:bg-[#F8F5EE] dark:hover:bg-[#25221E] shadow-sm'
+                            ? 'drawer-archive-card-active shadow-lg scale-[1.01]'
+                            : 'drawer-archive-card bg-white dark:bg-[#1E1C18] border-[#C5A880]/30 dark:border-[#C5A880]/20 hover:border-[#854D0E]/60 dark:hover:border-[#C5A880]/45 hover:bg-[#F8F5EE] dark:hover:bg-[#25221E] shadow-sm'
                         }`}
                       >
                         <div className={`p-2.5 rounded-lg mt-0.5 shrink-0 transition-colors ${
                           isActive
-                            ? 'bg-[#BD452F] text-white shadow-md'
-                            : 'bg-[#F4EFE6] dark:bg-[#121110] border border-[#C5A880]/40 dark:border-[#C5A880]/20 text-[#854D0E] dark:text-[#DFCA9E]'
+                            ? 'drawer-active-icon shadow-md'
+                            : 'bg-[#F4EFE6] dark:bg-[#121110] border border-[#C5A880]/40 dark:border-[#C5A880]/25 text-[#854D0E] dark:text-[#DFCA9E]'
                         }`}>
                           <IconComponent className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <span className={`drawer-archive-title text-xs font-bold font-sans ${
-                              isActive ? 'text-[#BD452F] dark:text-white font-extrabold' : 'text-[#0C0A09] dark:text-[#FDFBF7]'
+                            <span className={`text-xs font-bold font-sans ${
+                              isActive ? 'drawer-active-title font-extrabold' : 'drawer-archive-title text-[#0C0A09] dark:text-[#FDFBF7]'
                             }`}>
                               {lang === 'bn' ? item.labelBn : item.labelEn}
                             </span>
                             {isActive ? (
-                              <span className="px-2 py-0.5 rounded-full text-[9px] font-mono-tech font-bold bg-[#BD452F] text-white shrink-0 shadow-sm animate-pulse">
+                              <span className="drawer-current-badge px-2.5 py-0.5 rounded-full text-[9px] font-mono-tech font-extrabold tracking-wider shrink-0 shadow-sm">
                                 {lang === 'bn' ? 'বর্তমান পেজ' : 'CURRENT PAGE'}
                               </span>
                             ) : (
                               <ArrowUpRight className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E] shrink-0" />
                             )}
                           </div>
-                          <p className={`drawer-archive-desc text-[11px] mt-0.5 truncate font-sans font-medium leading-relaxed ${
-                            isActive ? 'text-[#8C2B18] dark:text-[#F5D0C9] font-bold' : 'text-[#44403C] dark:text-[#DCD3C1]'
+                          <p className={`text-[11px] mt-0.5 truncate font-sans leading-relaxed ${
+                            isActive ? 'drawer-active-desc font-semibold' : 'drawer-archive-desc text-[#374151] dark:text-[#DCD3C1] font-medium'
                           }`}>
                             {lang === 'bn' ? item.descBn : item.descEn}
                           </p>

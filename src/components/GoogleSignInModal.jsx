@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
-import { X, ShieldCheck, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, ShieldCheck } from 'lucide-react';
 
 export function GoogleLogo({ className = "w-5 h-5" }) {
   return (
@@ -36,7 +36,7 @@ export function GoogleSignInButton({ onClick, text, className = "" }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A1916] hover:bg-slate-50 dark:hover:bg-[#24221E] text-slate-800 dark:text-[#EDE8DF] font-bold text-xs sm:text-sm flex items-center justify-center gap-3 shadow-sm hover:shadow transition active:scale-[0.99] cursor-pointer ${className}`}
+      className={`w-full py-3 px-4 rounded-xl border border-slate-300 dark:border-[#C5A880]/40 bg-white dark:bg-[#1E1C18] hover:bg-slate-50 dark:hover:bg-[#282520] text-[#0C0A09] dark:text-[#FDFBF7] font-bold text-xs sm:text-sm flex items-center justify-center gap-3 shadow-sm hover:shadow transition active:scale-[0.99] cursor-pointer ${className}`}
     >
       <GoogleLogo className="w-5 h-5 shrink-0" />
       <span>{label}</span>
@@ -44,14 +44,102 @@ export function GoogleSignInButton({ onClick, text, className = "" }) {
   );
 }
 
+function decodeJwtPayload(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
 export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
-  const { lang, loginWithGmail, showToast, adminEmails } = useApp();
+  const { lang, theme, loginWithGmail, showToast, googleClientId } = useApp();
   const [emailInput, setEmailInput] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [gsiReady, setGsiReady] = useState(false);
+  const [gsiError, setGsiError] = useState('');
+  const gsiButtonRef = useRef(null);
+
+  const activeClientId = (googleClientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
 
   // Lock background scroll when open
   useScrollLock(Boolean(isOpen));
+
+  useEffect(() => {
+    if (!isOpen || !activeClientId) {
+      setGsiReady(false);
+      return;
+    }
+
+    let cancelled = false;
+    let attempts = 0;
+
+    const tryInitGsi = () => {
+      if (cancelled) return;
+      if (window.google?.accounts?.id && gsiButtonRef.current) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: activeClientId,
+            callback: (response) => {
+              const payload = decodeJwtPayload(response?.credential || '');
+              if (!payload || !payload.email) {
+                setGsiError(lang === 'bn' ? 'গুগল অ্যাকাউন্ট যাচাই করা যায়নি।' : 'Could not verify Google account response.');
+                return;
+              }
+              const email = String(payload.email).toLowerCase().trim();
+              const name = payload.name || '';
+              const picture = payload.picture || '';
+              const user = loginWithGmail(email, name, { avatar: picture, googleVerified: Boolean(payload.email_verified) });
+              showToast?.(
+                lang === 'bn'
+                  ? `✓ গুগল অ্যাকাউন্ট দিয়ে সফলভাবে লগইন হয়েছে: ${email}`
+                  : `✓ Signed in with Google: ${email}`
+              );
+              if (onSuccess) onSuccess(user);
+              onClose();
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true
+          });
+
+          gsiButtonRef.current.innerHTML = '';
+          window.google.accounts.id.renderButton(gsiButtonRef.current, {
+            type: 'standard',
+            theme: theme === 'dark' ? 'filled_black' : 'outline',
+            size: 'large',
+            text: 'continue_with',
+            shape: 'pill',
+            width: Math.min(340, gsiButtonRef.current.offsetWidth || 320)
+          });
+          setGsiReady(true);
+          setGsiError('');
+        } catch (err) {
+          setGsiError(err?.message || 'Google Sign-In initialization error.');
+        }
+        return;
+      }
+
+      attempts += 1;
+      if (attempts < 25) {
+        setTimeout(tryInitGsi, 200);
+      }
+    };
+
+    tryInitGsi();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, activeClientId, theme, lang]);
 
   if (!isOpen || typeof document === 'undefined') return null;
 
@@ -75,13 +163,7 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
       );
       if (onSuccess) onSuccess(user);
       onClose();
-    }, 350);
-  };
-
-  const handleAdminQuickFill = () => {
-    const adminEmail = (adminEmails && adminEmails[0]) || 'megasonic298@gmail.com';
-    setEmailInput(adminEmail);
-    setNameInput('Megasonic Super Admin');
+    }, 250);
   };
 
   return createPortal(
@@ -103,14 +185,14 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
         data-lenis-prevent="true"
-        className="w-full max-w-md bg-white dark:bg-[#181715] border border-slate-200 dark:border-[#C5A880]/30 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-[#1C1917] dark:text-[#EDE8DF] max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-md bg-white dark:bg-[#181715] border border-slate-300 dark:border-[#C5A880]/35 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-[#0C0A09] dark:text-[#FDFBF7] max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
         style={{ willChange: 'transform, opacity' }}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 dark:bg-[#201E1A] text-slate-500 hover:text-black dark:hover:text-white transition cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 dark:bg-[#25221E] text-[#1C1917] dark:text-[#FDFBF7] hover:bg-slate-200 dark:hover:bg-[#332E28] transition cursor-pointer"
           aria-label="Close"
         >
           <X className="w-4 h-4" />
@@ -118,88 +200,94 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
 
         {/* Google Header */}
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#201E1A] shadow-md border border-slate-200 dark:border-slate-800 flex items-center justify-center mx-auto mb-3">
+          <div className="w-14 h-14 rounded-2xl bg-white dark:bg-[#201E1A] shadow-md border border-slate-200 dark:border-[#C5A880]/30 flex items-center justify-center mx-auto mb-3">
             <GoogleLogo className="w-8 h-8" />
           </div>
-          <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-[#FDFBF7]">
-            {lang === 'bn' ? 'গুগল দিয়ে প্রবেশ করুন' : 'Sign in with Google'}
+          <h3 className="text-lg sm:text-xl font-black text-[#0C0A09] dark:text-[#FDFBF7]">
+            {lang === 'bn' ? 'গুগল দিয়ে সাইন ইন করুন' : 'Continue with Google'}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-[#A89884] mt-1">
+          <p className="text-xs text-[#374151] dark:text-[#DCD3C1] mt-1 font-medium">
             {lang === 'bn'
               ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ প্ল্যাটফর্মে আপনার গুগল অ্যাকাউন্ট যুক্ত করুন।'
-              : 'Connect your verified Google account to RTEC platform.'}
+              : 'Connect your Google account to the RTEC Alumni & Student platform.'}
           </p>
         </div>
 
-        {/* Quick Admin Helper Button */}
-        <div className="mb-4 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2">
-          <div className="text-left">
-            <span className="text-[10px] font-mono-tech font-bold uppercase text-amber-700 dark:text-amber-400 block">
-              {lang === 'bn' ? 'অ্যাডমিন অ্যাকাউন্ট লিংক:' : 'Admin Account:'}
-            </span>
-            <span className="text-xs font-mono-tech text-slate-800 dark:text-[#EDE8DF] font-bold">
-              megasonic298@gmail.com
-            </span>
+        {/* Official Google Identity Services Button when Google OAuth Client ID is configured */}
+        {activeClientId ? (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center justify-center py-2">
+              <div ref={gsiButtonRef} className="w-full flex justify-center min-h-[44px]" />
+              {!gsiReady && !gsiError && (
+                <p className="text-xs text-[#374151] dark:text-[#DCD3C1] mt-2 font-medium">
+                  {lang === 'bn' ? 'গুগল সাইন-ইন লোড হচ্ছে...' : 'Loading Google Sign-In...'}
+                </p>
+              )}
+              {gsiError && (
+                <p className="text-xs text-rose-700 dark:text-rose-300 mt-2 font-semibold text-center">
+                  {gsiError}
+                </p>
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={handleAdminQuickFill}
-            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-bold font-mono-tech transition cursor-pointer shrink-0"
-          >
-            {lang === 'bn' ? 'অটো-পূরণ' : 'Auto Fill'}
-          </button>
-        </div>
+        ) : (
+          /* Clean Google Email Sign-in Form (Zero admin leaks or autofill) */
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-[#1C1917] dark:text-[#FDFBF7] mb-1.5">
+                {lang === 'bn' ? 'জিমেইল ঠিকানা (Google Email)' : 'Google Email'}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="your.email@gmail.com"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/35 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#6B7280] dark:placeholder-[#A89884] focus:outline-none focus:border-blue-500 font-mono"
+                />
+              </div>
+              <span className="text-[11px] text-[#44403C] dark:text-[#DCD3C1] mt-1 block font-medium">
+                {lang === 'bn' ? '* আপনার ব্যক্তিগত জিমেইল ঠিকানা লিখুন' : '* Enter your Google / Gmail address'}
+              </span>
+            </div>
 
-        {/* Google Sign-in Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-[#DCD3C1] mb-1.5">
-              {lang === 'bn' ? 'জিমেইল ঠিকানা (Gmail Address)' : 'Google Email'}
-            </label>
-            <div className="relative">
+            <div>
+              <label className="block text-xs font-bold text-[#1C1917] dark:text-[#FDFBF7] mb-1.5">
+                {lang === 'bn' ? 'আপনার নাম (ঐচ্ছিক)' : 'Full Name (Optional)'}
+              </label>
               <input
                 type="text"
-                required
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="your.email@gmail.com"
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 text-xs text-slate-900 dark:text-[#FDFBF7] placeholder-slate-400 focus:outline-none focus:border-blue-500 font-mono"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder={lang === 'bn' ? 'আপনার পূর্ণ নাম লিখুন' : 'Enter your full name'}
+                className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/35 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#6B7280] dark:placeholder-[#A89884] focus:outline-none focus:border-blue-500 font-sans"
               />
             </div>
-            <span className="text-[10px] text-slate-500 dark:text-[#A89884] mt-1 block">
-              {lang === 'bn' ? '* শুধু ইউজারনেম লিখলেও হবে (@gmail.com স্বয়ংক্রিয় যুক্ত হবে)' : '* e.g. student@gmail.com'}
-            </span>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-[#DCD3C1] mb-1.5">
-              {lang === 'bn' ? 'আপনার নাম (Name - ঐচ্ছিক)' : 'Name (Optional)'}
-            </label>
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder={lang === 'bn' ? 'উদা: সাকিব আল হাসান' : 'e.g. Shakib Al Hasan'}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 text-xs text-slate-900 dark:text-[#FDFBF7] placeholder-slate-400 focus:outline-none focus:border-blue-500 font-sans"
-            />
-          </div>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 rounded-xl bg-[#4285F4] hover:bg-[#3367D6] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition cursor-pointer disabled:opacity-50"
-            >
-              <GoogleLogo className="w-4 h-4 bg-white rounded-full p-0.5" />
-              <span>{isLoading ? (lang === 'bn' ? 'সংযোগ হচ্ছে...' : 'Signing in...') : (lang === 'bn' ? 'লগইন করুন (Continue)' : 'Continue with Google')}</span>
-            </button>
-          </div>
-        </form>
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-blue-600/25 transition cursor-pointer disabled:opacity-50"
+              >
+                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <GoogleLogo className="w-3.5 h-3.5" />
+                </span>
+                <span>
+                  {isLoading
+                    ? (lang === 'bn' ? 'সংযোগ হচ্ছে...' : 'Signing in...')
+                    : (lang === 'bn' ? 'গুগল দিয়ে প্রবেশ করুন' : 'Continue with Google')}
+                </span>
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="mt-4 text-center">
-          <p className="text-[10px] text-slate-400 dark:text-[#888] flex items-center justify-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-emerald-500" />
-            <span>{lang === 'bn' ? 'নিরাপদ গুগল ওয়ান-ক্লিক প্রমাণীকরণ' : 'Verified Google Authentication'}</span>
+          <p className="text-[11px] text-[#374151] dark:text-[#DCD3C1] flex items-center justify-center gap-1.5 font-medium">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>{lang === 'bn' ? 'নিরাপদ গুগল অ্যাকাউন্ট প্রমাণীকরণ' : 'Secure Google Account Authentication'}</span>
           </p>
         </div>
       </motion.div>

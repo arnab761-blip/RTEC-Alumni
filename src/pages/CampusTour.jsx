@@ -97,7 +97,7 @@ export default function CampusTour() {
   }, [autoTour]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] overflow-hidden bg-slate-950 select-none">
+    <div className="relative w-full h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] overflow-hidden bg-slate-950 select-none on-dark-media">
       
       {/* 3D WebGL Canvas Scene with Google Earth Style 360-Degree Controls */}
       <CampusScene

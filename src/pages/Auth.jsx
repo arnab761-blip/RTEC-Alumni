@@ -76,22 +76,11 @@ export default function Auth() {
     login(
       role,
       email,
-      name || matchedStudent?.name || (role === 'admin' ? 'College Administrator' : 'Registered Member'),
+      name || matchedStudent?.name || 'Registered Member',
       batch,
       dept,
       { phone, regNo }
     );
-    navigate('/profile');
-  };
-
-  const handleQuickDemo = (demoRole) => {
-    if (demoRole === 'admin') {
-      login('admin', 'megasonic298@gmail.com', 'College Administrator (megasonic298)', 'Faculty', 'Administration');
-    } else if (demoRole === 'student') {
-      login('student', 'student@rtec.ac.bd', 'Samiul Bashar', '8th Batch (2025-26)', 'Yarn Engineering', { regNo: '8025101', phone: '01712000001' });
-    } else {
-      login('alumni', 'tanvir.ahmed@example.com', 'Engr. Tanvir Ahmed', '1st Batch (2018-19)', 'Yarn Engineering', { regNo: '1018101', phone: '01711000001' });
-    }
     navigate('/profile');
   };
 
@@ -121,21 +110,20 @@ export default function Auth() {
           </p>
         </div>
 
-        {/* Role Switcher Tabs */}
-        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-900 border border-slate-800 mb-5">
+        {/* Role Switcher Tabs (Alumni & Student only) */}
+        <div className="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-[#F4EFE6] dark:bg-slate-900 border border-[#C5A880]/30 dark:border-slate-800 mb-5">
           {[
-            { id: 'alumni', labelBn: 'প্রাক্তন', labelEn: 'Alumni' },
-            { id: 'student', labelBn: 'শিক্ষার্থী', labelEn: 'Student' },
-            { id: 'admin', labelBn: 'অ্যাডমিন', labelEn: 'Admin' }
+            { id: 'alumni', labelBn: 'প্রাক্তন (Alumni)', labelEn: 'Alumni' },
+            { id: 'student', labelBn: 'শিক্ষার্থী (Student)', labelEn: 'Student' }
           ].map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setRole(item.id)}
-              className={`py-2 rounded-xl text-[11px] font-bold transition text-center ${
+              className={`py-2 rounded-xl text-xs font-bold transition text-center cursor-pointer ${
                 role === item.id
                   ? 'bg-emerald-600 text-white shadow'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[#374151] dark:text-slate-300 hover:text-[#0C0A09] dark:hover:text-white'
               }`}
             >
               {lang === 'bn' ? item.labelBn : item.labelEn}
@@ -257,7 +245,6 @@ export default function Auth() {
               <input
                 type="password"
                 required
-                defaultValue="123456"
                 placeholder="••••••••"
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
               />
@@ -339,33 +326,6 @@ export default function Auth() {
             <GraduationCap className="w-3.5 h-3.5" />
             <span>{lang === 'bn' ? 'স্টুডেন্ট সেলফ-ইনপুট পোর্টালে যান →' : 'Go to Student Self-Input Portal →'}</span>
           </Link>
-        </div>
-
-        {/* One-click Demo Logins */}
-        <div className="mt-6 pt-5 border-t border-slate-800 text-center">
-          <p className="text-[11px] text-slate-400 mb-2.5 font-medium">
-            {lang === 'bn' ? 'এক ক্লিকে ডেমো লগইন পরীক্ষা করুন:' : 'One-Click Demo Access:'}
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => handleQuickDemo('alumni')}
-              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-bold text-emerald-300 transition cursor-pointer"
-            >
-              {lang === 'bn' ? 'প্রাক্তন অ্যালামনাই' : 'Alumni Demo'}
-            </button>
-            <button
-              onClick={() => handleQuickDemo('student')}
-              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-bold text-sky-300 transition cursor-pointer"
-            >
-              {lang === 'bn' ? 'বর্তমান শিক্ষার্থী' : 'Student Demo'}
-            </button>
-            <button
-              onClick={() => handleQuickDemo('admin')}
-              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] font-bold text-amber-300 transition cursor-pointer"
-            >
-              {lang === 'bn' ? 'অ্যাডমিন মোড' : 'Admin Demo'}
-            </button>
-          </div>
         </div>
 
         {/* Google Sign-in Modal */}

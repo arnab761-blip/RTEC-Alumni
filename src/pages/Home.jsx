@@ -62,7 +62,8 @@ const staggerContainer = {
 };
 
 export default function Home() {
-  const { teachers, students, alumni, events, jobs, campaigns, forumPosts = [], news = [], lang } = useApp();
+  const { teachers, students, alumni, events, jobs, campaigns, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
+  const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const recentNotices = [...news].reverse().slice(0, 3);
 
   return (
@@ -178,14 +179,16 @@ export default function Home() {
                   <span>{lang === 'bn' ? `অনুষদ (${teachers.length})` : `Faculty (${teachers.length})`}</span>
                 </Link>
 
-                <Link
-                  to="/admin"
-                  className="px-3.5 py-3 rounded bg-[#BD452F]/10 dark:bg-[#BD452F]/20 hover:bg-[#BD452F]/20 dark:hover:bg-[#BD452F]/30 border border-[#BD452F]/40 text-xs text-[#BD452F] dark:text-[#DE644E] transition font-mono-tech flex items-center gap-1.5 font-bold"
-                  title="Administrative Console"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{lang === 'bn' ? 'এডমিন' : 'Admin'}</span>
-                </Link>
+                {isAuthorizedAdmin && (
+                  <Link
+                    to="/admin"
+                    className="px-3.5 py-3 rounded bg-[#BD452F]/10 dark:bg-[#BD452F]/20 hover:bg-[#BD452F]/20 dark:hover:bg-[#BD452F]/30 border border-[#BD452F]/40 text-xs text-[#BD452F] dark:text-[#DE644E] transition font-mono-tech flex items-center gap-1.5 font-bold"
+                    title="Administrative Console"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{lang === 'bn' ? 'এডমিন' : 'Admin'}</span>
+                  </Link>
+                )}
               </motion.div>
 
               {/* Quick Latest Notice Alert Ticker */}
@@ -335,78 +338,88 @@ export default function Home() {
           </div>
 
           {/* 3 Featured Notices Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {recentNotices.map((notice, idx) => (
-              <div
-                key={notice.id || idx}
-                className="plaque-espresso rounded-xl p-5 sm:p-6 border border-[#C5A880]/25 hover:border-[#C5A880]/50 transition-all duration-300 flex flex-col justify-between group shadow-lg"
-              >
-                <div>
-                  {/* Category & Date */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="px-2.5 py-0.5 rounded text-[11px] font-mono-tech font-bold uppercase tracking-wide bg-[#DE644E]/20 text-[#DE644E] border border-[#DE644E]/30">
-                      {notice.category || 'Notice'}
-                    </span>
-                    <span className="text-[11px] font-mono-tech text-[#A89884] flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-[#C5A880]" />
-                      <span>{notice.date}</span>
-                    </span>
+          {recentNotices.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {recentNotices.map((notice, idx) => (
+                <div
+                  key={notice.id || idx}
+                  className="plaque-espresso rounded-xl p-5 sm:p-6 border border-[#C5A880]/25 hover:border-[#C5A880]/50 transition-all duration-300 flex flex-col justify-between group shadow-lg"
+                >
+                  <div>
+                    {/* Category & Date */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="px-2.5 py-0.5 rounded text-[11px] font-mono-tech font-bold uppercase tracking-wide bg-[#DE644E]/20 text-[#DE644E] border border-[#DE644E]/30">
+                        {notice.category || 'Notice'}
+                      </span>
+                      <span className="text-[11px] font-mono-tech text-[#A89884] flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-[#C5A880]" />
+                        <span>{notice.date}</span>
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="font-serif-regal font-bold text-base sm:text-lg text-[#FDFBF7] group-hover:text-[#DFCA9E] transition-colors leading-snug line-clamp-2">
+                      {lang === 'bn' ? (notice.titleBn || notice.title) : (notice.title || notice.titleBn)}
+                    </h3>
+
+                    {/* Excerpt / Summary */}
+                    <p className="text-xs text-[#DCD3C1] font-sans mt-2.5 line-clamp-3 leading-relaxed">
+                      {notice.summaryBn || notice.summary || notice.content || notice.description}
+                    </p>
+
+                    {/* PDF / Attachment Action Links */}
+                    <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex flex-wrap gap-2">
+                      {notice.pdfUrl && (
+                        <a
+                          href={notice.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#DE644E]/15 hover:bg-[#DE644E]/25 text-[#DE644E] border border-[#DE644E]/40 text-xs font-mono-tech font-bold transition shadow-sm"
+                          title={lang === 'bn' ? 'অফিসিয়াল PDF ডাউনলোড বা দেখুন' : 'Download or View PDF'}
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>{lang === 'bn' ? 'অফিসিয়াল PDF ডাউনলোড' : 'Download PDF'}</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      )}
+                      {notice.imageUrl && (
+                        <a
+                          href={notice.imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1A1916] hover:bg-[#22201A] text-[#DFCA9E] border border-[#C5A880]/20 text-xs font-mono-tech transition"
+                        >
+                          <span>{lang === 'bn' ? 'ছবি দেখুন' : 'View Image'}</span>
+                          <ExternalLink className="w-3 h-3 opacity-70" />
+                        </a>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="font-serif-regal font-bold text-base sm:text-lg text-[#FDFBF7] group-hover:text-[#DFCA9E] transition-colors leading-snug line-clamp-2">
-                    {lang === 'bn' ? (notice.titleBn || notice.title) : (notice.title || notice.titleBn)}
-                  </h3>
-
-                  {/* Excerpt / Summary */}
-                  <p className="text-xs text-[#DCD3C1] font-sans mt-2.5 line-clamp-3 leading-relaxed">
-                    {notice.summaryBn || notice.summary || notice.content || notice.description}
-                  </p>
-
-                  {/* PDF / Attachment Action Links */}
-                  <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex flex-wrap gap-2">
-                    {notice.pdfUrl && (
-                      <a
-                        href={notice.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#DE644E]/15 hover:bg-[#DE644E]/25 text-[#DE644E] border border-[#DE644E]/40 text-xs font-mono-tech font-bold transition shadow-sm"
-                        title={lang === 'bn' ? 'অফিসিয়াল PDF ডাউনলোড বা দেখুন' : 'Download or View PDF'}
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>{lang === 'bn' ? 'অফিসিয়াল PDF ডাউনলোড' : 'Download PDF'}</span>
-                        <ExternalLink className="w-3 h-3 opacity-70" />
-                      </a>
-                    )}
-                    {notice.imageUrl && (
-                      <a
-                        href={notice.imageUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1A1916] hover:bg-[#22201A] text-[#DFCA9E] border border-[#C5A880]/20 text-xs font-mono-tech transition"
-                      >
-                        <span>{lang === 'bn' ? 'ছবি দেখুন' : 'View Image'}</span>
-                        <ExternalLink className="w-3 h-3 opacity-70" />
-                      </a>
-                    )}
+                  {/* Footer Link */}
+                  <div className="mt-5 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between text-xs font-mono-tech">
+                    <span className="text-[11px] text-[#A89884]">
+                      {lang === 'bn' ? 'আরটেক প্রশাসন' : 'RTEC Admin'}
+                    </span>
+                    <Link
+                      to="/news"
+                      className="text-[#DFCA9E] hover:underline flex items-center gap-1 font-sans text-xs font-semibold"
+                    >
+                      <span>{lang === 'bn' ? 'বিস্তারিত নোটিশ পড়ুন →' : 'Read Full Circular →'}</span>
+                    </Link>
                   </div>
                 </div>
-
-                {/* Footer Link */}
-                <div className="mt-5 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between text-xs font-mono-tech">
-                  <span className="text-[11px] text-[#A89884]">
-                    {lang === 'bn' ? 'আরটেক প্রশাসন' : 'RTEC Admin'}
-                  </span>
-                  <Link
-                    to="/news"
-                    className="text-[#DFCA9E] hover:underline flex items-center gap-1 font-sans text-xs font-semibold"
-                  >
-                    <span>{lang === 'bn' ? 'বিস্তারিত নোটিশ পড়ুন →' : 'Read Full Circular →'}</span>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="plaque-espresso rounded-xl p-6 border border-[#C5A880]/25 text-center">
+              <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] font-sans font-medium">
+                {lang === 'bn'
+                  ? 'কলেজ প্রশাসন থেকে নতুন অফিসিয়াল নোটিশ বা সার্কুলার প্রকাশিত হলে এখানে প্রদর্শিত হবে।'
+                  : 'Official academic notices and circulars from RTEC administration will be published here.'}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -807,94 +820,114 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Asymmetric Editorial Grid (1 Large Magazine Feature + 3 Column Profile Cards) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* Feature Left Profile (5 Cols) */}
-            <div className="lg:col-span-5 plaque-elevated rounded-xl p-6 sm:p-8 border border-[#C5A880]/30 flex flex-col justify-between relative">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-[#C5A880]/15 text-[10px] font-mono-tech text-[#A89884]">
-                  <span className="text-[#DFCA9E]">ALUMNI SPOTLIGHT</span>
-                  <span>1ST BATCH (2018-19)</span>
-                </div>
+          {/* Asymmetric Editorial Grid (Shown when verified alumni exist) */}
+          {alumni.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Feature Left Profile (5 Cols) */}
+              <div className="lg:col-span-5 plaque-elevated rounded-xl p-6 sm:p-8 border border-[#C5A880]/30 flex flex-col justify-between relative">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#C5A880]/15 text-[10px] font-mono-tech text-[#A89884]">
+                    <span className="text-[#DFCA9E]">ALUMNI SPOTLIGHT</span>
+                    <span>{alumni[0]?.batch || 'RTEC ALUMNI'}</span>
+                  </div>
 
-                <div className="relative h-64 w-full rounded-lg overflow-hidden border border-[#C5A880]/25 bg-[#121110]">
-                  <UserAvatar
-                    src={alumni[0]?.avatar}
-                    name={alumni[0]?.name}
-                    role="alumni"
-                    className="w-full h-full rounded-none"
-                    iconClassName="w-20 h-20"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#121110] via-transparent to-transparent pointer-events-none" />
-                  <span className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-[#181715]/90 text-[#DFCA9E] text-xs font-mono-tech border border-[#C5A880]/30">
-                    {alumni[0]?.company}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7]">
-                    {alumni[0]?.name}
-                  </h3>
-                  <p className="text-xs text-[#DFCA9E] font-mono-tech mt-0.5">
-                    {alumni[0]?.role} • {alumni[0]?.batch}
-                  </p>
-                  <p className="text-xs text-[#DCD3C1] font-sans mt-2 leading-relaxed">
-                    {alumni[0]?.bio || 'Dedicated to leading industrial spinning operations and empowering junior engineers from RTEC.'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-4 mt-4 border-t border-[#C5A880]/15 flex items-center justify-between text-xs font-mono-tech">
-                <span className="text-[#A89884]">{alumni[0]?.location}</span>
-                <Link to="/directory" className="text-[#DFCA9E] hover:underline flex items-center gap-1">
-                  <span>{lang === 'bn' ? 'প্রোফাইল ফাইল →' : 'View File →'}</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Right 7 Cols: 3 Compact Technical ID Badges */}
-            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {alumni.slice(1, 5).map((alm, idx) => (
-                <div
-                  key={alm.id}
-                  className="plaque-espresso rounded-xl p-5 border border-[#C5A880]/20 flex flex-col justify-between hover:border-[#C5A880]/50 transition"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <UserAvatar
-                        src={alm.avatar}
-                        name={alm.name}
-                        role="alumni"
-                        className="w-14 h-14 rounded-lg border border-[#C5A880]/30"
-                      />
-                      <span className="px-2 py-0.5 rounded bg-[#121110] text-[#DFCA9E] text-[10px] font-mono-tech border border-[#C5A880]/20">
-                        {alm.passingYear || 'PASS'}
+                  <div className="relative h-64 w-full rounded-lg overflow-hidden border border-[#C5A880]/25 bg-[#121110] on-dark-media">
+                    <UserAvatar
+                      src={alumni[0]?.avatar}
+                      name={alumni[0]?.name}
+                      role="alumni"
+                      className="w-full h-full rounded-none"
+                      iconClassName="w-20 h-20"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#121110] via-transparent to-transparent pointer-events-none" />
+                    {alumni[0]?.company && (
+                      <span className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-[#181715]/90 text-white keep-white text-xs font-mono-tech border border-[#C5A880]/30">
+                        {alumni[0].company}
                       </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7]">
+                      {alumni[0]?.name}
+                    </h3>
+                    <p className="text-xs text-[#DFCA9E] font-mono-tech mt-0.5">
+                      {alumni[0]?.role} {alumni[0]?.batch ? `• ${alumni[0].batch}` : ''}
+                    </p>
+                    {alumni[0]?.bio && (
+                      <p className="text-xs text-[#DCD3C1] font-sans mt-2 leading-relaxed">
+                        {alumni[0].bio}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-4 mt-4 border-t border-[#C5A880]/15 flex items-center justify-between text-xs font-mono-tech">
+                  <span className="text-[#A89884]">{alumni[0]?.location || 'Bangladesh'}</span>
+                  <Link to="/directory" className="text-[#DFCA9E] hover:underline flex items-center gap-1">
+                    <span>{lang === 'bn' ? 'প্রোফাইল ফাইল →' : 'View File →'}</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right 7 Cols: Compact Technical ID Badges */}
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {alumni.slice(1, 5).map((alm, idx) => (
+                  <div
+                    key={alm.id}
+                    className="plaque-espresso rounded-xl p-5 border border-[#C5A880]/20 flex flex-col justify-between hover:border-[#C5A880]/50 transition"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <UserAvatar
+                          src={alm.avatar}
+                          name={alm.name}
+                          role="alumni"
+                          className="w-14 h-14 rounded-lg border border-[#C5A880]/30"
+                        />
+                        <span className="px-2 py-0.5 rounded bg-[#121110] text-[#DFCA9E] text-[10px] font-mono-tech border border-[#C5A880]/20">
+                          {alm.passingYear || 'VERIFIED'}
+                        </span>
+                      </div>
+
+                      <h4 className="font-serif-regal font-bold text-base text-[#FDFBF7]">
+                        {alm.name}
+                      </h4>
+                      <p className="text-[11px] font-mono-tech text-[#DFCA9E]">
+                        {alm.batch}
+                      </p>
+                      <p className="text-xs text-[#DCD3C1] mt-1 font-sans line-clamp-1">
+                        {alm.role}{alm.company ? ` @ ${alm.company}` : ''}
+                      </p>
                     </div>
 
-                    <h4 className="font-serif-regal font-bold text-base text-[#FDFBF7]">
-                      {alm.name}
-                    </h4>
-                    <p className="text-[11px] font-mono-tech text-[#DFCA9E]">
-                      {alm.batch}
-                    </p>
-                    <p className="text-xs text-[#DCD3C1] mt-1 font-sans line-clamp-1">
-                      {alm.role} @ {alm.company}
-                    </p>
+                    <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between text-[11px] font-mono-tech">
+                      <span className="text-[#A89884] truncate">{alm.department}</span>
+                      <Link to="/directory" className="text-[#DFCA9E] hover:underline shrink-0">
+                        ID-{idx + 2}
+                      </Link>
+                    </div>
                   </div>
+                ))}
+              </div>
 
-                  <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between text-[11px] font-mono-tech">
-                    <span className="text-[#A89884] truncate">{alm.department}</span>
-                    <Link to="/directory" className="text-[#DFCA9E] hover:underline shrink-0">
-                      ID-{idx + 2}
-                    </Link>
-                  </div>
-                </div>
-              ))}
             </div>
-
-          </div>
+          ) : (
+            <div className="plaque-elevated rounded-xl p-8 border border-[#C5A880]/25 text-center space-y-3">
+              <p className="text-sm text-[#374151] dark:text-[#DCD3C1] font-sans font-medium max-w-xl mx-auto">
+                {lang === 'bn'
+                  ? 'ভেরিফায়েড অ্যালামনাই প্রোফাইলগুলো অনুমোদিত হলে এখানে প্রদর্শিত হবে। স্টুডেন্ট পোর্টাল থেকে আপনার প্রোফাইল জমা দিন অথবা ডিরেক্টরি দেখুন।'
+                  : 'Verified RTEC alumni profiles will be showcased here as graduates register and verify their profiles.'}
+              </p>
+              <Link
+                to="/student-portal"
+                className="btn-agency btn-agency-terracotta px-5 py-2.5 rounded text-xs font-sans uppercase tracking-wider inline-flex"
+              >
+                <span>{lang === 'bn' ? 'প্রোফাইল নিবন্ধন করুন →' : 'Register Your Profile →'}</span>
+              </Link>
+            </div>
+          )}
 
         </div>
       </section>
@@ -929,33 +962,43 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {jobs.slice(0, 3).map((job) => (
-                <Link
-                  key={job.id}
-                  to="/jobs"
-                  className="block p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] hover:bg-[#F0EAE1] dark:hover:bg-[#1E1C18] border border-[#C5A880]/20 hover:border-[#C5A880]/50 transition group shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h4 className="font-sans font-bold text-sm text-[#0C0A09] dark:text-[#FDFBF7] group-hover:text-[#BD452F] dark:group-hover:text-[#DFCA9E] transition-colors line-clamp-2">
-                      {lang === 'bn' ? job.titleBn || job.title : job.title}
-                    </h4>
-                    <span className="text-[10px] font-mono-tech px-2 py-0.5 rounded bg-[#C5A880]/15 text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/30 font-bold shrink-0">
-                      {job.type}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-xs font-mono-tech text-[#57534E] dark:text-[#A89884] pt-2 border-t border-[#C5A880]/15">
-                    <div className="flex items-center gap-1.5 font-bold text-[#1C1917] dark:text-[#EDE8DF]">
-                      <span>{job.company}</span>
+            {jobs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {jobs.slice(0, 3).map((job) => (
+                  <Link
+                    key={job.id}
+                    to="/jobs"
+                    className="block p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] hover:bg-[#F0EAE1] dark:hover:bg-[#1E1C18] border border-[#C5A880]/20 hover:border-[#C5A880]/50 transition group shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h4 className="font-sans font-bold text-sm text-[#0C0A09] dark:text-[#FDFBF7] group-hover:text-[#BD452F] dark:group-hover:text-[#DFCA9E] transition-colors line-clamp-2">
+                        {lang === 'bn' ? job.titleBn || job.title : job.title}
+                      </h4>
+                      <span className="text-[10px] font-mono-tech px-2 py-0.5 rounded bg-[#C5A880]/15 text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/30 font-bold shrink-0">
+                        {job.type}
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] pt-1">
-                      <span>{job.location}</span>
-                      <span className="text-[#BD452F] dark:text-[#DE644E] font-bold">{job.salary}</span>
+                    <div className="space-y-1 text-xs font-mono-tech text-[#57534E] dark:text-[#A89884] pt-2 border-t border-[#C5A880]/15">
+                      <div className="flex items-center gap-1.5 font-bold text-[#1C1917] dark:text-[#EDE8DF]">
+                        <span>{job.company}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] pt-1">
+                        <span>{job.location}</span>
+                        <span className="text-[#BD452F] dark:text-[#DE644E] font-bold">{job.salary}</span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/20 text-center">
+                <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] font-sans font-medium">
+                  {lang === 'bn'
+                    ? 'নতুন চাকরির সার্কুলার বা রেফারাল পোস্ট করা হলে এখানে প্রদর্শিত হবে।'
+                    : 'Verified job openings and alumni referrals will appear here once posted.'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>

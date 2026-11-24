@@ -32,9 +32,9 @@ export default function Profile() {
   // Form State
   const [name, setName] = useState(user?.name || '');
   const [role, setRole] = useState(user?.company || '');
-  const [phone, setPhone] = useState('+880 1712-345678');
-  const [location, setLocation] = useState('Dhaka, Bangladesh');
-  const [bio, setBio] = useState('Textile Engineering graduate passionate about smart textiles, automation, and sustainable apparel production.');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [location, setLocation] = useState(user?.location || '');
+  const [bio, setBio] = useState(user?.bio || '');
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -78,11 +78,11 @@ export default function Profile() {
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-300 font-mono">
-                {user?.batch || '1st Batch (2011-12)'} • {user?.department || 'Yarn Engineering'}
+              <p className="text-xs sm:text-sm text-[#374151] dark:text-slate-300 font-mono font-medium">
+                {user?.batch || 'RTEC Member'} • {user?.department || 'Textile Engineering'}
               </p>
-              <p className="text-xs text-emerald-400 font-medium">
-                {user?.company || 'Square Textiles Ltd.'}
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
+                {user?.company || (user?.role === 'admin' ? 'RTEC Administration' : 'RTEC Student / Alumni')}
               </p>
               <p className="text-xs text-slate-400">
                 {user?.email}

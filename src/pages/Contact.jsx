@@ -92,8 +92,7 @@ export default function Contact() {
               </h3>
               <p className="text-xs text-[#DCD3C1] leading-relaxed font-mono-tech">
                 {lang === 'bn' ? 'অধ্যক্ষের দপ্তর: ' : 'Principal Desk: '}+880 521-55421<br />
-                {lang === 'bn' ? 'রেজিস্ট্রার শাখা: ' : 'Registrar Office: '}+880 1711-000000<br />
-                {lang === 'bn' ? 'অ্যালামনাই হেল্পডেস্ক: ' : 'Alumni Helpdesk: '}+880 1700-000000
+                {lang === 'bn' ? 'ওয়েবসাইট: ' : 'Official Portal: '}rtec.pirgonj.rangpur.gov.bd
               </p>
             </div>
 

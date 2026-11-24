@@ -66,30 +66,46 @@ export default function BuildingInfoModal({
         </div>
       </div>
 
-      {/* Main Image with Gradient Overlay */}
-      <div className="relative w-full h-36 sm:h-44 rounded-2xl overflow-hidden mb-3.5 border border-slate-700/50 group">
-        <img
-          src={landmark.image}
-          alt={landmark.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+      {/* Main Image with Gradient Overlay (Only if real photo exists, else architectural header) */}
+      {landmark.image ? (
+        <div className="relative w-full h-36 sm:h-44 rounded-2xl overflow-hidden mb-3.5 border border-slate-700/50 group on-dark-media">
+          <img
+            src={landmark.image}
+            alt={landmark.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
 
-        <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
+          <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-white keep-white tracking-wide leading-tight drop-shadow-md">
+                {landmark.name}
+              </h2>
+              <p className="text-xs text-emerald-300 keep-emerald-light font-mono tracking-wider font-semibold">
+                {landmark.nameEn}
+              </p>
+            </div>
+            <span className="px-2 py-0.5 rounded bg-slate-900/90 text-slate-200 keep-white text-[10px] font-mono border border-slate-700">
+              {landmark.code}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full rounded-2xl mb-3.5 p-4 bg-slate-900/95 border border-slate-700/70 flex items-end justify-between on-dark-media">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-white tracking-wide leading-tight drop-shadow-md">
+            <h2 className="text-lg sm:text-xl font-bold text-white keep-white tracking-wide leading-tight">
               {landmark.name}
             </h2>
-            <p className="text-xs text-emerald-400 font-mono tracking-wider font-semibold">
+            <p className="text-xs text-emerald-300 keep-emerald-light font-mono tracking-wider font-semibold mt-0.5">
               {landmark.nameEn}
             </p>
           </div>
-          <span className="px-2 py-0.5 rounded bg-slate-900/90 text-slate-300 text-[10px] font-mono border border-slate-700">
+          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 keep-white text-[10px] font-mono border border-slate-600">
             {landmark.code}
           </span>
         </div>
-      </div>
+      )}
 
       {/* Sub tabs */}
       <div className="flex border-b border-slate-800 mb-3 gap-1">

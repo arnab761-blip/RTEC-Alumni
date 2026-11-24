@@ -19,21 +19,24 @@ const sanitizeAvatar = (url) => {
   return url;
 };
 
-export const DEFAULT_ADMIN_EMAILS = ['megasonic298@gmail.com'];
+export const SUPER_ADMIN_EMAILS = ['megasonic298@gmail.com', 'arnab.rts761@gmail.com'];
+export const DEFAULT_ADMIN_EMAILS = [...SUPER_ADMIN_EMAILS];
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  // 0. Authorized Admin Emails List (Primary: megasonic298@gmail.com)
+  // 0. Authorized Admin Emails List (Super Admins: megasonic298@gmail.com, arnab.rts761@gmail.com)
   const [adminEmails, setAdminEmails] = useState(() => {
     const saved = localStorage.getItem('rtec_admin_emails');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const list = parsed.map(e => String(e).toLowerCase().trim());
-          if (!list.includes('megasonic298@gmail.com')) list.unshift('megasonic298@gmail.com');
-          return list;
+          const merged = Array.from(new Set([
+            ...SUPER_ADMIN_EMAILS,
+            ...parsed.map(e => String(e).toLowerCase().trim()).filter(Boolean)
+          ]));
+          return merged;
         }
       } catch (e) {}
     }
@@ -47,7 +50,23 @@ export function AppProvider({ children }) {
   const isAdminEmail = (email) => {
     if (!email || typeof email !== 'string') return false;
     const clean = email.toLowerCase().trim();
-    return clean === 'megasonic298@gmail.com' || adminEmails.some(e => e.toLowerCase().trim() === clean);
+    return SUPER_ADMIN_EMAILS.includes(clean) || adminEmails.some(e => e.toLowerCase().trim() === clean);
+  };
+
+  // Optional Google OAuth Client ID (for real Google Identity Services popup)
+  const [googleClientId, setGoogleClientIdState] = useState(() => {
+    return import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('rtec_google_client_id') || '';
+  });
+
+  const updateGoogleClientId = (clientId) => {
+    const clean = String(clientId || '').trim();
+    setGoogleClientIdState(clean);
+    if (clean) {
+      localStorage.setItem('rtec_google_client_id', clean);
+    } else {
+      localStorage.removeItem('rtec_google_client_id');
+    }
+    return clean;
   };
 
   // 1. Current Authenticated User (Defaults to a regular guest visitor)
@@ -62,14 +81,14 @@ export function AppProvider({ children }) {
         if (parsed.avatar) {
           parsed.avatar = sanitizeAvatar(parsed.avatar);
         }
-        // Strict Authorization: If parsed user claims admin role, verify their email!
+        // Strict Authorization: Verify admin role against authorized admin list!
+        const cleanEmail = (parsed.email || '').toLowerCase().trim();
         if (parsed.role === 'admin') {
-          const cleanEmail = (parsed.email || '').toLowerCase().trim();
-          if (cleanEmail !== 'megasonic298@gmail.com') {
+          if (!SUPER_ADMIN_EMAILS.includes(cleanEmail)) {
             const savedAdmins = localStorage.getItem('rtec_admin_emails');
-            let allowed = ['megasonic298@gmail.com'];
+            let allowed = [...SUPER_ADMIN_EMAILS];
             try {
-              if (savedAdmins) allowed = JSON.parse(savedAdmins);
+              if (savedAdmins) allowed = [...SUPER_ADMIN_EMAILS, ...JSON.parse(savedAdmins).map(e => String(e).toLowerCase().trim())];
             } catch (err) {}
             if (!allowed.includes(cleanEmail)) {
               parsed.role = 'student'; // Demote non-authorized users
@@ -239,10 +258,26 @@ export function AppProvider({ children }) {
     return [];
   });
 
-  // 6. Events List
+  // 6. Events List (Clean real events only - purge legacy dummy events)
   const [events, setEvents] = useState(() => {
     const saved = localStorage.getItem('rtec_events');
-    return saved ? JSON.parse(saved) : INITIAL_EVENTS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(e => {
+            const isLegacySeed = e.id === 'evt-1' || e.id === 'evt-2' || e.id === 'evt-3';
+            const hasUnsplash = typeof e.image === 'string' && e.image.includes('unsplash.com');
+            return !isLegacySeed && !hasUnsplash;
+          });
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('rtec_events', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_EVENTS;
   });
 
   // 7. Jobs List (Clean verified jobs only)
@@ -266,10 +301,26 @@ export function AppProvider({ children }) {
     return [];
   });
 
-  // 8. Fundraising Campaigns
+  // 8. Fundraising Campaigns (Clean real campaigns only)
   const [campaigns, setCampaigns] = useState(() => {
     const saved = localStorage.getItem('rtec_campaigns');
-    return saved ? JSON.parse(saved) : INITIAL_CAMPAIGNS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(c => {
+            const isLegacySeed = c.id === 'cmp-1' || c.id === 'cmp-2' || c.id === 'cmp-3';
+            const hasUnsplash = typeof c.image === 'string' && c.image.includes('unsplash.com');
+            return !isLegacySeed && !hasUnsplash;
+          });
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('rtec_campaigns', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_CAMPAIGNS;
   });
 
   // 9. News & Notices (Clean official notices only)
@@ -367,7 +418,23 @@ export function AppProvider({ children }) {
 
   const [memories, setMemories] = useState(() => {
     const saved = localStorage.getItem('rtec_memories');
-    return saved ? JSON.parse(saved) : INITIAL_MEMORIES;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const clean = parsed.filter(m => {
+            const isLegacySeed = ['mem-1', 'mem-2', 'mem-3', 'mem-4', 'mem-5', 'mem-6'].includes(m.id);
+            const hasUnsplash = typeof m.image === 'string' && m.image.includes('unsplash.com');
+            return !isLegacySeed && !hasUnsplash;
+          });
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('rtec_memories', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
+    }
+    return INITIAL_MEMORIES;
   });
 
   // 11. Student Self-Input Submissions (Pending Admin Approval)
@@ -522,11 +589,9 @@ export function AppProvider({ children }) {
     const phone = extra.phone ? String(extra.phone).trim() : '';
     const cleanEmail = (email || '').toLowerCase().trim();
 
-    // STRICT AUTHORIZATION: Only allow admin role if email is authorized!
-    let effectiveRole = role;
-    if (role === 'admin' && !isAdminEmail(cleanEmail)) {
-      effectiveRole = 'student';
-    }
+    // STRICT AUTHORIZATION: Grant admin ONLY if email is authorized!
+    const isAuthorizedAdmin = isAdminEmail(cleanEmail);
+    let effectiveRole = isAuthorizedAdmin ? 'admin' : (role === 'admin' ? 'student' : role);
 
     // If student/alumni logs in with a regNo, automatically bind phone and email to their student record in MongoDB & state!
     if (regNo) {
@@ -678,7 +743,7 @@ export function AppProvider({ children }) {
             setDisputes(dbDisputes);
           }
           if (Array.isArray(json.data.adminEmails) && json.data.adminEmails.length > 0) {
-            const list = Array.from(new Set(['megasonic298@gmail.com', ...json.data.adminEmails.map(e => e.toLowerCase().trim())]));
+            const list = Array.from(new Set([...SUPER_ADMIN_EMAILS, ...json.data.adminEmails.map(e => e.toLowerCase().trim())]));
             setAdminEmails(list);
             localStorage.setItem('rtec_admin_emails', JSON.stringify(list));
           }
@@ -940,7 +1005,7 @@ export function AppProvider({ children }) {
     const newEvent = {
       id: `evt-${Date.now()}`,
       seatsRegistered: 0,
-      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
+      image: '',
       ...eventData
     };
     setEvents(prev => [newEvent, ...prev]);
@@ -1034,7 +1099,7 @@ export function AppProvider({ children }) {
       id: `news-${Date.now()}`,
       date: new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }),
       views: 1,
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80',
+      image: '',
       ...newsData
     };
     setNews(prev => [newNotice, ...prev]);
@@ -1061,7 +1126,7 @@ export function AppProvider({ children }) {
       raised: 0,
       donorCount: 0,
       donors: [],
-      image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1200&q=80',
+      image: '',
       ...campData
     };
     setCampaigns(prev => [newCamp, ...prev]);
@@ -1529,8 +1594,9 @@ export function AppProvider({ children }) {
       batch: existingSub?.batch || additional.batch || '8th Batch (2025-26)',
       department: existingSub?.department || additional.department || 'Yarn Engineering',
       company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || 'Student at RTEC'),
-      avatar: sanitizeAvatar(existingSub?.avatar) || '',
-      isVerified: isMasterAdmin || existingSub?.status === 'approved',
+      avatar: sanitizeAvatar(additional.avatar || existingSub?.avatar) || '',
+      isVerified: isMasterAdmin || Boolean(additional.googleVerified) || existingSub?.status === 'approved',
+      googleVerified: Boolean(additional.googleVerified),
       regNo: existingSub?.regNo || additional.regNo || '',
       phone: existingSub?.phone || additional.phone || '',
       submissionStatus: existingSub?.status || 'none',
@@ -1544,27 +1610,32 @@ export function AppProvider({ children }) {
   // ============================================
   // ADMIN EMAILS AUTHORIZATION MANAGEMENT
   // ============================================
-  const addAdminEmail = (newEmail, note = 'Administrator') => {
-    if (!newEmail || typeof newEmail !== 'string') return false;
-    const clean = newEmail.toLowerCase().trim();
-    if (!clean.includes('@')) return false;
-    if (!adminEmails.includes(clean)) {
-      const updated = [...adminEmails, clean];
-      setAdminEmails(updated);
-      localStorage.setItem('rtec_admin_emails', JSON.stringify(updated));
-      syncEntityToMongo('/api/admin-emails', 'POST', {
-        email: clean,
-        addedBy: user?.email || 'megasonic298@gmail.com',
-        note
-      });
+  const addAdminEmail = async (newEmail, note = 'Administrator') => {
+    if (!newEmail || typeof newEmail !== 'string') {
+      return { success: false, message: 'Please enter a valid Gmail address.' };
     }
-    return true;
+    const clean = newEmail.toLowerCase().trim();
+    if (!clean.includes('@')) {
+      return { success: false, message: 'Invalid email address format.' };
+    }
+    if (adminEmails.some(e => e.toLowerCase().trim() === clean)) {
+      return { success: false, message: 'This email is already an authorized admin.' };
+    }
+    const updated = [...adminEmails, clean];
+    setAdminEmails(updated);
+    localStorage.setItem('rtec_admin_emails', JSON.stringify(updated));
+    syncEntityToMongo('/api/admin-emails', 'POST', {
+      email: clean,
+      addedBy: user?.email || 'megasonic298@gmail.com',
+      note
+    });
+    return { success: true };
   };
 
   const removeAdminEmail = (emailToRemove) => {
     const clean = String(emailToRemove || '').toLowerCase().trim();
-    if (clean === 'megasonic298@gmail.com') {
-      return false; // cannot delete primary super admin
+    if (SUPER_ADMIN_EMAILS.includes(clean)) {
+      return false; // cannot delete primary super admins
     }
     const updated = adminEmails.filter(e => e.toLowerCase().trim() !== clean);
     setAdminEmails(updated);
@@ -1798,6 +1869,8 @@ export function AppProvider({ children }) {
         addAdminEmail,
         removeAdminEmail,
         isAdminEmail,
+        googleClientId,
+        updateGoogleClientId,
         // System
         resetAllData
       }}

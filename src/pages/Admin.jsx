@@ -221,6 +221,8 @@ export default function Admin() {
     addAdminEmail,
     removeAdminEmail,
     isAdminEmail,
+    googleClientId = '',
+    updateGoogleClientId,
     // System
     resetAllData
   } = useApp();
@@ -231,6 +233,7 @@ export default function Admin() {
   const [isAdminGoogleModalOpen, setIsAdminGoogleModalOpen] = useState(false);
   const [newAdminEmailInput, setNewAdminEmailInput] = useState('');
   const [newAdminNoteInput, setNewAdminNoteInput] = useState('');
+  const [googleClientIdInput, setGoogleClientIdInput] = useState(googleClientId || '');
 
   // Footer Contact State
   const [footerPhone, setFooterPhone] = useState(footerContact?.phone || '+880 521-55421');
@@ -526,7 +529,7 @@ export default function Admin() {
   });
 
   // Strict Admin Authorization Guard
-  if (!user || user.role !== 'admin') {
+  if (!user || user.role !== 'admin' || !isAdminEmail?.(user.email)) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full plaque-elevated p-8 rounded-3xl border border-red-500/30 text-center space-y-6 shadow-2xl bg-white dark:bg-[#181715]">
@@ -541,10 +544,10 @@ export default function Admin() {
             <h2 className="text-xl sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
               {lang === 'bn' ? 'অফিসিয়াল অ্যাডমিন লগইন প্রয়োজন' : 'Admin Authorization Required'}
             </h2>
-            <p className="text-xs text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
+            <p className="text-xs text-[#374151] dark:text-[#DCD3C1] font-sans leading-relaxed font-medium">
               {lang === 'bn'
-                ? `এই প্যানেলটি শুধুমাত্র অনুমোদিত কলেজ অ্যাডমিনের জন্য সংরক্ষিত। অনুগ্রহ করে আপনার অনুমোদিত গুগল অ্যাকাউন্ট (${adminEmails[0] || 'megasonic298@gmail.com'}) দিয়ে সাইন ইন করুন।`
-                : `This console is restricted to verified administrators. Please sign in with your authorized Google administrator email (${adminEmails[0] || 'megasonic298@gmail.com'}).`}
+                ? 'এই প্যানেলটি শুধুমাত্র অনুমোদিত কলেজ অ্যাডমিনের জন্য সংরক্ষিত। অনুগ্রহ করে আপনার অনুমোদিত গুগল অ্যাকাউন্ট দিয়ে সাইন ইন করুন।'
+                : 'This console is restricted to verified college administrators. Please sign in with your authorized Google account.'}
             </p>
           </div>
 
@@ -3016,7 +3019,7 @@ export default function Admin() {
               {/* Admin Emails List */}
               <div className="space-y-2.5">
                 {adminEmails.map((admEmail) => {
-                  const isMaster = admEmail.toLowerCase() === 'megasonic298@gmail.com';
+                  const isMaster = ['megasonic298@gmail.com', 'arnab.rts761@gmail.com'].includes(admEmail.toLowerCase().trim());
                   return (
                     <div
                       key={admEmail}
@@ -3027,19 +3030,19 @@ export default function Admin() {
                           <Mail className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono-tech text-xs sm:text-sm font-bold text-[#FDFBF7] truncate">
                               {admEmail}
                             </span>
                             {isMaster && (
                               <span className="px-2 py-0.5 rounded text-[10px] font-mono-tech font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                                {lang === 'bn' ? 'মূল অ্যাডমিন' : 'Master Admin'}
+                                {lang === 'bn' ? 'সুপার অ্যাডমিন' : 'Super Admin'}
                               </span>
                             )}
                           </div>
                           <span className="text-[10px] text-[#A89884] block">
                             {isMaster
-                              ? (lang === 'bn' ? 'স্থায়ী সিস্টেম ওনার অ্যাডমিন' : 'Permanent System Owner')
+                              ? (lang === 'bn' ? 'স্থায়ী সিস্টেম সুপার অ্যাডমিন' : 'Permanent System Super Admin')
                               : (lang === 'bn' ? 'অনুমোদিত সহকারী অ্যাডমিন' : 'Authorized Sub-Admin')}
                           </span>
                         </div>
@@ -3150,27 +3153,58 @@ export default function Admin() {
                 </button>
               </div>
 
-              <div className="pt-6 border-t border-[#C5A880]/20 space-y-2">
-                <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span>{lang === 'bn' ? 'ডেমো ডেটা রিসেট করুন (Reset to Original Demo)' : 'Factory Reset Demo Data'}</span>
+              <div className="pt-6 border-t border-[#C5A880]/20 space-y-3">
+                <h4 className="text-sm font-bold text-[#FDFBF7] flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-blue-500" />
+                  <span>{lang === 'bn' ? 'Google OAuth Client ID সেটআপ (গুগল সাইন-ইন)' : 'Google OAuth Client ID (Real Google Sign-In)'}</span>
                 </h4>
                 <p className="text-xs text-[#A89884]">
                   {lang === 'bn'
-                    ? 'আগের ডিফল্ট স্যাম্পল ডেটায় ফিরে যেতে নিচের বাটনে ক্লিক করুন।'
-                    : 'Restore initial seed data for all faculty, students, and alumni.'}
+                    ? 'Google Cloud Console থেকে প্রাপ্ত Web OAuth Client ID এখানে দিলে সাইন-ইন পপআপে আসল গুগল অ্যাকাউন্ট পিকার (One-Click Google Sign-In) সক্রিয় হবে।'
+                    : 'Paste your Google Cloud OAuth 2.0 Web Client ID to activate official one-click Google Identity popup authentication.'}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={googleClientIdInput}
+                    onChange={(e) => setGoogleClientIdInput(e.target.value)}
+                    placeholder="xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-mono focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateGoogleClientId?.(googleClientIdInput);
+                      showToast(lang === 'bn' ? '✓ Google Client ID সংরক্ষিত হয়েছে!' : '✓ Google Client ID saved!');
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition cursor-pointer shrink-0"
+                  >
+                    {lang === 'bn' ? 'Client ID সংরক্ষণ করুন' : 'Save Client ID'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-[#C5A880]/20 space-y-2">
+                <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'লোকাল ক্যাশ রিসেট করুন (Reset Cache)' : 'Reset Local Cache'}</span>
+                </h4>
+                <p className="text-xs text-[#A89884]">
+                  {lang === 'bn'
+                    ? 'ব্রাউজারের লোকাল স্টোরেজ ক্যাশ পরিষ্কার করে মূল ডাটাবেজে ফিরে যেতে ক্লিক করুন।'
+                    : 'Clear local browser cache and restore official initial records.'}
                 </p>
                 <button
                   onClick={() => {
-                    if (window.confirm(lang === 'bn' ? 'আপনি কি নিশ্চিত যে সকল ডেটা রিসেট করে ডিফল্ট সেটিংসে ফিরিয়ে নিতে চান?' : 'Are you sure you want to reset all data to default seed?')) {
+                    if (window.confirm(lang === 'bn' ? 'আপনি কি নিশ্চিত যে লোকাল ক্যাশ রিসেট করতে চান?' : 'Are you sure you want to reset local cached data?')) {
                       resetAllData();
-                      showToast(lang === 'bn' ? 'সকল ডেটা সফলভাবে রিসেট করা হয়েছে!' : 'All data restored to factory defaults!');
+                      showToast(lang === 'bn' ? 'সকল লোকাল ক্যাশ সফলভাবে রিসেট করা হয়েছে!' : 'Local cache cleared and restored!');
                     }
                   }}
                   className="px-4 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-xs font-bold text-rose-300 flex items-center gap-2 transition"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>{lang === 'bn' ? 'ফ্যাক্টরি রিসেট চালান (Reset All)' : 'Perform Factory Reset'}</span>
+                  <span>{lang === 'bn' ? 'ক্যাশ রিসেট চালান (Reset Cache)' : 'Reset Local Cache'}</span>
                 </button>
               </div>
             </div>

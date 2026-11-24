@@ -71,7 +71,8 @@ export default function StudentPortal() {
     submitStudentProfile,
     loginWithGmail,
     logout,
-    submitDispute
+    submitDispute,
+    isAdminEmail
   } = useApp();
 
   // Active submission resolution:
@@ -434,10 +435,10 @@ export default function StudentPortal() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#57534E] dark:text-[#A89884] font-sans mt-0.5">
-                {user && user.role === 'admin'
+              <p className="text-xs text-[#374151] dark:text-[#DCD3C1] font-sans mt-0.5 font-medium">
+                {user && user.role === 'admin' && isAdminEmail?.(user.email)
                   ? (lang === 'bn' ? '✓ আপনি বর্তমানে অ্যাডমিন হিসেবে সংযুক্ত রয়েছেন।' : '✓ You are logged in with Administrator privileges.')
-                  : (lang === 'bn' ? 'অ্যাডমিন প্যানেলে ঢুকতে megasonic298@gmail.com দিয়ে লগইন করুন।' : 'To access Admin Console, sign in with megasonic298@gmail.com.')}
+                  : (lang === 'bn' ? 'আপনার স্টুডেন্ট প্রোফাইল সংরক্ষণ ও স্ট্যাটাস দেখতে গুগল দিয়ে সাইন ইন করুন।' : 'Sign in with your Google account to save and track your student profile.')}
               </p>
             </div>
           </div>
@@ -464,7 +465,7 @@ export default function StudentPortal() {
               </button>
             )}
 
-            {user && user.role === 'admin' && (
+            {user && user.role === 'admin' && isAdminEmail?.(user.email) && (
               <Link
                 to="/admin"
                 className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition"
