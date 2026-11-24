@@ -232,7 +232,28 @@ export function AppProvider({ children }) {
             localStorage.setItem('rtec_students', JSON.stringify(INITIAL_STUDENTS));
             return INITIAL_STUDENTS;
           }
-          return parsed.map(s => ({ ...s, avatar: sanitizeAvatar(s.avatar) }));
+          return parsed
+            .map(s => {
+              const base = s.regNo
+                ? INITIAL_STUDENTS.find(init => init.regNo && init.regNo.trim().toLowerCase() === String(s.regNo).trim().toLowerCase())
+                : null;
+              if (base && (String(s.id || '').startsWith('std-sub-') || !s.serialNo || !s.studentType || !s.session)) {
+                return {
+                  ...base,
+                  ...s,
+                  id: base.id,
+                  serialNo: base.serialNo,
+                  batchSlNo: base.batchSlNo,
+                  deptSlNo: base.deptSlNo,
+                  session: base.session,
+                  year: base.year,
+                  studentType: base.studentType,
+                  avatar: sanitizeAvatar(s.avatar)
+                };
+              }
+              return { ...s, avatar: sanitizeAvatar(s.avatar) };
+            })
+            .sort((a, b) => (a.serialNo || 999999) - (b.serialNo || 999999));
         }
       } catch (e) {}
     }
@@ -450,7 +471,28 @@ export function AppProvider({ children }) {
             localStorage.setItem('rtec_student_submissions', JSON.stringify([]));
             return [];
           }
-          return parsed.map(s => ({ ...s, avatar: sanitizeAvatar(s.avatar) }));
+          return parsed
+            .map(s => {
+              const base = s.regNo
+                ? INITIAL_STUDENTS.find(init => init.regNo && init.regNo.trim().toLowerCase() === String(s.regNo).trim().toLowerCase())
+                : null;
+              if (base && (String(s.id || '').startsWith('std-sub-') || !s.serialNo || !s.studentType || !s.session)) {
+                return {
+                  ...base,
+                  ...s,
+                  id: base.id,
+                  serialNo: base.serialNo,
+                  batchSlNo: base.batchSlNo,
+                  deptSlNo: base.deptSlNo,
+                  session: base.session,
+                  year: base.year,
+                  studentType: base.studentType,
+                  avatar: sanitizeAvatar(s.avatar)
+                };
+              }
+              return { ...s, avatar: sanitizeAvatar(s.avatar) };
+            })
+            .sort((a, b) => (a.serialNo || 999999) - (b.serialNo || 999999));
         }
       } catch (e) {}
     }
@@ -1503,26 +1545,53 @@ export function AppProvider({ children }) {
         return s;
       }));
     } else {
-      const newStd = {
-        id: `std-sub-${target.id}`,
-        name: target.nameEn || target.name,
-        nameBn: target.name,
-        regNo: target.regNo,
-        batch: target.batch,
-        department: target.department,
-        deptBn: target.deptBn,
-        email: target.email,
-        phone: target.phone,
-        bloodGroup: target.bloodGroup || 'A+',
-        avatar: target.avatar,
-        role: 'Verified Student Member',
-        activities: target.bio || 'RTEC Student',
-        status: 'Regular',
-        currentJob: target.currentJob,
-        currentLocation: target.currentLocation
-      };
-      setStudents(prev => [newStd, ...prev.filter(s => s.regNo !== target.regNo && s.email !== target.email)]);
-      syncEntityToMongo('/api/students', 'POST', newStd);
+      const existingStd = students.find(
+        s => s.regNo && target.regNo && s.regNo.trim().toLowerCase() === target.regNo.trim().toLowerCase()
+      );
+      if (existingStd) {
+        const updatedStd = {
+          ...existingStd,
+          phone: target.phone || existingStd.phone,
+          email: target.email || existingStd.email,
+          bloodGroup: target.bloodGroup || existingStd.bloodGroup,
+          avatar: target.avatar || existingStd.avatar,
+          role: 'Verified Student Member',
+          activities: target.bio || existingStd.activities || 'RTEC Student',
+          currentJob: target.currentJob !== undefined ? target.currentJob : (existingStd.currentJob || ''),
+          currentLocation: target.currentLocation !== undefined ? target.currentLocation : (existingStd.currentLocation || '')
+        };
+        setStudents(prev =>
+          prev.map(s =>
+            s.regNo && target.regNo && s.regNo.trim().toLowerCase() === target.regNo.trim().toLowerCase()
+              ? updatedStd
+              : s
+          )
+        );
+        syncEntityToMongo('/api/students', 'POST', updatedStd);
+      } else {
+        const newStd = {
+          id: `std-sub-${target.id}`,
+          serialNo: students.length + 1,
+          name: target.nameEn || target.name,
+          nameBn: target.name,
+          regNo: target.regNo,
+          batch: target.batch,
+          department: target.department,
+          deptBn: target.deptBn,
+          studentType: 'Undergraduate',
+          email: target.email,
+          phone: target.phone,
+          bloodGroup: target.bloodGroup || 'A+',
+          avatar: target.avatar,
+          role: 'Verified Student Member',
+          activities: target.bio || 'RTEC Student',
+          status: 'Regular',
+          currentJob: target.currentJob,
+          currentLocation: target.currentLocation
+        };
+        setStudents(prev => [...prev, newStd]);
+        syncEntityToMongo('/api/students', 'POST', newStd);
+      }
     }
 
     confetti({ particleCount: 90, spread: 70 });
