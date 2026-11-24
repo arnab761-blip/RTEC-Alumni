@@ -1,0 +1,4459 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { useApp } from '../context/AppContext.jsx';
+import { formatDriveImageUrl } from '../utils/driveImage.js';
+import { useScrollLock } from '../utils/useScrollLock.js';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ShieldCheck,
+  ShieldAlert,
+  Users,
+  GraduationCap,
+  Briefcase,
+  Calendar,
+  HeartHandshake,
+  Newspaper,
+  Plus,
+  Pencil,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Search,
+  Filter,
+  Check,
+  X,
+  AlertTriangle,
+  RotateCcw,
+  Sparkles,
+  Download,
+  Award,
+  Phone,
+  Mail,
+  Building,
+  Droplet,
+  ExternalLink,
+  Image as ImageIcon,
+  Clock,
+  Eye,
+  Copy,
+  UserCheck,
+  MapPin,
+  MessageSquareQuote,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  FileSpreadsheet,
+  RefreshCw
+} from 'lucide-react';
+import UserAvatar from '../components/UserAvatar.jsx';
+import ExcelImportModal from '../components/ExcelImportModal.jsx';
+import { downloadStudentTemplate } from '../utils/excelImport.js';
+import GoogleSignInModal, { GoogleSignInButton } from '../components/GoogleSignInModal.jsx';
+
+const BATCH_OPTIONS = [
+  '1st Batch (2018-19)',
+  '2nd Batch (2019-20)',
+  '3rd Batch (2020-21)',
+  '4th Batch (2021-22)',
+  '5th Batch (2022-23)',
+  '6th Batch (2023-24)',
+  '7th Batch (2024-25)',
+  '8th Batch (2025-26)'
+];
+
+/**
+ * Reusable Google Drive image input with live preview and professional instruction guidelines
+ */
+function DriveImageInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  lang,
+  fallbackIcon: FallbackIcon = Sparkles
+}) {
+  const [imgError, setImgError] = useState(false);
+  const formattedUrl = formatDriveImageUrl(value);
+
+  return (
+    <div className="space-y-2">
+      <label className="text-slate-300 font-semibold block text-xs">
+        {label}
+      </label>
+
+      <div className="flex items-start gap-3">
+        {/* Live Preview Box */}
+        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-950 border-2 border-emerald-500/40 overflow-hidden shrink-0 flex items-center justify-center shadow-md">
+          {value && !imgError ? (
+            <img
+              src={formattedUrl}
+              alt="Preview"
+              className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="text-center p-2 text-slate-500">
+              <FallbackIcon className="w-5 h-5 mx-auto text-emerald-400/50 mb-1" />
+              <span className="text-[9px] block leading-tight font-mono">
+                {lang === 'bn' ? 'ছবির প্রিভিউ' : 'Preview'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* URL Input & Professional Guide Box */}
+        <div className="flex-1 min-w-0 space-y-2">
+          <input
+            type="text"
+            value={value || ''}
+            onChange={(e) => {
+              setImgError(false);
+              onChange(e.target.value);
+            }}
+            placeholder={placeholder || (lang === 'bn' ? 'গুগল ড্রাইভ লিংক বা ছবির URL পেস্ট করুন...' : 'Paste Google Drive link or image URL...')}
+            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-emerald-500 focus:outline-none"
+          />
+
+          {/* Professional Google Drive Instruction Box */}
+          <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-200 leading-relaxed shadow-sm">
+            <p className="font-bold flex items-center gap-1.5 text-emerald-300 mb-1.5">
+              <span>💡</span>
+              <span>
+                {lang === 'bn'
+                  ? 'গুগল ড্রাইভ (Google Drive) দিয়ে ছবি দেওয়ার সহজ নিয়ম:'
+                  : 'How to use Google Drive photo link:'}
+              </span>
+            </p>
+            <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-300">
+              {lang === 'bn' ? (
+                <>
+                  <li>আপনার ছবিটি <strong>Google Drive</strong>-এ আপলোড করুন।</li>
+                  <li>ছবিতে রাইট-ক্লিক করে <strong>Share</strong> নির্বাচন করুন এবং General access-এ <strong>"Anyone with the link"</strong> সিলেক্ট করুন।</li>
+                  <li>এরপর <strong>"Copy link"</strong> করে সেই লিংকটি উপরের বক্সে পেস্ট করে দিন। কোনো অতিরিক্ত সার্ভার স্টোরেজ ছাড়াই সরাসরি ছবি প্রদর্শিত হবে!</li>
+                </>
+              ) : (
+                <>
+                  <li>Upload the image to your <strong>Google Drive</strong>.</li>
+                  <li>Right click the file, select <strong>Share</strong>, and set General access to <strong>"Anyone with the link"</strong>.</li>
+                  <li>Click <strong>"Copy link"</strong> and paste the link into the box above. The image will render directly without backend storage!</li>
+                </>
+              )}
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Admin() {
+  const {
+    user,
+    setUser,
+    login,
+    lang,
+    // Teachers
+    teachers = [],
+    addTeacher,
+    updateTeacher,
+    deleteTeacher,
+    // Students
+    students = [],
+    addStudent,
+    updateStudent,
+    deleteStudent,
+    syncWithExcelFile,
+    exportExcelFile,
+    // Alumni
+    alumni = [],
+    addAlumni,
+    updateAlumni,
+    deleteAlumni,
+    toggleVerifyAlumni,
+    // Events
+    events = [],
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    // Jobs
+    jobs = [],
+    addJob,
+    approveJob,
+    declineJob,
+    updateJob,
+    deleteJob,
+    // News
+    news = [],
+    addNews,
+    updateNews,
+    deleteNews,
+    // Campaigns
+    campaigns = [],
+    addCampaign,
+    updateCampaign,
+    deleteCampaign,
+    // Forum & Q&A
+    forumPosts = [],
+    deleteForumPost,
+    deleteForumReply,
+    // Logo & Branding
+    collegeLogo,
+    updateCollegeLogo,
+    resetCollegeLogo,
+    // Footer & Official Contact Info
+    footerContact,
+    updateFooterContact,
+    resetFooterContact,
+    // Student Submissions & Approvals
+    studentSubmissions = [],
+    approveSubmission,
+    declineSubmission,
+    deleteSubmission,
+    // ID Dispute & Complaint Management
+    disputes = [],
+    resolveDispute,
+    deleteDispute,
+    resetStudentClaim,
+    // Admin Email Management
+    adminEmails = [],
+    addAdminEmail,
+    removeAdminEmail,
+    isAdminEmail,
+    // System
+    resetAllData
+  } = useApp();
+
+  const [activeTab, setActiveTab] = useState('overview');
+  const [toastMessage, setToastMessage] = useState('');
+  const [customLogoUrl, setCustomLogoUrl] = useState(collegeLogo || '');
+  const [isAdminGoogleModalOpen, setIsAdminGoogleModalOpen] = useState(false);
+  const [newAdminEmailInput, setNewAdminEmailInput] = useState('');
+  const [newAdminNoteInput, setNewAdminNoteInput] = useState('');
+
+  // Footer Contact State
+  const [footerPhone, setFooterPhone] = useState(footerContact?.phone || '+880 521-55421');
+  const [footerEmail, setFooterEmail] = useState(footerContact?.email || 'info@rtec.edu.bd');
+  const [footerAddressBn, setFooterAddressBn] = useState(footerContact?.addressBn || 'টুকুরিয়া, পীরগঞ্জ, রংপুর-৫৪২০, বাংলাদেশ');
+  const [footerAddressEn, setFooterAddressEn] = useState(footerContact?.addressEn || 'Tukuriya, Pirganj, Rangpur-5420, Bangladesh');
+
+  useEffect(() => {
+    if (footerContact) {
+      setFooterPhone(footerContact.phone || '+880 521-55421');
+      setFooterEmail(footerContact.email || 'info@rtec.edu.bd');
+      setFooterAddressBn(footerContact.addressBn || 'টুকুরিয়া, পীরগঞ্জ, রংপুর-৫৪২০, বাংলাদেশ');
+      setFooterAddressEn(footerContact.addressEn || 'Tukuriya, Pirganj, Rangpur-5420, Bangladesh');
+    }
+  }, [footerContact]);
+
+  useEffect(() => {
+    setCustomLogoUrl(collegeLogo || '');
+  }, [collegeLogo]);
+
+  // Search states for tables
+  const [teacherSearch, setTeacherSearch] = useState('');
+  const [studentSearch, setStudentSearch] = useState('');
+  const [studentBatchFilter, setStudentBatchFilter] = useState('all');
+  const [studentDeptFilter, setStudentDeptFilter] = useState('all');
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentsPerPage, setStudentsPerPage] = useState(25);
+  const [isSyncingExcel, setIsSyncingExcel] = useState(false);
+
+  useEffect(() => {
+    setStudentPage(1);
+  }, [studentSearch, studentBatchFilter, studentDeptFilter, studentsPerPage]);
+  const [alumniSearch, setAlumniSearch] = useState('');
+  const [submissionSearch, setSubmissionSearch] = useState('');
+  const [submissionFilter, setSubmissionFilter] = useState('all'); // 'all' | 'pending' | 'approved' | 'declined'
+  const [disputeSearch, setDisputeSearch] = useState('');
+  const [disputeFilter, setDisputeFilter] = useState('all'); // 'all' | 'pending' | 'resolved'
+  const [jobSearch, setJobSearch] = useState('');
+  const [jobFilter, setJobFilter] = useState('all'); // 'all' | 'pending' | 'approved' | 'declined'
+  const [forumSearch, setForumSearch] = useState('');
+  const [forumTypeFilter, setForumTypeFilter] = useState('all'); // 'all' | 'question' | 'experience'
+  const [expandedForumPostId, setExpandedForumPostId] = useState(null);
+
+  // Modal states
+  const [modalType, setModalType] = useState(null);
+  const [activeItem, setActiveItem] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [viewSubmission, setViewSubmission] = useState(null);
+  const [declinePrompt, setDeclinePrompt] = useState(null);
+  const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
+
+  // Lock background scroll when any admin modal is open
+  useScrollLock(Boolean(modalType || deleteConfirm || viewSubmission || declinePrompt || isExcelImportOpen));
+
+  // Form states
+  const [formData, setFormData] = useState({});
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3500);
+  };
+
+  // Helper to open create modal
+  const handleOpenAdd = (type, defaultData = {}) => {
+    setModalType(type);
+    setActiveItem(null);
+    setFormData(defaultData);
+  };
+
+  // Helper to open edit modal
+  const handleOpenEdit = (type, item) => {
+    setModalType(type);
+    setActiveItem(item);
+    setFormData({ ...item });
+  };
+
+  // Handle form submit
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+
+    if (modalType === 'addTeacher') {
+      addTeacher(formData);
+      showToast(lang === 'bn' ? 'নতুন শিক্ষক সফলভাবে যুক্ত করা হয়েছে!' : 'New faculty member added successfully!');
+    } else if (modalType === 'editTeacher') {
+      updateTeacher(activeItem.id, formData);
+      showToast(lang === 'bn' ? 'শিক্ষকের তথ্য আপডেট করা হয়েছে!' : 'Faculty details updated successfully!');
+    } else if (modalType === 'addStudent') {
+      addStudent(formData);
+      showToast(lang === 'bn' ? 'নতুন শিক্ষার্থী সফলভাবে যুক্ত করা হয়েছে!' : 'New student record added successfully!');
+    } else if (modalType === 'editStudent') {
+      updateStudent(activeItem.id, formData);
+      showToast(lang === 'bn' ? 'শিক্ষার্থীর তথ্য আপডেট করা হয়েছে!' : 'Student details updated successfully!');
+    } else if (modalType === 'addAlumni') {
+      addAlumni(formData);
+      showToast(lang === 'bn' ? 'নতুন অ্যালামনাই সফলভাবে যুক্ত করা হয়েছে!' : 'New alumni added successfully!');
+    } else if (modalType === 'editAlumni') {
+      updateAlumni(activeItem.id, formData);
+      showToast(lang === 'bn' ? 'অ্যালামনাই তথ্য আপডেট করা হয়েছে!' : 'Alumni details updated successfully!');
+    } else if (modalType === 'addEvent') {
+      addEvent(formData);
+      showToast(lang === 'bn' ? 'নতুন ইভেন্ট তৈরি করা হয়েছে!' : 'New event created successfully!');
+    } else if (modalType === 'editEvent') {
+      updateEvent(activeItem.id, formData);
+      showToast(lang === 'bn' ? 'ইভেন্ট আপডেট করা হয়েছে!' : 'Event updated successfully!');
+    } else if (modalType === 'addJob') {
+      addJob(formData);
+      showToast(lang === 'bn' ? 'নতুন চাকরি পোস্ট করা হয়েছে!' : 'Job circular posted successfully!');
+    } else if (modalType === 'editJob') {
+      updateJob(activeItem.id, formData);
+      showToast(lang === 'bn' ? 'চাকরির বিজ্ঞপ্তি আপডেট করা হয়েছে!' : 'Job circular updated successfully!');
+    } else if (modalType === 'addNews') {
+      addNews(formData);
+      showToast(lang === 'bn' ? 'নতুন নোটিশ প্রকাশিত হয়েছে!' : 'Notice published successfully!');
+    } else if (modalType === 'editNews') {
+      updateNews(activeItem.id, formData);
+      showToast(lang === 'bn' ? 'নোটিশ আপডেট করা হয়েছে!' : 'Notice updated successfully!');
+    }
+
+    setModalType(null);
+    setActiveItem(null);
+    setFormData({});
+  };
+
+  // Execute delete
+  const executeDelete = () => {
+    if (!deleteConfirm) return;
+    const { type, id, name } = deleteConfirm;
+
+    if (type === 'teacher') {
+      deleteTeacher(id);
+      showToast(lang === 'bn' ? `${name} - তালিকা থেকে মুছে ফেলা হয়েছে!` : `${name} deleted!`);
+    } else if (type === 'student') {
+      deleteStudent(id);
+      showToast(lang === 'bn' ? `${name} - তালিকা থেকে মুছে ফেলা হয়েছে!` : `${name} deleted!`);
+    } else if (type === 'alumni') {
+      deleteAlumni(id);
+      showToast(lang === 'bn' ? `${name} - তালিকা থেকে মুছে ফেলা হয়েছে!` : `${name} deleted!`);
+    } else if (type === 'event') {
+      deleteEvent(id);
+      showToast(lang === 'bn' ? 'ইভেন্ট মুছে ফেলা হয়েছে!' : 'Event deleted!');
+    } else if (type === 'job') {
+      deleteJob(id);
+      showToast(lang === 'bn' ? 'চাকরির বিজ্ঞপ্তি মুছে ফেলা হয়েছে!' : 'Job deleted!');
+    } else if (type === 'news') {
+      deleteNews(id);
+      showToast(lang === 'bn' ? 'নোটিশ মুছে ফেলা হয়েছে!' : 'Notice deleted!');
+    } else if (type === 'forumPost') {
+      deleteForumPost(id);
+      showToast(lang === 'bn' ? 'ফোরাম পোস্ট সফলভাবে মুছে ফেলা হয়েছে!' : 'Forum post deleted successfully!');
+    } else if (type === 'forumReply') {
+      deleteForumReply(deleteConfirm.postId, id);
+      showToast(lang === 'bn' ? 'মন্তব্য মুছে ফেলা হয়েছে!' : 'Comment deleted successfully!');
+    }
+
+    setDeleteConfirm(null);
+  };
+
+  // Filtered queries
+  const filteredTeachers = (teachers || []).filter(t => {
+    if (!t) return false;
+    const q = (teacherSearch || '').toLowerCase().trim();
+    return (
+      !q ||
+      t.name?.toLowerCase().includes(q) ||
+      t.nameBn?.toLowerCase().includes(q) ||
+      t.department?.toLowerCase().includes(q) ||
+      t.deptBn?.includes(q) ||
+      t.designation?.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredStudents = useMemo(() => {
+    if (!Array.isArray(students)) return [];
+    return students.filter(s => {
+      if (!s) return false;
+      const q = (studentSearch || '').toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        s.name?.toLowerCase().includes(q) ||
+        s.nameBn?.toLowerCase().includes(q) ||
+        s.regNo?.toLowerCase().includes(q) ||
+        s.studentId?.toLowerCase().includes(q) ||
+        (s.merit && String(s.merit) === q) ||
+        s.batch?.toLowerCase().includes(q) ||
+        s.department?.toLowerCase().includes(q) ||
+        (s.serialNo && String(s.serialNo) === q);
+
+      const matchesBatch =
+        studentBatchFilter === 'all' ||
+        s.batch?.toLowerCase().includes(studentBatchFilter.toLowerCase());
+
+      const matchesDept =
+        studentDeptFilter === 'all' ||
+        s.department?.toLowerCase().includes(studentDeptFilter.toLowerCase());
+
+      return matchesSearch && matchesBatch && matchesDept;
+    });
+  }, [students, studentSearch, studentBatchFilter, studentDeptFilter]);
+
+  const totalStudentPages = Math.max(1, Math.ceil((filteredStudents.length || 0) / (studentsPerPage === 'all' ? filteredStudents.length || 1 : Number(studentsPerPage))));
+  const paginatedStudents = useMemo(() => {
+    if (studentsPerPage === 'all') return filteredStudents;
+    const size = Number(studentsPerPage);
+    const start = (studentPage - 1) * size;
+    return filteredStudents.slice(start, start + size);
+  }, [filteredStudents, studentPage, studentsPerPage]);
+
+  const filteredAlumni = (alumni || []).filter(a => {
+    if (!a) return false;
+    const q = (alumniSearch || '').toLowerCase().trim();
+    return (
+      !q ||
+      a.name?.toLowerCase().includes(q) ||
+      a.nameBn?.toLowerCase().includes(q) ||
+      a.batch?.toLowerCase().includes(q) ||
+      a.company?.toLowerCase().includes(q) ||
+      a.department?.toLowerCase().includes(q)
+    );
+  });
+
+  const pendingSubmissionsCount = (studentSubmissions || []).filter(s => s?.status === 'pending').length;
+
+  const filteredSubmissions = (studentSubmissions || []).filter(s => {
+    if (!s) return false;
+    const matchesFilter = submissionFilter === 'all' || s.status === submissionFilter;
+    const q = (submissionSearch || '').toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      s.name?.toLowerCase().includes(q) ||
+      s.nameEn?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      s.phone?.toLowerCase().includes(q) ||
+      s.regNo?.toLowerCase().includes(q) ||
+      s.batch?.toLowerCase().includes(q) ||
+      s.department?.toLowerCase().includes(q) ||
+      s.currentJob?.toLowerCase().includes(q) ||
+      s.currentLocation?.toLowerCase().includes(q);
+    return matchesFilter && matchesSearch;
+  });
+
+  const pendingJobsCount = (jobs || []).filter(j => j?.status === 'pending').length;
+
+  const filteredJobs = (jobs || []).filter(j => {
+    if (!j) return false;
+    const jobStatus = j.status || 'approved';
+    const matchesFilter = jobFilter === 'all' || jobStatus === jobFilter;
+    const q = (jobSearch || '').toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      j.title?.toLowerCase().includes(q) ||
+      j.titleBn?.toLowerCase().includes(q) ||
+      j.company?.toLowerCase().includes(q) ||
+      j.location?.toLowerCase().includes(q) ||
+      j.department?.toLowerCase().includes(q) ||
+      j.postedBy?.toLowerCase().includes(q);
+    return matchesFilter && matchesSearch;
+  });
+
+  const pendingDisputesCount = (disputes || []).filter(d => d?.status === 'pending').length;
+
+  const filteredDisputes = (disputes || []).filter(d => {
+    if (!d) return false;
+    const matchesFilter = disputeFilter === 'all' || d.status === disputeFilter;
+    const q = (disputeSearch || '').toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      d.regNo?.toLowerCase().includes(q) ||
+      d.name?.toLowerCase().includes(q) ||
+      d.email?.toLowerCase().includes(q) ||
+      d.phone?.toLowerCase().includes(q) ||
+      d.description?.toLowerCase().includes(q);
+    return matchesFilter && matchesSearch;
+  });
+
+  const filteredForumPosts = (forumPosts || []).filter((post) => {
+    if (!post) return false;
+    const matchesType =
+      forumTypeFilter === 'all' ||
+      (forumTypeFilter === 'question' && post.type === 'question') ||
+      (forumTypeFilter === 'experience' && (post.type === 'experience' || post.type === 'tip'));
+    const q = (forumSearch || '').toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      post.title?.toLowerCase().includes(q) ||
+      post.titleBn?.toLowerCase().includes(q) ||
+      post.body?.toLowerCase().includes(q) ||
+      post.content?.toLowerCase().includes(q) ||
+      post.description?.toLowerCase().includes(q) ||
+      post.author?.toLowerCase().includes(q) ||
+      post.category?.toLowerCase().includes(q) ||
+      (post.tags && post.tags.some(t => t.toLowerCase().includes(q)));
+    return matchesType && matchesSearch;
+  });
+
+  // Strict Admin Authorization Guard
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full plaque-elevated p-8 rounded-3xl border border-red-500/30 text-center space-y-6 shadow-2xl bg-white dark:bg-[#181715]">
+          <div className="w-16 h-16 rounded-3xl bg-red-500/15 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto shadow-lg shadow-red-950/20">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[10px] font-mono-tech px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-700 dark:text-red-300 font-bold uppercase tracking-wider">
+              {lang === 'bn' ? 'সংরক্ষিত প্রশাসনিক এলাকা' : 'Restricted Administrative Area'}
+            </span>
+            <h2 className="text-xl sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
+              {lang === 'bn' ? 'অফিসিয়াল অ্যাডমিন লগইন প্রয়োজন' : 'Admin Authorization Required'}
+            </h2>
+            <p className="text-xs text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
+              {lang === 'bn'
+                ? `এই প্যানেলটি শুধুমাত্র অনুমোদিত কলেজ অ্যাডমিনের জন্য সংরক্ষিত। অনুগ্রহ করে আপনার অনুমোদিত গুগল অ্যাকাউন্ট (${adminEmails[0] || 'megasonic298@gmail.com'}) দিয়ে সাইন ইন করুন।`
+                : `This console is restricted to verified administrators. Please sign in with your authorized Google administrator email (${adminEmails[0] || 'megasonic298@gmail.com'}).`}
+            </p>
+          </div>
+
+          {user && user.role !== 'guest' && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 font-medium">
+              {lang === 'bn'
+                ? `বর্তমান লগইন: "${user.email}" (এই অ্যাকাউন্টে অ্যাডমিন পারমিশন নেই)`
+                : `Logged in as: "${user.email}" (Not an authorized admin account)`}
+            </div>
+          )}
+
+          <div className="space-y-3 pt-2">
+            <GoogleSignInButton
+              onClick={() => setIsAdminGoogleModalOpen(true)}
+              className="w-full justify-center py-3 text-xs shadow-md"
+              text={lang === 'bn' ? 'অ্যাডমিন জিমেইল দিয়ে প্রবেশ করুন' : 'Sign In with Admin Google Account'}
+            />
+
+            <Link
+              to="/"
+              className="block w-full py-2.5 rounded-xl bg-slate-100 dark:bg-[#201E1A] hover:bg-slate-200 dark:hover:bg-[#2A2722] text-slate-700 dark:text-slate-300 text-xs font-bold transition text-center cursor-pointer"
+            >
+              {lang === 'bn' ? 'হোমপেজে ফিরে যান' : 'Return to Home'}
+            </Link>
+          </div>
+
+          <GoogleSignInModal
+            isOpen={isAdminGoogleModalOpen}
+            onClose={() => setIsAdminGoogleModalOpen(false)}
+            onSuccess={(usr) => {
+              if (isAdminEmail(usr.email)) {
+                showToast(lang === 'bn' ? `স্বাগতম অ্যাডমিন! (${usr.email})` : `Welcome Admin! (${usr.email})`);
+              } else {
+                showToast(lang === 'bn' ? `✕ ${usr.email} অ্যাডমিন হিসেবে অনুমোদিত নয়!` : `✕ ${usr.email} is not authorized as Admin!`);
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div data-admin-panel="true" className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Top Notification Toast */}
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="system-toast fixed top-20 right-4 sm:right-8 z-50 p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-3 shadow-2xl backdrop-blur-xl"
+            >
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Admin Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#C5A880]/20">
+          <div>
+            <div className="flex items-center gap-2 text-amber-500 dark:text-amber-400 text-xs font-semibold mb-2">
+              <ShieldCheck className="w-4 h-4" />
+              <span>{lang === 'bn' ? 'এডমিনিস্ট্রেটর কন্ট্রোল ও ম্যানেজমেন্ট প্যানেল' : 'Administrator Control & Management Portal'}</span>
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#FDFBF7] tracking-tight">
+              {lang === 'bn' ? 'আরটেক সেন্ট্রাল এডমিন ড্যাশবোর্ড' : 'RTEC Central Admin Dashboard'}
+            </h1>
+            <p className="text-xs sm:text-sm text-[#A89884] mt-1">
+              {lang === 'bn'
+                ? 'শিক্ষক মণ্ডলী, শিক্ষার্থী, অ্যালামনাই (১ম-৮ম ব্যাচ), ইভেন্ট ও ক্যারিয়ার সার্কুলার সম্পাদন ও নিয়ন্ত্রণ করুন।'
+                : 'Manage faculty, students (1st-8th batch), alumni, events, and job postings with full administrative control.'}
+            </p>
+          </div>
+
+          {/* Admin Mode Indicator */}
+          <div className="flex items-center gap-3">
+            <div className="px-3.5 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-600 text-emerald-950 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-ping" />
+              <span>{lang === 'bn' ? `এডমিন সুবিধা সক্রিয় (${user.name || user.email})` : `Admin Active (${user.name || user.email})`}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex flex-wrap items-center gap-2 pb-4 mb-8 border-b border-[#C5A880]/20">
+          {[
+            { id: 'overview', labelBn: 'ড্যাশবোর্ড', labelEn: 'Overview', icon: ShieldCheck, count: null },
+            {
+              id: 'submissions',
+              labelBn: 'আবেদন যাচাই',
+              labelEn: 'Approvals',
+              icon: Clock,
+              count: pendingSubmissionsCount,
+              isPending: pendingSubmissionsCount > 0
+            },
+            {
+              id: 'disputes',
+              labelBn: 'আইডি রিপোর্ট / কমপ্লেইন',
+              labelEn: 'ID Disputes',
+              icon: ShieldAlert,
+              count: pendingDisputesCount,
+              isPending: pendingDisputesCount > 0
+            },
+            { id: 'teachers', labelBn: 'শিক্ষক মণ্ডলী', labelEn: 'Faculty', icon: GraduationCap, count: teachers.length },
+            { id: 'students', labelBn: 'শিক্ষার্থী তালিকা', labelEn: 'Students', icon: Users, count: students.length },
+            { id: 'alumni', labelBn: 'অ্যালামনাই', labelEn: 'Alumni', icon: Award, count: alumni.length },
+            { id: 'events', labelBn: 'ইভেন্ট ও সভা', labelEn: 'Events', icon: Calendar, count: events.length },
+            {
+              id: 'jobs',
+              labelBn: 'জব বোর্ড',
+              labelEn: 'Jobs',
+              icon: Briefcase,
+              count: pendingJobsCount > 0 ? pendingJobsCount : jobs.length,
+              isPending: pendingJobsCount > 0
+            },
+            { id: 'news', labelBn: 'খবর ও নোটিশ', labelEn: 'News & Notices', icon: Newspaper, count: news.length },
+            { id: 'forum', labelBn: 'অভিজ্ঞতা শেয়ার ও ফোরাম', labelEn: 'Experience Share', icon: MessageSquareQuote, count: forumPosts.length },
+            { id: 'settings', labelBn: 'সিস্টেম সেটিংস', labelEn: 'Settings', icon: RotateCcw, count: null }
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white font-bold shadow-md shadow-emerald-950/40 scale-[1.02] border border-emerald-500'
+                    : 'bg-white dark:bg-[#181715] text-[#292524] dark:text-[#DCD3C1] hover:bg-[#F8F4EC] dark:hover:bg-[#201E1A] hover:text-black dark:hover:text-[#FDFBF7] border border-[#C5A880]/30 shadow-sm hover:border-[#C5A880]/50'
+                }`}
+              >
+                <tab.icon className={`w-3.5 h-3.5 ${tab.isPending ? 'text-amber-400 animate-pulse' : ''}`} />
+                <span>{lang === 'bn' ? tab.labelBn : tab.labelEn}</span>
+                {tab.count !== null && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    tab.isPending
+                      ? (isActive ? 'bg-amber-400 text-slate-950 shadow' : 'bg-amber-500 text-slate-950 animate-pulse')
+                      : (isActive ? 'bg-white/20 text-white font-bold' : 'bg-stone-200 dark:bg-[#201E1A] text-stone-800 dark:text-[#A89884]')
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* TAB 1: OVERVIEW */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Pending Submissions Card */}
+              <div
+                onClick={() => setActiveTab('submissions')}
+                className={`cursor-pointer plaque-elevated p-5 rounded-2xl border transition group ${
+                  pendingSubmissionsCount > 0
+                    ? 'border-amber-500/70 bg-amber-950/20 hover:border-amber-400 shadow-lg shadow-amber-950/30'
+                    : 'border-[#C5A880]/20 hover:border-amber-500/50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Clock className={`w-6 h-6 transition-transform group-hover:scale-110 ${
+                    pendingSubmissionsCount > 0 ? 'text-amber-400 animate-pulse' : 'text-[#DFCA9E]'
+                  }`} />
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                    pendingSubmissionsCount > 0
+                      ? 'bg-amber-500 text-slate-950 shadow'
+                      : 'bg-[#C5A880]/20 text-[#DFCA9E]'
+                  }`}>
+                    {pendingSubmissionsCount > 0 ? `${pendingSubmissionsCount} টি নতুন` : (lang === 'bn' ? 'যাচাই' : 'Verify')}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{pendingSubmissionsCount}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'পেন্ডিং আবেদন' : 'Pending Approvals'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? 'অনুমোদনের অপেক্ষায়' : 'Awaiting Review'}</p>
+              </div>
+
+              {/* ID Dispute Reports Card */}
+              <div
+                onClick={() => setActiveTab('disputes')}
+                className={`cursor-pointer plaque-elevated p-5 rounded-2xl border transition group ${
+                  pendingDisputesCount > 0
+                    ? 'border-red-500/70 bg-red-950/30 hover:border-red-400 shadow-lg shadow-red-950/40'
+                    : 'border-[#C5A880]/20 hover:border-amber-500/50'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <ShieldAlert className={`w-6 h-6 transition-transform group-hover:scale-110 ${
+                    pendingDisputesCount > 0 ? 'text-rose-400 animate-pulse' : 'text-[#DFCA9E]'
+                  }`} />
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                    pendingDisputesCount > 0
+                      ? 'bg-rose-500 text-white shadow'
+                      : 'bg-[#C5A880]/20 text-[#DFCA9E]'
+                  }`}>
+                    {pendingDisputesCount > 0 ? `${pendingDisputesCount} টি অভিযোগ` : (lang === 'bn' ? 'অভিযোগ' : 'Disputes')}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{pendingDisputesCount}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'আইডি বিরোধ ও কমপ্লেইন' : 'ID Dispute Reports'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? '১-ক্লিকে ভুয়া আইডি রিসেট' : '1-Click Reg Reset'}</p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('teachers')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-emerald-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <GraduationCap className="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/50 font-bold">
+                    {lang === 'bn' ? 'ব্যবস্থাপনা' : 'Manage'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{teachers.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'শিক্ষক মণ্ডলী' : 'Total Faculty'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? 'প্রফেসর ও বিভাগীয় প্রধান' : 'Professors & HODs'}</p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('students')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-teal-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Users className="w-6 h-6 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950/50 text-teal-900 dark:text-teal-300 border border-teal-300 dark:border-teal-700/50 font-bold">
+                    {lang === 'bn' ? 'ব্যবস্থাপনা' : 'Manage'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{students.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'বর্তমান শিক্ষার্থী' : 'Current Students'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? '১ম থেকে ৮ম ব্যাচ' : '1st to 8th Batch'}</p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('alumni')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-sky-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Award className="w-6 h-6 text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-950/50 text-sky-900 dark:text-sky-300 border border-sky-300 dark:border-sky-700/50 font-bold">
+                    {lang === 'bn' ? 'ব্যবস্থাপনা' : 'Manage'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{alumni.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'নিবন্ধিত অ্যালামনাই' : 'Registered Alumni'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? '১ম - ৮ম ব্যাচ' : '1st - 8th Batch'}</p>
+              </div>
+
+              {/* Events Card */}
+              <div
+                onClick={() => setActiveTab('events')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-purple-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/50 text-purple-900 dark:text-purple-300 border border-purple-300 dark:border-purple-700/50 font-bold">
+                    {lang === 'bn' ? 'ব্যবস্থাপনা' : 'Manage'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{events.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'ইভেন্ট ও সম্মেলন' : 'Events & Reunions'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? 'ফেস্ট ও সম্মেলন সূচি' : 'Fests & Summits'}</p>
+              </div>
+
+              {/* Jobs Card */}
+              <div
+                onClick={() => setActiveTab('jobs')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-amber-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Briefcase className="w-6 h-6 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/50 font-bold">
+                    {lang === 'bn' ? 'ব্যবস্থাপনা' : 'Manage'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{jobs.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'সক্রিয় চাকরির সার্কুলার' : 'Active Jobs'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? 'টেক্সটাইল ইন্ড্রাস্ট্রিজ' : 'Textile Mills'}</p>
+              </div>
+
+              {/* News & Notices Card */}
+              <div
+                onClick={() => setActiveTab('news')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-emerald-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Newspaper className="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/50 font-bold">
+                    {lang === 'bn' ? 'ব্যবস্থাপনা' : 'Manage'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{news.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'খবর ও নোটিশ' : 'News & Notices'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? 'নোটিশ ও সাম্প্রতিক বিজ্ঞপ্তি' : 'Campus Circulars'}</p>
+              </div>
+
+              {/* Forum Card */}
+              <div
+                onClick={() => setActiveTab('forum')}
+                className="cursor-pointer plaque-elevated p-5 rounded-2xl border border-[#C5A880]/20 hover:border-teal-500/50 transition group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <MessageSquareQuote className="w-6 h-6 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950/50 text-teal-900 dark:text-teal-300 border border-teal-300 dark:border-teal-700/50 font-bold">
+                    {lang === 'bn' ? 'মডারেশন' : 'Moderate'}
+                  </span>
+                </div>
+                <h3 className="text-3xl font-black text-[#FDFBF7]">{forumPosts.length}</h3>
+                <p className="text-xs font-bold text-[#DCD3C1] mt-1">{lang === 'bn' ? 'অভিজ্ঞতা শেয়ার ও ফোরাম' : 'Experience Share'}</p>
+                <p className="text-[11px] text-[#A89884] mt-0.5">{lang === 'bn' ? 'ক্যারিয়ার ও বাস্তব গল্প' : 'Career Stories & Tips'}</p>
+              </div>
+            </div>
+
+            {/* Quick Actions Shortcuts */}
+            <div className="p-6 rounded-3xl plaque-elevated border border-[#C5A880]/20">
+              <h3 className="text-sm font-bold text-[#FDFBF7] mb-4 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <span>{lang === 'bn' ? 'দ্রুত শর্টকাট (Quick Shortcuts)' : 'Quick Action Shortcuts'}</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <button
+                  onClick={() => setActiveTab('submissions')}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-amber-500/40 text-left transition hover:border-amber-400 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'আবেদন যাচাই করুন' : 'Verify Submissions'}</p>
+                    <span className="text-[10px] text-amber-300 font-bold">{pendingSubmissionsCount} Pending</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => handleOpenAdd('addTeacher', {
+                    name: '',
+                    nameBn: '',
+                    designation: 'Assistant Professor',
+                    designationBn: 'সহকারী অধ্যাপক',
+                    department: 'Yarn Engineering',
+                    deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+                    email: '',
+                    phone: '',
+                    education: 'B.Sc. in Textile Engineering (BUTEX)',
+                    research: '',
+                    officeRoom: 'Academic Building'
+                  })}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-emerald-500/40 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'নতুন শিক্ষক যোগ করুন' : 'Add Teacher'}</p>
+                    <span className="text-[10px] text-[#A89884]">Add Faculty Member</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleOpenAdd('addStudent', {
+                    name: '',
+                    nameBn: '',
+                    regNo: '',
+                    batch: '8th Batch (2025-26)',
+                    department: 'Yarn Engineering',
+                    deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+                    session: '2025-2026',
+                    year: '1st Year (2nd Semester)',
+                    bloodGroup: 'B+',
+                    email: '',
+                    phone: '',
+                    avatar: '',
+                    role: 'Student Member'
+                  })}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-teal-500/40 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-teal-500/20 text-teal-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'নতুন শিক্ষার্থী যুক্ত করুন' : 'Add Student'}</p>
+                    <span className="text-[10px] text-[#A89884]">1st - 8th Batch</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleOpenAdd('addAlumni', {
+                    name: '',
+                    nameBn: '',
+                    batch: '1st Batch (2018-19)',
+                    passingYear: '2023',
+                    department: 'Fabric Engineering',
+                    deptBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
+                    role: 'Senior Executive',
+                    company: '',
+                    location: 'Dhaka, Bangladesh',
+                    email: '',
+                    phone: '',
+                    avatar: '',
+                    bio: ''
+                  })}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-sky-500/40 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'নতুন অ্যালামনাই যোগ করুন' : 'Add Alumni'}</p>
+                    <span className="text-[10px] text-[#A89884]">1st - 8th Batch</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleOpenAdd('addEvent', {
+                    title: '',
+                    titleBn: '',
+                    category: 'Reunion',
+                    date: '২০২৬',
+                    time: 'সকাল ১০:০০ টা',
+                    venue: 'RTEC Campus, Pirganj',
+                    venueBn: 'আরটেক ক্যাম্পাস, পীরগঞ্জ',
+                    registrationFee: '৳ ৫০০',
+                    descriptionBn: ''
+                  })}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-amber-500/40 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'নতুন ইভেন্ট তৈরি করুন' : 'Add Event'}</p>
+                    <span className="text-[10px] text-[#A89884]">Schedule Event</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleOpenAdd('addJob', {
+                    title: '',
+                    titleBn: '',
+                    company: '',
+                    location: 'Dhaka',
+                    type: 'Full Time',
+                    salary: 'Negotiable',
+                    deadline: '2026-12-31',
+                    department: 'Yarn Engineering',
+                    description: ''
+                  })}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-amber-500/40 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'নতুন চাকরি পোস্ট করুন' : 'Post Job'}</p>
+                    <span className="text-[10px] text-[#A89884]">Career Opening</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleOpenAdd('addNews', {
+                    title: '',
+                    titleBn: '',
+                    category: 'Academic Notice',
+                    summaryBn: '',
+                    summary: '',
+                    contentBn: '',
+                    content: '',
+                    date: '১৯ নভেম্বর, ২০২৬',
+                    pdfUrl: '',
+                    image: '',
+                    isPinned: false
+                  })}
+                  className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-emerald-500/40 flex items-center gap-3 cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? 'নতুন খবর / নোটিশ প্রকাশ' : 'Publish News'}</p>
+                    <span className="text-[10px] text-[#A89884]">News & Notices</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Preview Tables */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Teachers */}
+              <div className="p-5 rounded-3xl plaque-elevated border border-[#C5A880]/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xs font-bold text-[#FDFBF7] uppercase tracking-wider flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-emerald-400" />
+                    <span>{lang === 'bn' ? 'শিক্ষক মণ্ডলী' : 'Recent Faculty'}</span>
+                  </h4>
+                  <button onClick={() => setActiveTab('teachers')} className="text-xs text-emerald-400 hover:underline">
+                    {lang === 'bn' ? `সবগুলো (${teachers.length})` : `View All (${teachers.length})`}
+                  </button>
+                </div>
+                <div className="space-y-2.5">
+                  {teachers.slice(0, 4).map((t) => (
+                    <div key={t.id} className="p-3 rounded-xl bg-[#181715] border border-[#C5A880]/20 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src={t.photo} alt={t.name} className="w-9 h-9 rounded-xl object-cover shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? t.nameBn || t.name : t.name}</p>
+                          <p className="text-[10px] text-[#A89884]">{lang === 'bn' ? t.designationBn : t.designation} • {lang === 'bn' ? t.deptBn : t.department}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleOpenEdit('editTeacher', t)}
+                        className="p-1.5 rounded-lg bg-[#201E1A] hover:bg-[#25221E] text-[#DCD3C1]"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Students */}
+              <div className="p-5 rounded-3xl plaque-elevated border border-[#C5A880]/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-xs font-bold text-[#FDFBF7] uppercase tracking-wider flex items-center gap-2">
+                    <Users className="w-4 h-4 text-teal-400" />
+                    <span>{lang === 'bn' ? 'শিক্ষার্থী তালিকা' : 'Recent Students'}</span>
+                  </h4>
+                  <button onClick={() => setActiveTab('students')} className="text-xs text-teal-400 hover:underline">
+                    {lang === 'bn' ? `সবগুলো (${students.length})` : `View All (${students.length})`}
+                  </button>
+                </div>
+                <div className="space-y-2.5">
+                  {students.slice(0, 4).map((s) => (
+                    <div key={s.id} className="p-3 rounded-xl bg-[#181715] border border-[#C5A880]/20 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src={s.avatar} alt={s.name} className="w-9 h-9 rounded-xl object-cover shrink-0" />
+                        <div>
+                          <p className="text-xs font-bold text-[#FDFBF7]">{lang === 'bn' ? s.nameBn || s.name : s.name}</p>
+                          <p className="text-[10px] text-[#A89884] font-mono">
+                            {lang === 'bn' ? `রেজি: ${s.regNo || 'N/A'}` : `Reg: ${s.regNo || 'N/A'}`} • {s.batch}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleOpenEdit('editStudent', s)}
+                        className="p-1.5 rounded-lg bg-[#201E1A] hover:bg-[#25221E] text-[#DCD3C1]"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 1.5: STUDENT & ALUMNI SUBMISSIONS & APPROVALS */}
+        {activeTab === 'submissions' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-[#FDFBF7]">
+                    {lang === 'bn' ? 'শিক্ষার্থী আবেদন ও প্রোফাইল যাচাই' : 'Student Submissions & Approval Desk'}
+                  </h3>
+                  {pendingSubmissionsCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-500 text-slate-950 animate-pulse">
+                      {pendingSubmissionsCount} {lang === 'bn' ? 'পেন্ডিং' : 'Pending'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#A89884] mt-0.5 max-w-2xl">
+                  {lang === 'bn'
+                    ? 'শিক্ষার্থীরা জিমেইল ও রেজিস্ট্রেশন দিয়ে যেসকল তথ্য জমা দিয়েছে তা পর্যালোচনা করুন। এক-ক্লিকে অনুমোদন (Approve) বা প্রত্যাখ্যান (Decline) করুন।'
+                    : 'Review self-submitted student profiles. Approve to immediately list in the directory, or decline with feedback.'}
+                </p>
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#141311] border border-[#C5A880]/20 text-xs font-sans">
+                {[
+                  { id: 'all', labelBn: `সবগুলো (${studentSubmissions.length})`, labelEn: `All (${studentSubmissions.length})` },
+                  { id: 'pending', labelBn: `⏳ পেন্ডিং (${pendingSubmissionsCount})`, labelEn: `⏳ Pending (${pendingSubmissionsCount})` },
+                  { id: 'approved', labelBn: `✅ অনুমোদিত (${studentSubmissions.filter(s => s.status === 'approved').length})`, labelEn: `Approved` },
+                  { id: 'declined', labelBn: `❌ প্রত্যাখ্যাত (${studentSubmissions.filter(s => s.status === 'declined').length})`, labelEn: `Declined` }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSubmissionFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                      submissionFilter === f.id
+                        ? 'bg-[#C5A880] text-slate-950 shadow font-extrabold'
+                        : 'text-[#A89884] hover:text-[#EDE8DF]'
+                    }`}
+                  >
+                    {lang === 'bn' ? f.labelBn : f.labelEn}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Search Filter */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+              <input
+                type="text"
+                value={submissionSearch}
+                onChange={(e) => setSubmissionSearch(e.target.value)}
+                placeholder={lang === 'bn' ? 'নাম, রেজি. নং, জিমেইল বা ব্যাচ দিয়ে খুঁজুন...' : 'Search by name, reg no, gmail or batch...'}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 font-sans focus:outline-none focus:border-[#C5A880]"
+              />
+              {submissionSearch && (
+                <button
+                  onClick={() => setSubmissionSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A89884] hover:text-[#EDE8DF]"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Submissions Table / Cards */}
+            {filteredSubmissions.length > 0 ? (
+              <div className="rounded-2xl plaque-elevated border border-[#C5A880]/25 overflow-hidden shadow-xl">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#141311] text-[#A89884] border-b border-[#C5A880]/20 font-semibold uppercase tracking-wider text-[11px]">
+                      <tr>
+                        <th className="p-4">{lang === 'bn' ? 'শিক্ষার্থীর নাম ও ছবি' : 'Student & Photo'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'জিমেইল ও ফোন' : 'Gmail & Phone'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'রেজি. নং ও ব্যাচ' : 'Reg No & Batch'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'চাকরি ও অবস্থান' : 'Job & Location'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'আবেদনের অবস্থা' : 'Status'}</th>
+                        <th className="p-4 text-right">{lang === 'bn' ? 'সিদ্ধান্ত / অ্যাকশন' : 'Decision Actions'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#C5A880]/15">
+                      {filteredSubmissions.map((sub) => {
+                        const isPending = sub.status === 'pending';
+                        const isApproved = sub.status === 'approved';
+                        const isDeclined = sub.status === 'declined';
+
+                        return (
+                          <tr key={sub.id} className="hover:bg-[#1E1C18]/40 transition">
+                            {/* Student Name & Avatar */}
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <UserAvatar
+                                  src={sub.avatar}
+                                  name={sub.name}
+                                  role="student"
+                                  className="w-10 h-10 rounded-xl shrink-0 border border-[#C5A880]/25 bg-[#121110]"
+                                />
+                                <div className="min-w-0">
+                                  <p className="font-bold text-[#FDFBF7] truncate">{sub.name || 'নাম নেই'}</p>
+                                  {sub.nameEn && sub.nameEn !== sub.name && (
+                                    <p className="text-[11px] text-[#A89884] truncate">{sub.nameEn}</p>
+                                  )}
+                                  <span className="text-[10px] text-[#A89884] font-mono-tech block">
+                                    {sub.submittedAt}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Gmail & Phone */}
+                            <td className="p-4 space-y-1">
+                              <div className="flex items-center gap-1.5 text-[#DFCA9E] font-mono-tech truncate">
+                                <Mail className="w-3.5 h-3.5 text-[#A89884] shrink-0" />
+                                <a href={`mailto:${sub.email}`} className="hover:underline truncate max-w-[170px]" title={sub.email}>
+                                  {sub.email || 'N/A'}
+                                </a>
+                              </div>
+                              {sub.phone && (
+                                <div className="flex items-center gap-1.5 text-[#DCD3C1] font-mono-tech text-[11px]">
+                                  <Phone className="w-3 h-3 text-[#A89884] shrink-0" />
+                                  <a href={`tel:${sub.phone}`} className="hover:underline">
+                                    {sub.phone}
+                                  </a>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Reg No & Batch */}
+                            <td className="p-4 space-y-0.5">
+                              <span className="px-2 py-0.5 rounded font-mono-tech font-bold text-[11px] bg-[#141311] text-[#DFCA9E] border border-[#C5A880]/25 inline-block">
+                                {sub.regNo ? `রেজি: ${sub.regNo}` : 'রেজি: N/A'}
+                              </span>
+                              <p className="text-[11px] text-[#DCD3C1] truncate">{sub.batch}</p>
+                              <p className="text-[10px] text-[#A89884] truncate">{sub.deptBn || sub.department}</p>
+                            </td>
+
+                            {/* Job & Location */}
+                            <td className="p-4 space-y-0.5 max-w-[200px]">
+                              <div className="flex items-start gap-1 text-[#DCD3C1] text-xs">
+                                <Briefcase className="w-3 h-3 text-[#DFCA9E] shrink-0 mt-0.5" />
+                                <span className="truncate">{sub.currentJob || (lang === 'bn' ? 'অধ্যয়নরত' : 'Student')}</span>
+                              </div>
+                              {sub.currentLocation && (
+                                <div className="flex items-center gap-1 text-[#A89884] text-[11px]">
+                                  <MapPin className="w-3 h-3 text-[#DE644E] shrink-0" />
+                                  <span className="truncate">{sub.currentLocation}</span>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Status */}
+                            <td className="p-4">
+                              {isPending && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                                  <span>{lang === 'bn' ? 'অপেক্ষমাণ' : 'Pending'}</span>
+                                </span>
+                              )}
+                              {isApproved && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  <span>{lang === 'bn' ? 'অনুমোদিত' : 'Approved'}</span>
+                                </span>
+                              )}
+                              {isDeclined && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700/60">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                                  <span>{lang === 'bn' ? 'প্রত্যাখ্যাত' : 'Declined'}</span>
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Decision Action Buttons */}
+                            <td className="p-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {/* View Details Modal Trigger */}
+                                <button
+                                  onClick={() => setViewSubmission(sub)}
+                                  className="btn-action-view p-2 rounded-lg text-xs"
+                                  title={lang === 'bn' ? 'পূর্ণ বিবরণ দেখুন' : 'View Full Details'}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+
+                                {/* Approve Button */}
+                                {!isApproved && (
+                                  <button
+                                    onClick={() => {
+                                      approveSubmission(sub.id);
+                                      showToast(lang === 'bn' ? `✓ ${sub.name || 'শিক্ষার্থী'}-এর আবেদন অনুমোদিত এবং ডিরেক্টরিতে যুক্ত হয়েছে!` : `✓ Approved ${sub.name}!`);
+                                    }}
+                                    className="btn-approve px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+                                    title={lang === 'bn' ? 'অনুমোদন করুন' : 'Approve Submission'}
+                                  >
+                                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                    <span className="font-bold">{lang === 'bn' ? 'অনুমোদন' : 'Approve'}</span>
+                                  </button>
+                                )}
+
+                                {/* Decline Button */}
+                                {!isDeclined && (
+                                  <button
+                                    onClick={() => setDeclinePrompt(sub)}
+                                    className="btn-decline px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+                                    title={lang === 'bn' ? 'প্রত্যাখ্যান করুন' : 'Decline Submission'}
+                                  >
+                                    <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                                    <span className="font-bold">{lang === 'bn' ? 'ডিক্লাইন' : 'Decline'}</span>
+                                  </button>
+                                )}
+
+                                {/* Delete Button */}
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm(lang === 'bn' ? 'আপনি কি এই আবেদন রেকর্ডটি মুছে ফেলতে চান?' : 'Delete this submission?')) {
+                                      deleteSubmission(sub.id);
+                                      showToast(lang === 'bn' ? 'আবেদন রেকর্ড মুছে ফেলা হয়েছে' : 'Submission removed');
+                                    }
+                                  }}
+                                  className="btn-action-delete p-2 rounded-lg text-xs cursor-pointer"
+                                  title={lang === 'bn' ? 'রেকর্ড মুছুন' : 'Delete Record'}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="p-12 rounded-2xl plaque-elevated border border-[#C5A880]/25 text-center max-w-md mx-auto">
+                <Clock className="w-10 h-10 text-[#A89884] mx-auto mb-3" />
+                <h4 className="font-bold text-base text-[#FDFBF7]">
+                  {lang === 'bn' ? 'কোনো আবেদন পাওয়া যায়নি' : 'No Submissions Found'}
+                </h4>
+                <p className="text-xs text-[#A89884] mt-1 font-sans">
+                  {lang === 'bn'
+                    ? 'শিক্ষার্থীরা যখন স্টুডেন্ট পোর্টাল থেকে নিজস্ব তথ্য জমা দিবে, তখন তা এখানে প্রদর্শিত হবে।'
+                    : 'When students submit their profiles from the Student Portal, they will appear here for review.'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 1.7: ID DISPUTE & FRAUD CLAIM MANAGEMENT */}
+        {activeTab === 'disputes' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-[#FDFBF7]">
+                    {lang === 'bn' ? 'শিক্ষার্থী আইডি বিরোধ ও কমপ্লেইন ডেস্ক' : 'Student ID Dispute & Fraud Claims'}
+                  </h3>
+                  {pendingDisputesCount > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-600 text-white animate-pulse">
+                      {pendingDisputesCount} {lang === 'bn' ? 'টি নতুন অভিযোগ' : 'Pending'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#A89884] mt-0.5 max-w-2xl leading-relaxed">
+                  {lang === 'bn'
+                    ? 'যেসব শিক্ষার্থী অভিযোগ করেছে যে তাদের রেজিস্ট্রেশন নম্বর অন্য কেউ ভুয়া তথ্য দিয়ে ব্যবহার করেছে, তাদের তালিকা নিচে দেখুন। "১-ক্লিকে রিসেট ও ভুয়া ক্লেইম বাতিল" বাটনে চাপলে স্বয়ংক্রিয়ভাবে সেই নম্বরের ভুয়া সাবমিশন ও ডেটা ডিলিট হয়ে যাবে এবং আসল শিক্ষার্থীর জন্য আইডিটি উন্মুক্ত হয়ে যাবে।'
+                    : 'Review ID claims disputed by real students. Click "Reset Registration" to instantly wipe imposter submissions and free up the ID.'}
+                </p>
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#141311] border border-[#C5A880]/20 text-xs font-sans">
+                {[
+                  { id: 'all', labelBn: `সবগুলো (${disputes.length})`, labelEn: `All (${disputes.length})` },
+                  { id: 'pending', labelBn: `⏳ অপেক্ষমাণ (${pendingDisputesCount})`, labelEn: `⏳ Pending (${pendingDisputesCount})` },
+                  { id: 'resolved', labelBn: `✅ সমাধানকৃত (${disputes.filter(d => d.status === 'resolved').length})`, labelEn: `Resolved` }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setDisputeFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      disputeFilter === f.id
+                        ? 'bg-[#C5A880] text-slate-950 shadow font-extrabold'
+                        : 'text-[#A89884] hover:text-[#EDE8DF]'
+                    }`}
+                  >
+                    {lang === 'bn' ? f.labelBn : f.labelEn}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Search Filter */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+              <input
+                type="text"
+                value={disputeSearch}
+                onChange={(e) => setDisputeSearch(e.target.value)}
+                placeholder={lang === 'bn' ? 'রেজিস্ট্রেশন, শিক্ষার্থীর নাম, ফোন বা ইমেইল দিয়ে খুঁজুন...' : 'Search by reg no, student name, phone or email...'}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 font-sans focus:outline-none focus:border-[#C5A880]"
+              />
+              {disputeSearch && (
+                <button
+                  onClick={() => setDisputeSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A89884] hover:text-[#EDE8DF]"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Disputes Table */}
+            {filteredDisputes.length > 0 ? (
+              <div className="plaque-elevated rounded-2xl border border-[#C5A880]/25 overflow-hidden shadow-xl">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#C5A880]/20 bg-[#141311] text-[#A89884] font-mono-tech uppercase text-[10px]">
+                        <th className="p-4">বিরোধপূর্ণ রেজি. নং</th>
+                        <th className="p-4">আসল শিক্ষার্থীর নাম ও তথ্য</th>
+                        <th className="p-4">অভিযোগের বিবরণ / কারণ</th>
+                        <th className="p-4">স্ট্যাটাস</th>
+                        <th className="p-4 text-right">১-ক্লিক অ্যাকশন</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#C5A880]/15">
+                      {filteredDisputes.map((disp) => {
+                        const isPending = disp.status === 'pending';
+                        const isResolved = disp.status === 'resolved';
+
+                        return (
+                          <tr key={disp.id} className="hover:bg-[#181715]/70 transition">
+                            {/* Reg No */}
+                            <td className="p-4 align-top">
+                              <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/40 text-rose-300 font-mono font-bold text-xs">
+                                #{disp.regNo}
+                              </span>
+                              <span className="block text-[10px] text-[#A89884] mt-1 font-mono">
+                                ID: {disp.id}
+                              </span>
+                            </td>
+
+                            {/* Real Student Contact */}
+                            <td className="p-4 align-top space-y-1">
+                              <p className="font-bold text-[#FDFBF7] text-xs">
+                                {disp.name || 'শিক্ষার্থী'}
+                              </p>
+                              {disp.phone && (
+                                <p className="text-[11px] text-[#A89884] flex items-center gap-1 font-mono">
+                                  <Phone className="w-3 h-3 text-emerald-400 shrink-0" />
+                                  <span>{disp.phone}</span>
+                                </p>
+                              )}
+                              {disp.email && (
+                                <p className="text-[11px] text-[#A89884] flex items-center gap-1 font-mono">
+                                  <Mail className="w-3 h-3 text-sky-400 shrink-0" />
+                                  <span>{disp.email}</span>
+                                </p>
+                              )}
+                            </td>
+
+                            {/* Description */}
+                            <td className="p-4 align-top max-w-xs">
+                              <p className="text-xs text-[#EDE8DF] font-sans leading-relaxed">
+                                {disp.description || 'রেজিস্ট্রেশন নম্বর সংক্রান্ত ভুয়া ক্লেইম'}
+                              </p>
+                              {disp.actionTaken && (
+                                <p className="text-[10px] text-emerald-400 mt-1 font-sans italic">
+                                  পদক্ষেপ: {disp.actionTaken}
+                                </p>
+                              )}
+                            </td>
+
+                            {/* Status */}
+                            <td className="p-4 align-top">
+                              {isPending ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                  <Clock className="w-3 h-3 text-amber-400 animate-pulse" />
+                                  <span>অপেক্ষমাণ</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                  <span>সমাধানকৃত</span>
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Actions */}
+                            <td className="p-4 align-top text-right">
+                              <div className="flex items-center justify-end gap-2 flex-wrap">
+                                {/* 1-Click Reset Registration */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`রেজিস্ট্রেশন নং ${disp.regNo}-এর ভুয়া ক্লেইমটি বাতিল ও রিসেট করবেন?\n\nএতে এই রেজিস্ট্রেশন নম্বরে জমা হওয়া ভুয়া আবেদন বা তথ্য মুছে যাবে এবং প্রকৃত শিক্ষার্থীর জন্য আইডি উন্মুক্ত হবে।`)) {
+                                      resetStudentClaim(disp.regNo, disp.id);
+                                      showToast(`✓ রেজিস্ট্রেশন ${disp.regNo}-এর ভুয়া ক্লেইম মুছে দেওয়া হয়েছে ও আইডি রিসেট হয়েছে!`);
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-rose-950/30 transition active:scale-95 cursor-pointer"
+                                  title="ভুয়া ক্লেইম ডিলিট ও আইডি রিসেট করুন"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  <span>রিসেট ও ক্লেইম বাতিল</span>
+                                </button>
+
+                                {/* Mark Resolved */}
+                                {isPending && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      resolveDispute(disp.id, 'অ্যাডমিন কর্তৃক নিষ্পত্তি করা হয়েছে');
+                                      showToast('✓ অভিযোগ নিষ্পত্তি হিসেবে চিহ্নিত হয়েছে');
+                                    }}
+                                    className="p-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 transition cursor-pointer"
+                                    title="নিষ্পত্তি চিহ্নিত করুন"
+                                  >
+                                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                  </button>
+                                )}
+
+                                {/* Delete Record */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm('এই অভিযোগ রেকর্ডটি মুছে ফেলতে চান?')) {
+                                      deleteDispute(disp.id);
+                                      showToast('অভিযোগ রেকর্ড মুছে ফেলা হয়েছে');
+                                    }
+                                  }}
+                                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 border border-slate-700 transition cursor-pointer"
+                                  title="রেকর্ড মুছুন"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="p-12 rounded-2xl plaque-elevated border border-[#C5A880]/25 text-center max-w-md mx-auto">
+                <ShieldAlert className="w-10 h-10 text-[#A89884] mx-auto mb-3" />
+                <h4 className="font-bold text-base text-[#FDFBF7]">
+                  {lang === 'bn' ? 'কোনো আইডি সংক্রান্ত অভিযোগ নেই' : 'No ID Disputes Found'}
+                </h4>
+                <p className="text-xs text-[#A89884] mt-1 font-sans">
+                  {lang === 'bn'
+                    ? 'শিক্ষার্থীরা যখন কোনো রেজিস্ট্রেশন নম্বরের বিরোধ বা ভুয়া ক্লেইম রিপোর্ট করবে, তখন তা এখানে প্রদর্শিত হবে।'
+                    : 'When students report registration number disputes or false claims, they will appear here.'}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: TEACHERS MANAGEMENT */}
+        {activeTab === 'teachers' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'শিক্ষক মণ্ডলী তালিকা ও নিয়ন্ত্রণ' : 'Faculty Leadership Management'}</h3>
+                <p className="text-xs text-[#A89884] mt-0.5">
+                  {lang === 'bn' ? 'শিক্ষকের পদবী, বিভাগ, শিক্ষাগত যোগ্যতা ও যোগাযোগের তথ্য পরিবর্তন করুন।' : 'Add, edit, or remove faculty members and department heads.'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleOpenAdd('addTeacher', {
+                  name: '',
+                  nameBn: '',
+                  designation: 'Assistant Professor',
+                  designationBn: 'সহকারী অধ্যাপক',
+                  department: 'Yarn Engineering',
+                  deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+                  email: '',
+                  phone: '',
+                  education: 'B.Sc. in Textile Engineering (BUTEX)',
+                  research: '',
+                  officeRoom: 'Academic Building, Room 205'
+                })}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>{lang === 'bn' ? 'নতুন শিক্ষক যুক্ত করুন' : 'Add New Teacher'}</span>
+              </button>
+            </div>
+
+            {/* Search Filter */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+              <input
+                type="text"
+                value={teacherSearch}
+                onChange={(e) => setTeacherSearch(e.target.value)}
+                placeholder={lang === 'bn' ? 'শিক্ষকের নাম, পদবী বা বিভাগ দিয়ে খুঁজুন...' : 'Search by faculty name, designation, or department...'}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 font-sans focus:outline-none focus:border-[#C5A880]"
+              />
+            </div>
+
+            {/* Table */}
+            <div className="rounded-2xl plaque-elevated border border-[#C5A880]/25 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#141311] text-[#A89884] border-b border-[#C5A880]/20 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="p-4">{lang === 'bn' ? 'ছবি ও নাম' : 'Photo & Name'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'পদবী' : 'Designation'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'বিভাগ' : 'Department'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'যোগাযোগ' : 'Contact'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'অফিস রুম' : 'Office Room'}</th>
+                      <th className="p-4 text-right">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#C5A880]/15">
+                    {filteredTeachers.map((t) => (
+                      <tr key={t.id} className="hover:bg-[#1E1C18]/40 transition">
+                        <td className="p-4 flex items-center gap-3">
+                          <UserAvatar
+                            src={t.photo}
+                            name={t.name}
+                            role="teacher"
+                            className="w-10 h-10 rounded-xl shrink-0 border border-[#C5A880]/25"
+                          />
+                          <div>
+                            <div className="font-bold text-[#FDFBF7] flex items-center gap-1.5">
+                              <span>{lang === 'bn' ? t.nameBn || t.name : t.name}</span>
+                              {t.isHod && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                                  HOD
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-[#A89884] font-sans">{t.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-emerald-400 font-medium">
+                          {lang === 'bn' ? t.designationBn || t.designation : t.designation}
+                        </td>
+                        <td className="p-4 text-[#DCD3C1]">
+                          {lang === 'bn' ? t.deptBn || t.department : t.department}
+                        </td>
+                        <td className="p-4 text-[#A89884]">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[#EDE8DF] font-mono-tech">{t.phone || t.mobile}</span>
+                            <span className="text-[10px] text-[#A89884] font-mono-tech">{t.email}</span>
+                            {t.joiningDate && t.joiningDate !== 'N/A' && (
+                              <span className="text-[10px] text-[#DFCA9E]">যোগদান: {t.joiningDate}</span>
+                            )}
+                            {t.homeDistrict && t.homeDistrict !== 'N/A' && (
+                              <span className="text-[10px] text-[#A89884]">জেলা: {t.homeDistrict}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 text-[#A89884]">
+                          {t.officeRoom || 'N/A'}
+                        </td>
+                        <td className="p-4 text-right space-x-1">
+                          <button
+                            onClick={() => handleOpenEdit('editTeacher', t)}
+                            className="btn-action-edit p-2 rounded-lg"
+                            title={lang === 'bn' ? 'সম্পাদনা করুন' : 'Edit Faculty'}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm({ type: 'teacher', id: t.id, name: t.nameBn || t.name })}
+                            className="btn-action-delete p-2 rounded-lg"
+                            title={lang === 'bn' ? 'মুছে ফেলুন' : 'Delete Faculty'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: STUDENTS MANAGEMENT (1st to 8th Batch, NO roll, NO cgpa, only regNo) */}
+        {activeTab === 'students' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-bold text-[#FDFBF7]">
+                    {lang === 'bn' ? 'শিক্ষার্থী তালিকা ও কন্ট্রোল' : 'Student Directory Management'}
+                  </h3>
+                  <div className="badge-live-sync">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse"></span>
+                    <span>{lang === 'bn' ? 'এক্সেল দ্বি-মুখী সংযোগ সক্রিয়' : 'Live Excel 2-Way Synced'}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-stone-600 dark:text-[#A89884] mt-0.5">
+                  {lang === 'bn'
+                    ? '১ম, ২য়, ৩য়, ৪র্থ, ৫ম, ৬ষ্ঠ, ৭ম ও ৮ম ব্যাচসহ সকল শিক্ষার্থীর তালিকা ও এক্সেল শিট সরাসরি রিয়েল-টাইম কানেক্টেড। ওয়েবসাইটের ইনপুট এক্সেলে এবং এক্সেলের ইনপুট ওয়েবসাইটে স্বয়ংক্রিয়ভাবে সিঙ্ক হয়।'
+                    : 'All student cohorts (1st, 2nd, 3rd, 4th, 5th, 6th, 7th & 8th Batches) synchronized with live Excel. Changes in web or Excel update automatically.'}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={async () => {
+                    setIsSyncingExcel(true);
+                    const res = await syncWithExcelFile();
+                    setIsSyncingExcel(false);
+                    if (res.success) {
+                      setToastMessage(lang === 'bn' ? `✓ এক্সেল শিট থেকে ${res.count} জন শিক্ষার্থী সফলভাবে সিঙ্ক হয়েছে!` : `✓ Successfully synced ${res.count} students from Excel!`);
+                    } else {
+                      setToastMessage(lang === 'bn' ? `✗ সিঙ্ক সমস্যা: ${res.error}` : `✗ Sync error: ${res.error}`);
+                    }
+                  }}
+                  disabled={isSyncingExcel}
+                  className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition cursor-pointer disabled:opacity-50"
+                  title={lang === 'bn' ? 'সার্ভারের মাস্টার এক্সেল ফাইল থেকে রিলোড/সিঙ্ক করুন' : 'Force re-sync from server Master Excel'}
+                >
+                  <RefreshCw className={`w-4 h-4 ${isSyncingExcel ? 'animate-spin' : ''}`} />
+                  <span>{lang === 'bn' ? 'এক্সেল সিঙ্ক (Live)' : 'Sync Excel'}</span>
+                </button>
+
+                <button
+                  onClick={exportExcelFile}
+                  className="px-3.5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition cursor-pointer"
+                  title={lang === 'bn' ? 'বর্তমান লাইভ এক্সেল ফাইলটি ডাউনলোড করুন' : 'Download Live Master Excel File'}
+                >
+                  <Download className="w-4 h-4 text-white" />
+                  <span>{lang === 'bn' ? 'লাইভ এক্সেল ডাউনলোড' : 'Download Excel'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsExcelImportOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-white" />
+                  <span>{lang === 'bn' ? 'এক্সেলে বাল্ক আপলোড' : 'Bulk Import Excel'}</span>
+                </button>
+
+                <button
+                  onClick={() => handleOpenAdd('addStudent', {
+                    serialNo: students.length + 1,
+                    deptSlNo: 0,
+                    name: '',
+                    nameBn: '',
+                    regNo: '',
+                    batch: '1st Batch (2018-19)',
+                    department: 'Yarn Engineering',
+                    deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+                    session: '2018-2019',
+                    year: 'Graduated / Pioneer Batch',
+                    bloodGroup: '',
+                    email: '',
+                    phone: '',
+                    avatar: '',
+                    result: 'Passed',
+                    remarks: '',
+                    role: '1st Batch Member'
+                  })}
+                  className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-teal-950/40 transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                  <span>{lang === 'bn' ? 'নতুন শিক্ষার্থী' : 'Add Single'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Search Filter & Live Stats */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                    placeholder={lang === 'bn' ? 'রেজিস্ট্রেশন নং, নাম বা বিভাগ দিয়ে খুঁজুন...' : 'Search by reg no, name, or department...'}
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 font-sans focus:outline-none focus:border-[#C5A880]"
+                  />
+                </div>
+
+                <select
+                  value={studentBatchFilter}
+                  onChange={(e) => setStudentBatchFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] font-sans focus:outline-none focus:border-[#C5A880] cursor-pointer"
+                >
+                  <option value="all">{lang === 'bn' ? 'সকল ব্যাচ' : 'All Batches'}</option>
+                  <option value="1st">{lang === 'bn' ? '১ম ব্যাচ (২০১৮-১৯)' : '1st Batch (2018-19)'}</option>
+                  <option value="2nd">{lang === 'bn' ? '২য় ব্যাচ (২০১৯-২০)' : '2nd Batch (2019-20)'}</option>
+                  <option value="3rd">{lang === 'bn' ? '৩য় ব্যাচ (২০২০-২১)' : '3rd Batch (2020-21)'}</option>
+                  <option value="4th">{lang === 'bn' ? '৪র্থ ব্যাচ (২০২১-২২)' : '4th Batch (2021-22)'}</option>
+                  <option value="5th">{lang === 'bn' ? '৫ম ব্যাচ (২০২২-২৩)' : '5th Batch (2022-23)'}</option>
+                  <option value="6th">{lang === 'bn' ? '৬ষ্ঠ ব্যাচ (২০২৩-২৪)' : '6th Batch (2023-24)'}</option>
+                  <option value="7th">{lang === 'bn' ? '৭ম ব্যাচ (২০২৪-২৫)' : '7th Batch (2024-25)'}</option>
+                  <option value="8th">{lang === 'bn' ? '৮ম ব্যাচ (২০২৫-২৬)' : '8th Batch (2025-26)'}</option>
+                </select>
+
+                <select
+                  value={studentDeptFilter}
+                  onChange={(e) => setStudentDeptFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] font-sans focus:outline-none focus:border-[#C5A880] cursor-pointer"
+                >
+                  <option value="all">{lang === 'bn' ? 'সকল বিভাগ' : 'All Departments'}</option>
+                  <option value="Yarn">{lang === 'bn' ? 'ইয়ার্ন (YE)' : 'Yarn Engineering'}</option>
+                  <option value="Fabric">{lang === 'bn' ? 'ফ্যাব্রিক (FE)' : 'Fabric Engineering'}</option>
+                  <option value="Wet">{lang === 'bn' ? 'ওয়েট প্রসেস (WPE)' : 'Wet Process Engineering'}</option>
+                  <option value="Apparel">{lang === 'bn' ? 'অ্যাপারেল (AE)' : 'Apparel Engineering'}</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs font-mono text-[#A89884] self-end md:self-center">
+                <span>TOTAL: <strong className="text-teal-400 font-bold">{filteredStudents.length}</strong> / {students.length} STUDENTS</span>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="rounded-2xl plaque-elevated border border-[#C5A880]/25 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#141311] text-[#A89884] border-b border-[#C5A880]/20 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="p-4 w-12 text-center">{lang === 'bn' ? 'সিরিয়াল' : 'SL'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'রেজিস্ট্রেশন নং (স্টুডেন্ট আইডি) ও ছবি' : 'Reg No (Student ID) & Photo'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'নাম' : 'Name'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'বিভাগ' : 'Department'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'ব্যাচ ও সেশন' : 'Batch & Session'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'রক্তের গ্রুপ' : 'Blood Group'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'ফোন ও ইমেইল' : 'Phone & Email'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'স্টুডেন্ট টাইপ' : 'Student Type'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'বর্তমান চাকরি ও অবস্থান' : 'Job & Location'}</th>
+                      <th className="p-4 text-right">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#C5A880]/15">
+                    {paginatedStudents.map((s, idx) => (
+                      <tr key={s.id || s.regNo} className="hover:bg-[#1E1C18]/40 transition">
+                        <td className="p-4 text-center font-mono font-bold text-stone-600 dark:text-[#A89884]">
+                          {s.serialNo || (studentPage - 1) * Number(studentsPerPage === 'all' ? 0 : studentsPerPage) + idx + 1}
+                        </td>
+                        <td className="p-4 flex items-center gap-3">
+                          <UserAvatar
+                            src={s.avatar}
+                            name={s.name}
+                            role="student"
+                            className="w-10 h-10 rounded-xl shrink-0 border border-stone-300 dark:border-[#C5A880]/25 bg-stone-100 dark:bg-[#121110]"
+                          />
+                          <div>
+                            <span className="font-mono font-bold text-[#DE644E] block">{s.regNo || 'N/A'}</span>
+                            <span className="text-[10px] text-stone-600 dark:text-[#A89884] font-mono">{s.session || '2018-2019'}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-bold text-stone-900 dark:text-[#FDFBF7] font-mono">{s.name}</div>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                            {s.merit && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                🏆 {lang === 'bn' ? 'মেধা ক্রম:' : 'Merit:'} #{s.merit}
+                              </span>
+                            )}
+                            {s.role && (
+                              <span className="text-[10px] text-stone-600 dark:text-[#A89884] font-sans">{s.role}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 text-stone-800 dark:text-[#DCD3C1]">
+                          <span className="font-medium">{lang === 'bn' ? s.deptBn || s.department : s.department}</span>
+                        </td>
+                        <td className="p-4 text-stone-800 dark:text-[#DCD3C1]">
+                          <div className="font-medium">{s.batch}</div>
+                          <span className="text-[10px] text-stone-600 dark:text-[#A89884]">{s.session || ''}</span>
+                        </td>
+                        <td className="p-4">
+                          {s.bloodGroup ? (
+                            <span className="badge-blood-group">
+                              {s.bloodGroup}
+                            </span>
+                          ) : (
+                            <span className="badge-empty-unset">{lang === 'bn' ? 'ফাঁকা' : 'Empty'}</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-stone-800 dark:text-[#DCD3C1]">
+                          {s.phone || s.email ? (
+                            <div className="space-y-0.5 text-[11px]">
+                              {s.phone && <div className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">{s.phone}</div>}
+                              {s.email && <div className="text-stone-700 dark:text-[#A89884] truncate max-w-[150px] font-medium">{s.email}</div>}
+                            </div>
+                          ) : (
+                            <span className="badge-unclaimed">
+                              {lang === 'bn' ? 'অপ্রদত্ত' : 'Unclaimed'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <span className={s.studentType === 'Undergraduate' ? 'badge-undergraduate' : 'badge-graduate'}>
+                            {s.studentType || 'Graduate'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-stone-800 dark:text-[#DCD3C1]">
+                          {s.currentJob || s.currentLocation ? (
+                            <div className="space-y-0.5 text-[11px]">
+                              {s.currentJob && <div className="font-semibold text-amber-800 dark:text-amber-300 truncate max-w-[160px]">{s.currentJob}</div>}
+                              {s.currentLocation && <div className="text-stone-700 dark:text-[#A89884] text-[10px] font-medium">{s.currentLocation}</div>}
+                            </div>
+                          ) : (
+                            <span className="badge-empty-unset">{lang === 'bn' ? 'অপ্রদত্ত' : 'Unset'}</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-right space-x-1 whitespace-nowrap">
+                          <button
+                            onClick={() => handleOpenEdit('editStudent', s)}
+                            className="btn-action-edit p-2 rounded-lg cursor-pointer"
+                            title={lang === 'bn' ? 'সম্পাদনা করুন' : 'Edit Student'}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm({ type: 'student', id: s.id || s.regNo, name: s.name })}
+                            className="btn-action-delete p-2 rounded-lg cursor-pointer"
+                            title={lang === 'bn' ? 'মুছে ফেলুন' : 'Delete Student'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Admin Student Pagination Bar */}
+              <div className="p-4 border-t border-[#C5A880]/20 bg-stone-50 dark:bg-[#141311] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono">
+                <div className="text-stone-700 dark:text-[#A89884]">
+                  {lang === 'bn' ? 'প্রদর্শিত: ' : 'Showing: '}
+                  <strong className="text-stone-900 dark:text-teal-400 font-bold">
+                    {studentsPerPage === 'all'
+                      ? `১ - ${filteredStudents.length}`
+                      : `${(studentPage - 1) * Number(studentsPerPage) + 1} - ${Math.min(studentPage * Number(studentsPerPage), filteredStudents.length)}`}
+                  </strong>
+                  {lang === 'bn' ? ` (মোট ${filteredStudents.length} জনের মধ্যে)` : ` of ${filteredStudents.length} Students`}
+                </div>
+
+                {studentsPerPage !== 'all' && totalStudentPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
+                      disabled={studentPage === 1}
+                      className="px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-[#C5A880]/30 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-stone-200 dark:hover:bg-[#1E1C18] text-stone-800 dark:text-[#EDE8DF] font-bold cursor-pointer"
+                    >
+                      {lang === 'bn' ? 'পূর্ববর্তী' : 'Prev'}
+                    </button>
+
+                    {Array.from({ length: totalStudentPages }, (_, i) => i + 1)
+                      .filter((page) => page === 1 || page === totalStudentPages || Math.abs(page - studentPage) <= 2)
+                      .map((page, idx, arr) => (
+                        <React.Fragment key={page}>
+                          {idx > 0 && arr[idx - 1] !== page - 1 && (
+                            <span className="px-1 text-stone-400">...</span>
+                          )}
+                          <button
+                            onClick={() => setStudentPage(page)}
+                            className={`w-7 h-7 rounded-lg font-bold flex items-center justify-center transition cursor-pointer text-xs ${
+                              studentPage === page
+                                ? 'bg-teal-600 text-white font-black shadow-sm'
+                                : 'border border-stone-300 dark:border-[#C5A880]/30 hover:bg-stone-200 dark:hover:bg-[#1E1C18] text-stone-800 dark:text-[#EDE8DF]'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      ))}
+
+                    <button
+                      onClick={() => setStudentPage((p) => Math.min(totalStudentPages, p + 1))}
+                      disabled={studentPage === totalStudentPages}
+                      className="px-2.5 py-1.5 rounded-lg border border-stone-300 dark:border-[#C5A880]/30 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-stone-200 dark:hover:bg-[#1E1C18] text-stone-800 dark:text-[#EDE8DF] font-bold cursor-pointer"
+                    >
+                      {lang === 'bn' ? 'পরবর্তী' : 'Next'}
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 text-stone-700 dark:text-[#A89884]">
+                  <span>{lang === 'bn' ? 'সারি সংখ্যা:' : 'Rows:'}</span>
+                  <select
+                    value={studentsPerPage}
+                    onChange={(e) => setStudentsPerPage(e.target.value)}
+                    className="px-2 py-1 rounded-lg border border-stone-300 dark:border-[#C5A880]/30 bg-white dark:bg-[#181715] text-stone-900 dark:text-[#FDFBF7] font-bold cursor-pointer"
+                  >
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value="all">{lang === 'bn' ? 'সকল' : 'All'}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: ALUMNI MANAGEMENT */}
+        {activeTab === 'alumni' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'অ্যালামনাই নেটওয়ার্ক ও অনুমোদন' : 'Alumni Network & Verification'}
+                </h3>
+                <p className="text-xs text-[#A89884] mt-0.5">
+                  {lang === 'bn'
+                    ? '১ম থেকে ৮ম ব্যাচের অ্যালামনাই তথ্য সম্পাদনা এবং ব্লু-ব্যাজ অনুমোদন দিন।'
+                    : 'Manage 1st to 8th batch alumni profiles and approve verified blue-badge status.'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleOpenAdd('addAlumni', {
+                  name: '',
+                  nameBn: '',
+                  batch: '1st Batch (2018-19)',
+                  passingYear: '2023',
+                  department: 'Fabric Engineering',
+                  deptBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
+                  role: 'Senior Executive',
+                  company: '',
+                  location: 'Dhaka, Bangladesh',
+                  email: '',
+                  phone: '',
+                  avatar: '',
+                  bio: ''
+                })}
+                className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-sky-950/40 transition"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>{lang === 'bn' ? 'নতুন অ্যালামনাই যোগ করুন' : 'Add Alumni'}</span>
+              </button>
+            </div>
+
+            {/* Search Filter */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+              <input
+                type="text"
+                value={alumniSearch}
+                onChange={(e) => setAlumniSearch(e.target.value)}
+                placeholder={lang === 'bn' ? 'নাম, কোম্পানি বা ব্যাচ দিয়ে খুঁজুন...' : 'Search by name, company, or batch...'}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 font-sans focus:outline-none focus:border-[#C5A880]"
+              />
+            </div>
+
+            {/* Table */}
+            <div className="rounded-2xl plaque-elevated border border-[#C5A880]/25 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#141311] text-[#A89884] border-b border-[#C5A880]/20 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="p-4">{lang === 'bn' ? 'ছবি ও নাম' : 'Photo & Name'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'ব্যাচ ও পাসিং' : 'Batch & Year'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'বিভাগ' : 'Department'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'পদবী ও কোম্পানি' : 'Designation & Company'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'ভেরিফিকেশন স্ট্যাটাস' : 'Verification'}</th>
+                      <th className="p-4 text-right">{lang === 'bn' ? 'অ্যাকশন' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#C5A880]/15">
+                    {filteredAlumni.map((a) => (
+                      <tr key={a.id} className="hover:bg-[#1E1C18]/40 transition">
+                        <td className="p-4 flex items-center gap-3">
+                          <UserAvatar
+                            src={a.avatar}
+                            name={a.name}
+                            role="alumni"
+                            className="w-10 h-10 rounded-xl shrink-0 border border-[#C5A880]/25"
+                          />
+                          <div>
+                            <div className="font-bold text-[#FDFBF7] flex items-center gap-1.5">
+                              <span>{lang === 'bn' ? a.nameBn || a.name : a.name}</span>
+                              {a.isVerified && (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                              )}
+                            </div>
+                            <span className="text-[10px] text-[#A89884] font-sans">{a.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-[#DCD3C1]">
+                          <div>{a.batch}</div>
+                          <span className="text-[10px] text-[#A89884]">
+                            {lang === 'bn' ? `পাসিং: ${a.passingYear}` : `Class of ${a.passingYear}`}
+                          </span>
+                        </td>
+                        <td className="p-4 text-[#DCD3C1]">
+                          {lang === 'bn' ? a.deptBn || a.department : a.department}
+                        </td>
+                        <td className="p-4">
+                          <div className="font-semibold text-[#FDFBF7]">{a.role}</div>
+                          <span className="text-[10px] text-[#A89884]">{a.company}</span>
+                        </td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => {
+                              toggleVerifyAlumni(a.id);
+                              showToast(lang === 'bn' ? 'ভেরিফিকেশন স্ট্যাটাস পরিবর্তন করা হয়েছে!' : 'Verification toggled!');
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center gap-1 cursor-pointer ${
+                              a.isVerified
+                                ? 'bg-sky-100 dark:bg-sky-950/70 text-sky-900 dark:text-sky-200 border-sky-300 dark:border-sky-700/60 shadow-sm'
+                                : 'btn-action-view'
+                            }`}
+                          >
+                            {a.isVerified
+                              ? (lang === 'bn' ? '✓ Verified (ব্লু ব্যাজ)' : '✓ Verified')
+                              : (lang === 'bn' ? 'Pending (ক্লিক করে অনুমোদন দিন)' : 'Pending (Click to Verify)')}
+                          </button>
+                        </td>
+                        <td className="p-4 text-right space-x-1">
+                          <button
+                            onClick={() => handleOpenEdit('editAlumni', a)}
+                            className="btn-action-edit p-2 rounded-lg"
+                            title={lang === 'bn' ? 'সম্পাদনা করুন' : 'Edit Alumni'}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm({ type: 'alumni', id: a.id, name: a.nameBn || a.name })}
+                            className="btn-action-delete p-2 rounded-lg"
+                            title={lang === 'bn' ? 'মুছে ফেলুন' : 'Delete Alumni'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: EVENTS MANAGEMENT */}
+        {activeTab === 'events' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'ইভেন্ট ও সম্মেলন ব্যবস্থাপনা' : 'Events & Reunions Management'}</h3>
+                <p className="text-xs text-[#A89884] mt-0.5">{lang === 'bn' ? 'নতুন সম্মেলন, পুনর্মিলনী ও ফেস্টের সূচি তৈরি করুন।' : 'Create and schedule campus reunions and career summits.'}</p>
+              </div>
+
+              <button
+                onClick={() => handleOpenAdd('addEvent', {
+                  title: '',
+                  titleBn: '',
+                  category: 'Reunion',
+                  date: '২৫ ডিসেম্বর, ২০২৬',
+                  time: 'সকাল ১০:০০ টা - বিকাল ৫:০০ টা',
+                  venue: 'RTEC Campus, Pirganj',
+                  venueBn: 'আরটেক ক্যাম্পাস, পীরগঞ্জ',
+                  registrationFee: '৳ ৫০০',
+                  descriptionBn: 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের বার্ষিক মিলনমেলা।'
+                })}
+                className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-950/40 transition"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>{lang === 'bn' ? 'নতুন ইভেন্ট তৈরি করুন' : 'Create New Event'}</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {events.map((evt) => (
+                <div key={evt.id} className="p-5 rounded-2xl plaque-elevated border border-[#C5A880]/25 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-100 dark:bg-purple-950/70 text-purple-900 dark:text-purple-200 border border-purple-300 dark:border-purple-700/60">
+                        {evt.category}
+                      </span>
+                      <span className="text-[10px] text-emerald-900 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-300/60 font-bold">{evt.registrationFee}</span>
+                    </div>
+                    <h4 className="font-bold text-[#FDFBF7] text-base">{lang === 'bn' ? evt.titleBn || evt.title : evt.title}</h4>
+                    <p className="text-xs text-[#A89884] mt-1 line-clamp-2">{lang === 'bn' ? evt.descriptionBn : evt.descriptionEn || evt.descriptionBn}</p>
+                    <div className="mt-3 text-xs text-[#DCD3C1] space-y-1">
+                      <div>{lang === 'bn' ? `তারিখ: ${evt.date}` : `Date: ${evt.date}`}</div>
+                      <div>{lang === 'bn' ? `স্থান: ${evt.venueBn || evt.venue}` : `Venue: ${evt.venue}`}</div>
+                      <div>
+                        {lang === 'bn'
+                          ? `নিবন্ধিত আসন: ${evt.seatsRegistered || 0} জন`
+                          : `Registered: ${evt.seatsRegistered || 0} attendees`}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between">
+                    <button
+                      onClick={() => handleOpenEdit('editEvent', evt)}
+                      className="btn-action-edit px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      <span>{lang === 'bn' ? 'এডিট' : 'Edit'}</span>
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm({ type: 'event', id: evt.id, name: evt.titleBn || evt.title })}
+                      className="btn-action-delete px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{lang === 'bn' ? 'ডিলিট' : 'Delete'}</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: JOBS MANAGEMENT */}
+        {activeTab === 'jobs' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'চাকরি ও ক্যারিয়ার সার্কুলার' : 'Job Board Management'}</h3>
+                <p className="text-xs text-[#A89884] mt-0.5">{lang === 'bn' ? 'ব্যবহারকারী ও গ্র্যাজুয়েটদের পোস্ট করা চাকরির বিজ্ঞপ্তি যাচাই-বাছাই ও অনুমোদন করুন।' : 'Review and approve job circulars posted by graduates and users.'}</p>
+              </div>
+
+              <button
+                onClick={() => handleOpenAdd('addJob', {
+                  title: '',
+                  titleBn: '',
+                  company: '',
+                  location: 'Dhaka',
+                  type: 'Full Time',
+                  salary: 'Negotiable',
+                  deadline: '2026-12-31',
+                  department: 'Yarn Engineering',
+                  description: 'Textile engineer required for immediate joining.',
+                  status: 'approved'
+                })}
+                className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>{lang === 'bn' ? 'নতুন চাকরি পোস্ট করুন' : 'Post Job'}</span>
+              </button>
+            </div>
+
+            {/* Filter Pills & Search */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: 'all', labelBn: 'সকল চাকরি', labelEn: 'All', count: jobs.length },
+                  { id: 'pending', labelBn: 'অপেক্ষমাণ (Pending)', labelEn: 'Pending', count: pendingJobsCount, isAlert: pendingJobsCount > 0 },
+                  { id: 'approved', labelBn: 'অনুমোদিত (Approved)', labelEn: 'Approved', count: jobs.filter(j => (j.status || 'approved') === 'approved').length },
+                  { id: 'declined', labelBn: 'বাতিলকৃত (Declined)', labelEn: 'Declined', count: jobs.filter(j => j.status === 'declined').length }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setJobFilter(tab.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      jobFilter === tab.id
+                        ? 'bg-amber-600 text-white shadow-sm'
+                        : 'bg-[#181715] text-[#DCD3C1] hover:bg-[#201E1A] border border-[#C5A880]/20'
+                    }`}
+                  >
+                    <span>{lang === 'bn' ? tab.labelBn : tab.labelEn}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      tab.isAlert ? 'bg-rose-500 text-white font-bold animate-pulse' : 'bg-[#141311] text-[#A89884]'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative max-w-xs flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                <input
+                  type="text"
+                  value={jobSearch}
+                  onChange={(e) => setJobSearch(e.target.value)}
+                  placeholder={lang === 'bn' ? 'পদের নাম বা কোম্পানি দিয়ে খুঁজুন...' : 'Search by title or company...'}
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 font-sans focus:outline-none focus:border-[#C5A880]"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {filteredJobs.length === 0 ? (
+                <div className="p-8 text-center text-[#A89884] bg-[#141311] rounded-2xl border border-[#C5A880]/20 text-xs">
+                  {lang === 'bn' ? 'কোনো চাকরির বিজ্ঞপ্তি পাওয়া যায়নি।' : 'No job circulars match the selected filter.'}
+                </div>
+              ) : (
+                filteredJobs.map((j) => {
+                  const currentStatus = j.status || 'approved';
+                  return (
+                    <div key={j.id} className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/25 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-bold text-[#FDFBF7] text-base">{lang === 'bn' ? j.titleBn || j.title : j.title}</h4>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950/60 text-teal-950 dark:text-teal-200 border border-teal-300 dark:border-teal-700/60">
+                            {j.type}
+                          </span>
+                          {currentStatus === 'pending' && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-500/40 flex items-center gap-1 animate-pulse">
+                              <Clock className="w-3 h-3 text-amber-400" />
+                              <span>{lang === 'bn' ? 'অনুমোদনের অপেক্ষায়' : 'Pending Approval'}</span>
+                            </span>
+                          )}
+                          {currentStatus === 'approved' && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              <span>{lang === 'bn' ? 'অনুমোদিত' : 'Approved'}</span>
+                            </span>
+                          )}
+                          {currentStatus === 'declined' && (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                              <X className="w-3 h-3 text-rose-400" />
+                              <span>{lang === 'bn' ? 'বাতিলকৃত' : 'Declined'}</span>
+                            </span>
+                          )}
+                          {j.pdfUrl && (
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-700/60 flex items-center gap-1 font-mono font-bold">
+                              <FileText className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                              <span>PDF</span>
+                            </span>
+                          )}
+                          {j.image && (
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-200 border border-sky-300 dark:border-sky-700/60 flex items-center gap-1 font-mono font-bold">
+                              <ImageIcon className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                              <span>Image</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#DCD3C1]">
+                          {j.company} • {j.location} • <span className="text-emerald-400 font-bold">{j.salary}</span>
+                        </p>
+                        <p className="text-[11px] text-[#A89884] font-mono">
+                          {lang === 'bn' ? `ডেডলাইন: ${j.deadline} • বিভাগ: ${j.department}` : `Deadline: ${j.deadline} • Dept: ${j.department}`}
+                          {j.postedBy && (
+                            <span className="ml-2 text-teal-400 font-sans">
+                              • {lang === 'bn' ? `পোস্টকারী: ${j.postedBy}` : `Posted by: ${j.postedBy}`}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        {currentStatus === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                approveJob(j.id);
+                                showToast(lang === 'bn' ? 'চাকরির বিজ্ঞপ্তিটি সফলভাবে অনুমোদিত হয়েছে!' : 'Job approved successfully!');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow transition cursor-pointer"
+                              title={lang === 'bn' ? 'অনুমোদন করুন' : 'Approve Job'}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>{lang === 'bn' ? 'অনুমোদন' : 'Approve'}</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                declineJob(j.id);
+                                showToast(lang === 'bn' ? 'চাকরির বিজ্ঞপ্তিটি বাতিল করা হয়েছে।' : 'Job declined.');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-rose-900/60 hover:bg-rose-800 text-rose-300 border border-rose-500/40 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                              title={lang === 'bn' ? 'বাতিল করুন' : 'Decline Job'}
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              <span>{lang === 'bn' ? 'বাতিল' : 'Decline'}</span>
+                            </button>
+                          </>
+                        )}
+                        {currentStatus === 'declined' && (
+                          <button
+                            onClick={() => {
+                              approveJob(j.id);
+                              showToast(lang === 'bn' ? 'পুনরায় অনুমোদিত হয়েছে!' : 'Re-approved!');
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-600 text-emerald-200 border border-emerald-500/40 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>{lang === 'bn' ? 'পুনরায় অনুমোদন' : 'Re-Approve'}</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleOpenEdit('editJob', j)}
+                          className="btn-action-edit p-2 rounded-xl cursor-pointer"
+                          title={lang === 'bn' ? 'সম্পাদনা করুন' : 'Edit Job'}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm({ type: 'job', id: j.id, name: j.titleBn || j.title })}
+                          className="btn-action-delete p-2 rounded-xl cursor-pointer"
+                          title={lang === 'bn' ? 'মুছে ফেলুন' : 'Delete Job'}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: NEWS & NOTICES */}
+        {activeTab === 'news' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'খবর ও নোটিশ ব্যবস্থাপনা' : 'News & Notice Management'}</h3>
+                <p className="text-xs text-[#A89884] mt-0.5">{lang === 'bn' ? 'অফিসিয়াল নোটিশ বোর্ড, খবর ও সমাবর্তন সংক্রান্ত ঘোষণা দিন।' : 'Publish, edit and moderate campus news, official circulars and notices.'}</p>
+              </div>
+
+              <button
+                onClick={() => handleOpenAdd('addNews', {
+                  title: '',
+                  titleBn: '',
+                  category: 'Academic Notice',
+                  summaryBn: '',
+                  summary: '',
+                  contentBn: '',
+                  content: '',
+                  date: '১৯ নভেম্বর, ২০২৬',
+                  pdfUrl: '',
+                  image: '',
+                  isPinned: false
+                })}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition"
+              >
+                <Plus className="w-4 h-4 text-white" />
+                <span>{lang === 'bn' ? 'নতুন খবর / নোটিশ প্রকাশ করুন' : 'Publish News / Notice'}</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {news.map((n) => (
+                <div key={n.id} className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/25 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700/60">
+                        {n.category}
+                      </span>
+                      <h4 className="font-bold text-[#FDFBF7] text-sm">{lang === 'bn' ? n.titleBn || n.title : n.title}</h4>
+                      {n.pdfUrl && (
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-700/60 flex items-center gap-1 font-mono font-bold">
+                          <FileText className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                          <span>PDF</span>
+                        </span>
+                      )}
+                      {n.image && (
+                        <span className="px-2 py-0.5 rounded text-[10px] bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-200 border border-sky-300 dark:border-sky-700/60 flex items-center gap-1 font-mono font-bold">
+                          <ImageIcon className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                          <span>Image</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#DCD3C1] line-clamp-1">{n.summaryBn || n.summary || n.contentBn || n.content}</p>
+                    <span className="text-[10px] text-[#A89884]">{n.date}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => handleOpenEdit('editNews', n)}
+                      className="btn-action-edit p-2 rounded-xl"
+                      title={lang === 'bn' ? 'সম্পাদনা করুন' : 'Edit Notice'}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm({ type: 'news', id: n.id, name: n.titleBn || n.title })}
+                      className="btn-action-delete p-2 rounded-xl shrink-0"
+                      title={lang === 'bn' ? 'মুছে ফেলুন' : 'Delete Notice'}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: Q&A AND FORUM MODERATION */}
+        {activeTab === 'forum' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'অভিজ্ঞতা শেয়ার ও ফোরাম কমিউনিটি পরিচালনা' : 'Experience Share & Forum Moderation'}
+                </h3>
+                <p className="text-xs text-[#A89884] mt-0.5">
+                  {lang === 'bn'
+                    ? 'শিক্ষার্থী ও অ্যালামনাইদের প্রশ্ন, ক্যারিয়ার ও টেকনিক্যাল অভিজ্ঞতা শেয়ার পর্যবেক্ষণ ও অনুপযুক্ত পোস্ট বা মন্তব্য মুছে ফেলুন।'
+                    : 'Monitor and moderate questions, experience shares, and comments across the campus forum.'}
+                </p>
+              </div>
+
+              <Link
+                to="/forum"
+                target="_blank"
+                className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-950/40 transition shrink-0"
+              >
+                <ExternalLink className="w-4 h-4 text-white" />
+                <span>{lang === 'bn' ? 'ফোরাম পেজ খুলুন' : 'Open Public Forum'}</span>
+              </Link>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              <div className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'মোট ফোরাম পোস্ট' : 'Total Posts'}
+                </span>
+                <p className="text-2xl font-bold text-[#FDFBF7] font-mono-tech">
+                  {forumPosts.length}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'প্রশ্ন ও জিজ্ঞাসা' : 'Questions'}
+                </span>
+                <p className="text-2xl font-bold text-amber-400 font-mono-tech">
+                  {forumPosts.filter(p => p.type === 'question').length}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'অভিজ্ঞতা শেয়ার' : 'Experiences'}
+                </span>
+                <p className="text-2xl font-bold text-emerald-400 font-mono-tech">
+                  {forumPosts.filter(p => p.type === 'experience' || p.type === 'tip').length}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'সর্বমোট মন্তব্য' : 'Total Comments'}
+                </span>
+                <p className="text-2xl font-bold text-[#DFCA9E] font-mono-tech">
+                  {forumPosts.reduce((acc, p) => acc + (p.replies?.length || 0), 0)}
+                </p>
+              </div>
+            </div>
+
+            {/* Search & Filter Toolbar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20">
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                <input
+                  type="text"
+                  value={forumSearch}
+                  onChange={(e) => setForumSearch(e.target.value)}
+                  placeholder={lang === 'bn' ? 'প্রশ্ন, অভিজ্ঞতা, লেখক বা ট্যাগ দিয়ে অনুসন্ধান করুন...' : 'Search questions, experiences, authors, or tags...'}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-amber-500 font-sans"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                {[
+                  { id: 'all', labelBn: 'সকল পোস্ট', labelEn: 'All Posts' },
+                  { id: 'question', labelBn: 'প্রশ্ন ও জিজ্ঞাসা', labelEn: 'Questions' },
+                  { id: 'experience', labelBn: 'অভিজ্ঞতা শেয়ার', labelEn: 'Experiences' }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setForumTypeFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      forumTypeFilter === f.id
+                        ? 'bg-amber-500 text-slate-950 shadow-md font-bold'
+                        : 'bg-[#141311] text-[#DCD3C1] hover:text-[#FDFBF7] border border-[#C5A880]/20'
+                    }`}
+                  >
+                    {lang === 'bn' ? f.labelBn : f.labelEn}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Posts List */}
+            <div className="space-y-4">
+              {filteredForumPosts.length === 0 ? (
+                <div className="p-8 text-center rounded-2xl plaque-elevated border border-[#C5A880]/20 space-y-2">
+                  <MessageSquareQuote className="w-8 h-8 text-[#A89884] mx-auto opacity-50" />
+                  <p className="text-sm font-bold text-[#FDFBF7]">
+                    {lang === 'bn' ? 'কোন পোস্ট পাওয়া যায়নি!' : 'No forum posts found!'}
+                  </p>
+                  <p className="text-xs text-[#A89884]">
+                    {lang === 'bn' ? 'সার্চ কুয়েরি বা ফিল্টার পরিবর্তন করে পুনরায় চেষ্টা করুন।' : 'Try adjusting your search query or type filter.'}
+                  </p>
+                </div>
+              ) : (
+                filteredForumPosts.map((post) => {
+                  const isExpanded = expandedForumPostId === post.id;
+                  const replies = post.replies || [];
+                  const activeRepliesCount = replies.filter(r => !r.isDeleted).length;
+
+                  return (
+                    <div
+                      key={post.id}
+                      className="p-5 rounded-2xl plaque-elevated border border-[#C5A880]/25 space-y-4 transition"
+                    >
+                      {/* Top Row: Badges, Date, Delete Button */}
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {post.type === 'question' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                              {lang === 'bn' ? 'প্রশ্ন / জিজ্ঞাসা' : 'Question'}
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                              {lang === 'bn' ? 'অভিজ্ঞতা শেয়ার' : 'Experience / Tip'}
+                            </span>
+                          )}
+
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold bg-[#141311] text-[#DFCA9E] border border-[#C5A880]/20">
+                            {post.category}
+                          </span>
+
+                          <span className="text-[11px] font-mono-tech text-[#A89884]">
+                            {post.date}
+                          </span>
+                        </div>
+
+                        {/* Admin Delete Post Button */}
+                        <button
+                          onClick={() => setDeleteConfirm({
+                            type: 'forumPost',
+                            id: post.id,
+                            name: post.titleBn || post.title
+                          })}
+                          className="btn-action-delete px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                          title={lang === 'bn' ? 'পোস্টটি স্থায়ীভাবে মুছে ফেলুন' : 'Delete this post'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>{lang === 'bn' ? 'পোস্ট মুছুন' : 'Delete Post'}</span>
+                        </button>
+                      </div>
+
+                      {/* Author Header */}
+                      <div className="flex items-center gap-3">
+                        <UserAvatar
+                          src={post.authorAvatar}
+                          name={post.author}
+                          role={post.authorRole?.toLowerCase()?.includes('alumni') ? 'alumni' : (post.authorRole?.toLowerCase()?.includes('admin') ? 'faculty' : 'student')}
+                          className="w-9 h-9 rounded-xl border border-[#C5A880]/30 shrink-0"
+                        />
+                        <div>
+                          <h5 className="font-bold text-xs sm:text-sm text-[#FDFBF7]">
+                            {post.author}
+                          </h5>
+                          <p className="text-[10px] font-mono-tech text-[#A89884]">
+                            {post.authorRole || 'Community Member'} • {post.authorEmail || ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Post Content */}
+                      <div className="space-y-1.5">
+                        <h4 className="font-bold text-base text-[#FDFBF7] leading-snug">
+                          {lang === 'bn' ? post.titleBn || post.title : post.title}
+                        </h4>
+                        <p className="text-xs text-[#DCD3C1] leading-relaxed line-clamp-3">
+                          {post.body || post.content || post.description}
+                        </p>
+                      </div>
+
+                      {/* Tags */}
+                      {post.tags && post.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {post.tags.map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              className="px-2 py-0.5 rounded text-[10px] font-mono-tech bg-[#141311] text-[#A89884] border border-[#C5A880]/15"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Footer Actions: Comment Toggle & Direct Link */}
+                      <div className="pt-3 border-t border-[#C5A880]/15 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 text-xs font-mono-tech text-[#A89884]">
+                          <span>▲ {post.upvotes || 0} ভোট</span>
+                          <span>•</span>
+                          <span>{post.views || 0} বার দেখা হয়েছে</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setExpandedForumPostId(isExpanded ? null : post.id)}
+                            className="px-3.5 py-1.5 rounded-xl bg-[#141311] hover:bg-[#201E1A] text-xs font-mono-tech font-bold text-[#DCD3C1] hover:text-[#FDFBF7] border border-[#C5A880]/25 flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                            <span>{replies.length} টি মন্তব্য ({activeRepliesCount} সক্রিয়)</span>
+                            {isExpanded ? (
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+
+                          <Link
+                            to="/forum"
+                            className="px-3 py-1.5 rounded-xl bg-[#141311] hover:bg-[#201E1A] text-xs font-mono-tech text-[#DFCA9E] hover:text-[#FDFBF7] border border-[#C5A880]/20 flex items-center gap-1.5 transition"
+                          >
+                            <span>{lang === 'bn' ? 'ফোরামে দেখুন' : 'View'}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Collapsible Replies List */}
+                      {isExpanded && (
+                        <div className="pt-4 border-t border-[#C5A880]/20 space-y-2.5 animate-in fade-in duration-200">
+                          <h6 className="text-xs font-bold text-[#DFCA9E] font-mono-tech uppercase">
+                            {lang === 'bn' ? `এই পোস্টের মন্তব্যসমূহ (${replies.length}):` : `Comments on this post (${replies.length}):`}
+                          </h6>
+
+                          {replies.length === 0 ? (
+                            <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 text-xs text-[#A89884] italic text-center font-sans">
+                              {lang === 'bn' ? 'এই পোস্টে এখনও কোন মন্তব্য করা হয়নি।' : 'No comments on this post yet.'}
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {replies.map((reply, rIdx) => {
+                                if (reply.isDeleted) {
+                                  return (
+                                    <div
+                                      key={reply.id || rIdx}
+                                      className="p-3 rounded-xl bg-[#141311] border border-rose-500/25 text-xs flex items-center justify-between gap-3 text-rose-300/80 italic font-sans"
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        <Trash2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                        <span>
+                                          {lang === 'bn' ? 'দিস কমেন্ট ইজ ডিলিটেড (এই মন্তব্যটি মুছে ফেলা হয়েছে)' : 'This comment is deleted.'}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] text-[#A89884] font-mono-tech not-italic">
+                                        {reply.deletedAt || (lang === 'bn' ? 'মুছে ফেলা হয়েছে' : 'Deleted')}
+                                      </span>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div
+                                    key={reply.id || rIdx}
+                                    className="p-3.5 rounded-xl bg-[#141311] border border-[#C5A880]/20 space-y-2 transition"
+                                  >
+                                    <div className="flex items-center justify-between gap-3">
+                                      <div className="flex items-center gap-2">
+                                        <UserAvatar
+                                          src={reply.avatar}
+                                          name={reply.author}
+                                          role={reply.role?.toLowerCase()?.includes('alumni') ? 'alumni' : (reply.role?.toLowerCase()?.includes('admin') ? 'faculty' : 'student')}
+                                          className="w-7 h-7 rounded-lg border border-[#C5A880]/30 shrink-0"
+                                        />
+                                        <div>
+                                          <div className="flex items-center gap-2">
+                                            <h6 className="text-xs font-bold text-[#FDFBF7]">
+                                              {reply.author}
+                                            </h6>
+                                            {reply.isEdited && (
+                                              <span className="text-[9px] font-mono-tech text-amber-400">
+                                                ({lang === 'bn' ? 'সম্পাদিত' : 'Edited'})
+                                              </span>
+                                            )}
+                                          </div>
+                                          <p className="text-[10px] text-[#A89884] font-mono-tech">
+                                            {reply.role || 'Member'} • {reply.date}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      {/* Admin Delete Comment Button */}
+                                      <button
+                                        onClick={() => setDeleteConfirm({
+                                          type: 'forumReply',
+                                          id: reply.id,
+                                          postId: post.id,
+                                          name: `${reply.author}-এর মন্তব্য`
+                                        })}
+                                        className="btn-action-delete px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer"
+                                        title={lang === 'bn' ? 'এই মন্তব্যটি মুছে ফেলুন' : 'Delete comment'}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                        <span>{lang === 'bn' ? 'মন্তব্য মুছুন' : 'Delete'}</span>
+                                      </button>
+                                    </div>
+
+                                    <p className="text-xs text-[#DCD3C1] leading-relaxed pl-9">
+                                      {reply.content}
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 8: SYSTEM SETTINGS & BACKUP */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6 max-w-2xl animate-in fade-in duration-300">
+            <div>
+              <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'সিস্টেম কনফিগারেশন ও ডাটা ব্যাকআপ' : 'System Backup & Reset'}</h3>
+              <p className="text-xs text-[#A89884] mt-0.5">{lang === 'bn' ? 'সব ডাটা রিসেট বা লোকাল ব্যাকআপ এক্সপোর্ট করার সুবিধা।' : 'Export database backup or restore initial defaults.'}</p>
+            </div>
+
+            {/* College Logo & Branding Card */}
+            <div className="p-6 rounded-3xl plaque-elevated border border-[#C5A880]/20 space-y-5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs font-bold border border-emerald-500/30 mb-2">
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  {lang === 'bn' ? 'ব্র্যান্ডিং ও আইডেন্টিটি' : 'Branding & Identity'}
+                </span>
+                <h4 className="text-base font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'কলেজ লোগো পরিবর্তন (College Logo Upload)' : 'Custom College Logo'}
+                </h4>
+                <p className="text-xs text-[#A89884] mt-1">
+                  {lang === 'bn'
+                    ? 'ওয়েবসাইটের সবার উপরে বামপাশে কলেজের নামের সাথে প্রদর্শিত অফিসিয়াল লোগোটি পরিবর্তন বা সেট করুন। গুগল ড্রাইভের শেয়ার লিংক দিলে স্বয়ংক্রিয়ভাবে সরাসরি লোড হবে।'
+                    : 'Set custom college logo displayed in the top navbar next to college name. Direct Drive links are automatically supported.'}
+                </p>
+              </div>
+
+              <DriveImageInput
+                label={lang === 'bn' ? 'কলেজ লোগোর Google Drive লিংক বা URL' : 'College Logo Drive Link or Image URL'}
+                value={customLogoUrl}
+                onChange={setCustomLogoUrl}
+                lang={lang}
+                fallbackIcon={ImageIcon}
+                placeholder="https://drive.google.com/file/d/.../view"
+              />
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateCollegeLogo(customLogoUrl);
+                    showToast(lang === 'bn' ? 'কলেজ লোগো সফলভাবে সংরক্ষিত ও আপডেট হয়েছে!' : 'College logo saved and updated successfully!');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/50 transition"
+                >
+                  <Check className="w-4 h-4 text-white" />
+                  <span>{lang === 'bn' ? 'লোগো সংরক্ষণ করুন (Save Logo)' : 'Save College Logo'}</span>
+                </button>
+
+                {collegeLogo && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetCollegeLogo();
+                      setCustomLogoUrl('');
+                      showToast(lang === 'bn' ? 'ডিফল্ট RTEC লোগো ব্যাজ ফিরিয়ে আনা হয়েছে!' : 'Restored default RTEC logo badge!');
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-[#DCD3C1] hover:text-[#FDFBF7] font-bold text-xs flex items-center gap-2 transition"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>{lang === 'bn' ? 'ডিফল্ট লোগোতে ফিরুন (Reset)' : 'Reset to Default'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Footer & Official Contact Information Card */}
+            <div className="p-6 rounded-3xl plaque-elevated border border-[#C5A880]/20 space-y-5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/30 mb-2">
+                  <Phone className="w-3.5 h-3.5" />
+                  {lang === 'bn' ? 'ফুটার ও প্রাতিষ্ঠানিক যোগাযোগ' : 'Footer & Official Contacts'}
+                </span>
+                <h4 className="text-base font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'ফুটার তথ্য ও যোগাযোগ সম্পাদনা (Footer Information)' : 'Footer Contact & Address Configuration'}
+                </h4>
+                <p className="text-xs text-[#A89884] mt-1 leading-relaxed">
+                  {lang === 'bn'
+                    ? 'ওয়েবসাইটের ফুটারে প্রদর্শিত কলেজের অফিশিয়াল ফোন নম্বর, ইমেইল/জিমেইল অ্যাড্রেস এবং বাংলা ও ইংরেজি ঠিকানা এখান থেকে সরাসরি পরিবর্তন করা যাবে।'
+                    : 'Configure official contact numbers, institutional email, and campus address displayed across all page footers.'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#DCD3C1] mb-1">
+                    {lang === 'bn' ? 'অফিসিয়াল ফোন নম্বর / হেল্পলাইন' : 'Official Phone / Helpline'}
+                  </label>
+                  <input
+                    type="text"
+                    value={footerPhone}
+                    onChange={(e) => setFooterPhone(e.target.value)}
+                    placeholder="+880 521-55421"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-mono-tech focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Email / Gmail */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#DCD3C1] mb-1">
+                    {lang === 'bn' ? 'অফিসিয়াল ইমেইল / জিমেইল অ্যাড্রেস' : 'Official Email / Gmail'}
+                  </label>
+                  <input
+                    type="email"
+                    value={footerEmail}
+                    onChange={(e) => setFooterEmail(e.target.value)}
+                    placeholder="info@rtec.edu.bd"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-mono-tech focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Address BN */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-[#DCD3C1] mb-1">
+                    {lang === 'bn' ? 'কলেজের পূর্ণাঙ্গ ঠিকানা (বাংলা)' : 'Full Campus Address (Bengali)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={footerAddressBn}
+                    onChange={(e) => setFooterAddressBn(e.target.value)}
+                    placeholder="টুকুরিয়া, পীরগঞ্জ, রংপুর-৫৪২০, বাংলাদেশ"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-sans focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Address EN */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-[#DCD3C1] mb-1">
+                    {lang === 'bn' ? 'কলেজের ঠিকানা (ইংরেজি)' : 'Campus Address (English)'}
+                  </label>
+                  <input
+                    type="text"
+                    value={footerAddressEn}
+                    onChange={(e) => setFooterAddressEn(e.target.value)}
+                    placeholder="Tukuriya, Pirganj, Rangpur-5420, Bangladesh"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-sans focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateFooterContact({
+                      phone: footerPhone,
+                      email: footerEmail,
+                      addressBn: footerAddressBn,
+                      addressEn: footerAddressEn
+                    });
+                    showToast(lang === 'bn' ? 'ফুটার তথ্য সফলভাবে সংরক্ষিত ও আপডেট হয়েছে!' : 'Footer contact details saved and published!');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-950/50 transition cursor-pointer"
+                >
+                  <Check className="w-4 h-4 text-white" />
+                  <span>{lang === 'bn' ? 'ফুটার তথ্য সংরক্ষণ করুন' : 'Save Footer Information'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetFooterContact();
+                    setFooterPhone('+880 521-55421');
+                    setFooterEmail('info@rtec.edu.bd');
+                    setFooterAddressBn('টুকুরিয়া, পীরগঞ্জ, রংপুর-৫৪২০, বাংলাদেশ');
+                    setFooterAddressEn('Tukuriya, Pirganj, Rangpur-5420, Bangladesh');
+                    showToast(lang === 'bn' ? 'ডিফল্ট ফুটার তথ্য ফিরিয়ে আনা হয়েছে!' : 'Restored default footer details!');
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-[#DCD3C1] hover:text-[#FDFBF7] font-bold text-xs flex items-center gap-2 transition cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>{lang === 'bn' ? 'ডিফল্ট তথ্যে ফিরে যান' : 'Reset to Default'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Authorized Admin Gmails Management Card */}
+            <div className="p-6 rounded-3xl plaque-elevated border border-[#C5A880]/20 space-y-5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/30 mb-2">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  {lang === 'bn' ? 'অ্যাডমিন সিকিউরিটি ও এক্সেস' : 'Admin Security & Access'}
+                </span>
+                <h4 className="text-base font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'অনুমোদিত অ্যাডমিন জিমেইল তালিকা (Authorized Admin Gmails)' : 'Authorized Admin Gmail Accounts'}
+                </h4>
+                <p className="text-xs text-[#A89884] mt-1">
+                  {lang === 'bn'
+                    ? 'শুধুমাত্র নিচের তালিকায় থাকা জিমেইল অ্যাকাউন্টগুলো দিয়ে লগইন করলেই এই অ্যাডমিন প্যানেল দেখা ও ব্যবহার করা যাবে। সাধারণ শিক্ষার্থী বা অন্য কেউ কখনোই অ্যাডমিন অপশন দেখতে পাবে না।'
+                    : 'Only Gmail accounts listed below are authorized to access and control the Administrator Console. Guests and students will never see admin buttons.'}
+                </p>
+              </div>
+
+              {/* Admin Emails List */}
+              <div className="space-y-2.5">
+                {adminEmails.map((admEmail) => {
+                  const isMaster = admEmail.toLowerCase() === 'megasonic298@gmail.com';
+                  return (
+                    <div
+                      key={admEmail}
+                      className="p-3.5 rounded-2xl bg-[#141311] border border-[#C5A880]/20 flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono-tech text-xs sm:text-sm font-bold text-[#FDFBF7] truncate">
+                              {admEmail}
+                            </span>
+                            {isMaster && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono-tech font-black bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                {lang === 'bn' ? 'মূল অ্যাডমিন' : 'Master Admin'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-[#A89884] block">
+                            {isMaster
+                              ? (lang === 'bn' ? 'স্থায়ী সিস্টেম ওনার অ্যাডমিন' : 'Permanent System Owner')
+                              : (lang === 'bn' ? 'অনুমোদিত সহকারী অ্যাডমিন' : 'Authorized Sub-Admin')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {!isMaster && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (window.confirm(lang === 'bn' ? `আপনি কি "${admEmail}"-এর অ্যাডমিন অ্যাক্সেস বাতিল করতে চান?` : `Remove admin access for "${admEmail}"?`)) {
+                              await removeAdminEmail(admEmail);
+                              showToast(lang === 'bn' ? 'অ্যাডমিন অ্যাক্সেস প্রত্যাহার করা হয়েছে' : 'Admin access removed');
+                            }
+                          }}
+                          className="p-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/30 text-xs transition cursor-pointer shrink-0"
+                          title={lang === 'bn' ? 'অ্যাডমিন বাতিল করুন' : 'Remove Admin'}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add New Admin Email Form */}
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!newAdminEmailInput.trim()) return;
+                  const res = await addAdminEmail(newAdminEmailInput.trim(), newAdminNoteInput.trim());
+                  if (res.success) {
+                    setNewAdminEmailInput('');
+                    setNewAdminNoteInput('');
+                    showToast(lang === 'bn' ? '✓ নতুন অ্যাডমিন জিমেইল সফলভাবে যোগ হয়েছে!' : '✓ New admin email authorized successfully!');
+                  } else {
+                    showToast(res.message || 'Error adding admin email');
+                  }
+                }}
+                className="pt-2 space-y-3"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#DCD3C1] mb-1">
+                      {lang === 'bn' ? 'নতুন অ্যাডমিনের জিমেইল' : 'New Admin Gmail Address'}
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newAdminEmailInput}
+                      onChange={(e) => setNewAdminEmailInput(e.target.value)}
+                      placeholder="teacher.name@gmail.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-mono-tech focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#DCD3C1] mb-1">
+                      {lang === 'bn' ? 'পরিচিতি নোট (ঐচ্ছিক)' : 'Note / Identity (Optional)'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newAdminNoteInput}
+                      onChange={(e) => setNewAdminNoteInput(e.target.value)}
+                      placeholder={lang === 'bn' ? 'উদা: সহকারী শিক্ষক / মডারেটর' : 'e.g. Faculty Moderator'}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-sans focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'নতুন অ্যাডমিন যুক্ত করুন' : 'Authorize Admin Email'}</span>
+                </button>
+              </form>
+            </div>
+
+            <div className="p-6 rounded-3xl plaque-elevated border border-[#C5A880]/20 space-y-6">
+              <div className="space-y-2">
+                <h4 className="text-sm font-bold text-[#FDFBF7]">{lang === 'bn' ? 'JSON ব্যাকআপ ডাউনলোড' : 'Download JSON Backup'}</h4>
+                <p className="text-xs text-[#A89884]">
+                  {lang === 'bn'
+                    ? 'বর্তমান শিক্ষক, শিক্ষার্থী (১ম-৮ম ব্যাচ), এবং অ্যালামনাই ডেটাবেজের পূর্ণাঙ্গ JSON ব্যাকআপ ফাইল হিসেবে ডাউনলোড করুন।'
+                    : 'Download full JSON snapshot of faculty, students (1st-8th batch), and alumni.'}
+                </p>
+                <button
+                  onClick={() => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                      teachers,
+                      students,
+                      alumni,
+                      events,
+                      jobs,
+                      news
+                    }, null, 2));
+                    const dlAnchor = document.createElement('a');
+                    dlAnchor.setAttribute("href", dataStr);
+                    dlAnchor.setAttribute("download", `rtec_alumni_backup_${new Date().toISOString().split('T')[0]}.json`);
+                    dlAnchor.click();
+                    showToast(lang === 'bn' ? 'ব্যাকআপ ফাইল সফলভাবে ডাউনলোড হয়েছে!' : 'Backup downloaded successfully!');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-xs font-bold text-emerald-400 flex items-center gap-2 transition"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'সম্পূর্ণ ডেটাবেজ ডাউনলোড করুন (Export JSON)' : 'Export Full JSON Backup'}</span>
+                </button>
+              </div>
+
+              <div className="pt-6 border-t border-[#C5A880]/20 space-y-2">
+                <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'ডেমো ডেটা রিসেট করুন (Reset to Original Demo)' : 'Factory Reset Demo Data'}</span>
+                </h4>
+                <p className="text-xs text-[#A89884]">
+                  {lang === 'bn'
+                    ? 'আগের ডিফল্ট স্যাম্পল ডেটায় ফিরে যেতে নিচের বাটনে ক্লিক করুন।'
+                    : 'Restore initial seed data for all faculty, students, and alumni.'}
+                </p>
+                <button
+                  onClick={() => {
+                    if (window.confirm(lang === 'bn' ? 'আপনি কি নিশ্চিত যে সকল ডেটা রিসেট করে ডিফল্ট সেটিংসে ফিরিয়ে নিতে চান?' : 'Are you sure you want to reset all data to default seed?')) {
+                      resetAllData();
+                      showToast(lang === 'bn' ? 'সকল ডেটা সফলভাবে রিসেট করা হয়েছে!' : 'All data restored to factory defaults!');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/40 text-xs font-bold text-rose-300 flex items-center gap-2 transition"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'ফ্যাক্টরি রিসেট চালান (Reset All)' : 'Perform Factory Reset'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* CREATE & EDIT MODAL (Smooth 60fps spring animation) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {modalType && (
+            <motion.div
+              key="admin-crud-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              data-admin-modal="true"
+              data-lenis-prevent="true"
+              data-modal-open="true"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setModalType(null);
+                  setActiveItem(null);
+                }
+              }}
+            >
+              <motion.div
+                key="admin-crud-modal-card"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                data-lenis-prevent="true"
+                className="relative w-full max-w-2xl bg-[#181715] border border-[#C5A880]/30 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain"
+              >
+              <button
+                onClick={() => {
+                  setModalType(null);
+                  setActiveItem(null);
+                }}
+                className="absolute top-5 right-5 p-2 rounded-xl bg-[#201E1A] text-[#DCD3C1] hover:text-[#FDFBF7]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-lg font-bold text-[#FDFBF7] mb-4">
+                {modalType === 'addTeacher' && (lang === 'bn' ? 'নতুন শিক্ষক যুক্ত করুন' : 'Add New Teacher')}
+                {modalType === 'editTeacher' && (lang === 'bn' ? 'শিক্ষকের তথ্য পরিবর্তন করুন' : 'Edit Teacher Details')}
+                {modalType === 'addStudent' && (lang === 'bn' ? 'নতুন শিক্ষার্থী যুক্ত করুন' : 'Add New Student')}
+                {modalType === 'editStudent' && (lang === 'bn' ? 'শিক্ষার্থীর তথ্য পরিবর্তন করুন' : 'Edit Student Details')}
+                {modalType === 'addAlumni' && (lang === 'bn' ? 'নতুন অ্যালামনাই যুক্ত করুন' : 'Add New Alumni')}
+                {modalType === 'editAlumni' && (lang === 'bn' ? 'অ্যালামনাই প্রোফাইল পরিবর্তন করুন' : 'Edit Alumni Profile')}
+                {modalType === 'addEvent' && (lang === 'bn' ? 'নতুন ইভেন্ট তৈরি করুন' : 'Create New Event')}
+                {modalType === 'editEvent' && (lang === 'bn' ? 'ইভেন্ট পরিবর্তন করুন' : 'Edit Event')}
+                {modalType === 'addJob' && (lang === 'bn' ? 'নতুন চাকরির বিজ্ঞপ্তি দিন' : 'Post Job Circular')}
+                {modalType === 'editJob' && (lang === 'bn' ? 'চাকরির বিজ্ঞপ্তি সম্পাদনা করুন' : 'Edit Job Circular')}
+                {modalType === 'addNews' && (lang === 'bn' ? 'নতুন নোটিশ প্রকাশ করুন' : 'Publish Notice')}
+                {modalType === 'editNews' && (lang === 'bn' ? 'নোটিশ সম্পাদনা করুন' : 'Edit Notice')}
+              </h3>
+
+              <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
+                {/* TEACHER FORM */}
+                {(modalType === 'addTeacher' || modalType === 'editTeacher') && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">নাম (বাংলায়) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.nameBn || ''}
+                          onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
+                          placeholder="উদা: ইঞ্জিনিয়ার মো. রঞ্জু মিয়া"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">Name (English) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name || ''}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="e.g. Engineer Md. Ronju Mia"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">পদবী (বাংলায়) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.designationBn || ''}
+                          onChange={(e) => setFormData({ ...formData, designationBn: e.target.value })}
+                          placeholder="উদা: সহযোগী অধ্যাপক"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">Designation (English) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.designation || ''}
+                          onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                          placeholder="e.g. Associate Professor"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">বিভাগ (Department) *</label>
+                        <select
+                          value={formData.department || 'Yarn Engineering'}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const deptMap = {
+                              'Yarn Engineering': 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+                              'Fabric Engineering': 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
+                              'Wet Process Engineering': 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং',
+                              'Apparel Manufacturing': 'অ্যাপারেল ম্যানুফ্যাকচারিং',
+                              'Basic Science': 'বেসিক সায়েন্স'
+                            };
+                            setFormData({
+                              ...formData,
+                              department: val,
+                              deptBn: deptMap[val] || val
+                            });
+                          }}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          <option value="Yarn Engineering">Yarn Engineering (ইয়ার্ন ইঞ্জিনিয়ারিং)</option>
+                          <option value="Fabric Engineering">Fabric Engineering (ফ্যাব্রিক ইঞ্জিনিয়ারিং)</option>
+                          <option value="Wet Process Engineering">Wet Process Engineering (ওয়েট প্রসেস ইঞ্জিনিয়ারিং)</option>
+                          <option value="Apparel Manufacturing">Apparel Manufacturing (অ্যাপারেল ম্যানুফ্যাকচারিং)</option>
+                          <option value="Basic Science">Basic Science (বেসিক সায়েন্স)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">অফিস কক্ষ (Office Room)</label>
+                        <input
+                          type="text"
+                          value={formData.officeRoom || ''}
+                          onChange={(e) => setFormData({ ...formData, officeRoom: e.target.value })}
+                          placeholder="Academic Building, Room 204"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">ইমেইল (Email)</label>
+                        <input
+                          type="email"
+                          value={formData.email || ''}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="name@rtec.edu.bd"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">ফোন নম্বর (Phone)</label>
+                        <input
+                          type="text"
+                          value={formData.phone || ''}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+880 1712-345678"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 block mb-1">শিক্ষাগত যোগ্যতা (Education)</label>
+                      <input
+                        type="text"
+                        value={formData.education || ''}
+                        onChange={(e) => setFormData({ ...formData, education: e.target.value })}
+                        placeholder="M.Sc. in Textile Eng. (BUTEX), B.Sc. in Textile Eng."
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 block mb-1">গবেষণা ও স্পেশালাইজেশন (Research Interests)</label>
+                      <input
+                        type="text"
+                        value={formData.research || ''}
+                        onChange={(e) => setFormData({ ...formData, research: e.target.value })}
+                        placeholder="Eco-friendly Dyeing, Nano-finishing, Smart Textiles"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                      />
+                    </div>
+
+                    <DriveImageInput
+                      label={lang === 'bn' ? 'শিক্ষকের ছবি (Google Drive লিংক বা Photo URL)' : 'Faculty Photo (Google Drive Link or Photo URL)'}
+                      value={formData.photo || ''}
+                      onChange={(val) => setFormData({ ...formData, photo: val })}
+                      lang={lang}
+                      fallbackIcon={GraduationCap}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                    />
+
+                    <div className="flex items-center gap-2 pt-2">
+                      <input
+                        type="checkbox"
+                        id="isHod"
+                        checked={formData.isHod || false}
+                        onChange={(e) => setFormData({ ...formData, isHod: e.target.checked })}
+                        className="rounded border-slate-800"
+                      />
+                      <label htmlFor="isHod" className="text-slate-300 font-semibold">
+                        {lang === 'bn' ? 'তিনি কি বিভাগীয় প্রধান (Head of Department)?' : 'Is this faculty member Head of Department?'}
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {/* STUDENT FORM: 1st to 8th Batch, NO roll, NO cgpa, only regNo */}
+                {(modalType === 'addStudent' || modalType === 'editStudent') && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">নাম (বাংলায়) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.nameBn || ''}
+                          onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
+                          placeholder="উদা: মো. রায়হান কবির"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">Name (English) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name || ''}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="e.g. Md. Rayhan Kabir"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'রেজিস্ট্রেশন নম্বর (Registration No.) *' : 'Registration No *'}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.regNo || ''}
+                          onChange={(e) => setFormData({ ...formData, regNo: e.target.value })}
+                          placeholder="2018-10-01"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'রক্তের গ্রুপ (Blood Group)' : 'Blood Group'}
+                        </label>
+                        <select
+                          value={formData.bloodGroup || 'A+'}
+                          onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                            <option key={bg} value={bg}>{bg}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ব্যাচ (Batch: ১ম - ৮ম) *' : 'Batch (1st - 8th) *'}
+                        </label>
+                        <select
+                          value={formData.batch || '8th Batch (2025-26)'}
+                          onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          {BATCH_OPTIONS.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">বিভাগ (Department) *</label>
+                        <select
+                          value={formData.department || 'Yarn Engineering'}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const deptMap = {
+                              'Yarn Engineering': 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+                              'Fabric Engineering': 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
+                              'Wet Process Engineering': 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং',
+                              'Apparel Manufacturing': 'অ্যাপারেল ম্যানুফ্যাকচারিং'
+                            };
+                            setFormData({
+                              ...formData,
+                              department: val,
+                              deptBn: deptMap[val] || val
+                            });
+                          }}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          <option value="Yarn Engineering">Yarn Engineering</option>
+                          <option value="Fabric Engineering">Fabric Engineering</option>
+                          <option value="Wet Process Engineering">Wet Process Engineering</option>
+                          <option value="Apparel Manufacturing">Apparel Manufacturing</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'শিক্ষাবর্ষ (Session)' : 'Session'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.session || ''}
+                          onChange={(e) => setFormData({ ...formData, session: e.target.value })}
+                          placeholder="2025-2026"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'পদবী/দায়িত্ব (Role)' : 'Role'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.role || ''}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                          placeholder="Class Representative (CR) / Member"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">ইমেইল (Email)</label>
+                        <input
+                          type="email"
+                          value={formData.email || ''}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="student@rtec.edu.bd"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">ফোন নম্বর (Phone)</label>
+                        <input
+                          type="text"
+                          value={formData.phone || ''}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+880 1..."
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'ক্লাব ও সহশিক্ষা কার্যক্রম' : 'Activities & Clubs'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.activities || ''}
+                        onChange={(e) => setFormData({ ...formData, activities: e.target.value })}
+                        placeholder="RTEC Textile Club, Debate Society, Sports"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                      />
+                    </div>
+
+                    <DriveImageInput
+                      label={lang === 'bn' ? 'শিক্ষার্থীর ছবি (Google Drive লিংক বা Photo URL)' : 'Student Photo (Google Drive Link or Photo URL)'}
+                      value={formData.avatar || ''}
+                      onChange={(val) => setFormData({ ...formData, avatar: val })}
+                      lang={lang}
+                      fallbackIcon={Users}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                    />
+                  </>
+                )}
+
+                {/* ALUMNI FORM: 1st to 8th Batch */}
+                {(modalType === 'addAlumni' || modalType === 'editAlumni') && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">নাম (বাংলায়) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.nameBn || ''}
+                          onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
+                          placeholder="প্রকৌ. তানভীর আহমেদ"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">Name (English) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name || ''}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="Engr. Tanvir Ahmed"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ব্যাচ (১ম - ৮ম) *' : 'Batch (1st - 8th) *'}
+                        </label>
+                        <select
+                          value={formData.batch || '1st Batch (2018-19)'}
+                          onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          {BATCH_OPTIONS.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">পাসিং বছর *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.passingYear || ''}
+                          onChange={(e) => setFormData({ ...formData, passingYear: e.target.value })}
+                          placeholder="2023"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">বিভাগ *</label>
+                        <select
+                          value={formData.department || 'Yarn Engineering'}
+                          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          <option value="Yarn Engineering">Yarn Engineering</option>
+                          <option value="Fabric Engineering">Fabric Engineering</option>
+                          <option value="Wet Process Engineering">Wet Process Engineering</option>
+                          <option value="Apparel Manufacturing">Apparel Manufacturing</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">বর্তমান পদবী *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.role || ''}
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                          placeholder="General Manager (Operations)"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">কোম্পানি / প্রতিষ্ঠান *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.company || ''}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          placeholder="Square Textiles Ltd."
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">ইমেইল</label>
+                        <input
+                          type="email"
+                          value={formData.email || ''}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">লোকেশন</label>
+                        <input
+                          type="text"
+                          value={formData.location || ''}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          placeholder="Dhaka / Leeds, UK"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <DriveImageInput
+                      label={lang === 'bn' ? 'অ্যালামনাই ছবি (Google Drive লিংক বা Photo URL)' : 'Alumni Photo (Google Drive Link or Photo URL)'}
+                      value={formData.avatar || ''}
+                      onChange={(val) => setFormData({ ...formData, avatar: val })}
+                      lang={lang}
+                      fallbackIcon={Award}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                    />
+
+                    <div className="flex items-center gap-2 pt-2">
+                      <input
+                        type="checkbox"
+                        id="isVerified"
+                        checked={formData.isVerified || false}
+                        onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
+                      />
+                      <label htmlFor="isVerified" className="text-slate-300 font-semibold">
+                        {lang === 'bn' ? 'অ্যালামনাই ভেরিফাইড ব্লু-ব্যাজ অনুমোদন করুন' : 'Grant Verified Alumni Blue-Badge'}
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {/* EVENT FORM */}
+                {(modalType === 'addEvent' || modalType === 'editEvent') && (
+                  <>
+                    <div>
+                      <label className="text-slate-400 block mb-1">ইভেন্ট শিরোনাম *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.titleBn || ''}
+                        onChange={(e) => setFormData({ ...formData, titleBn: e.target.value, title: e.target.value })}
+                        placeholder="গ্র্যান্ড রিইউনিয়ন ও টেক্সটাইল ফেস্ট"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">তারিখ</label>
+                        <input
+                          type="text"
+                          value={formData.date || ''}
+                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                          placeholder="১৫ ডিসেম্বর, ২০২৬"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">ভেন্যু</label>
+                        <input
+                          type="text"
+                          value={formData.venueBn || ''}
+                          onChange={(e) => setFormData({ ...formData, venueBn: e.target.value })}
+                          placeholder="আরটেক অডিটোরিয়াম"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">রেজিস্ট্রেশন ফি</label>
+                        <input
+                          type="text"
+                          value={formData.registrationFee || ''}
+                          onChange={(e) => setFormData({ ...formData, registrationFee: e.target.value })}
+                          placeholder="৳ ৫০০"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-slate-400 block mb-1">বিস্তারিত বিবরণ</label>
+                      <textarea
+                        rows="3"
+                        value={formData.descriptionBn || ''}
+                        onChange={(e) => setFormData({ ...formData, descriptionBn: e.target.value })}
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                      />
+                    </div>
+
+                    <DriveImageInput
+                      label={lang === 'bn' ? 'ইভেন্ট ব্যানার / ছবি (Google Drive লিংক বা Photo URL)' : 'Event Banner / Photo (Google Drive Link or URL)'}
+                      value={formData.image || ''}
+                      onChange={(val) => setFormData({ ...formData, image: val })}
+                      lang={lang}
+                      fallbackIcon={Calendar}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                    />
+                  </>
+                )}
+
+                {/* JOB CIRCULAR FORM */}
+                {(modalType === 'addJob' || modalType === 'editJob') && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'চাকরির পদবী (বাংলায়) *' : 'Job Title (Bengali)'}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.titleBn || ''}
+                          onChange={(e) => setFormData({ ...formData, titleBn: e.target.value, title: formData.title || e.target.value })}
+                          placeholder="উদা: কোয়ালিটি অ্যাসুরেন্স এক্সিকিউটিভ"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'Job Title (English) *' : 'Job Title (English) *'}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.title || ''}
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value, titleBn: formData.titleBn || e.target.value })}
+                          placeholder="e.g. Quality Assurance Executive"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'কোম্পানি / মিলস এর নাম *' : 'Company / Mills Name *'}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.company || ''}
+                          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          placeholder="e.g. Beximco Textiles / Square / Ha-Meem"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'লোকেশন / কর্মস্থল' : 'Location / Job Site'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.location || ''}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          placeholder="Gazipur / Narayanganj / Dhaka"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'কাজের ধরন (Type)' : 'Job Type'}
+                        </label>
+                        <select
+                          value={formData.type || 'Full Time'}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          <option value="Full Time">Full Time (ফুল টাইম)</option>
+                          <option value="Internship">Internship (ইন্টার্নশিপ)</option>
+                          <option value="Management Trainee (MTO)">Management Trainee (MTO)</option>
+                          <option value="Contractual">Contractual (চুক্তিভিত্তিক)</option>
+                          <option value="Part Time">Part Time (পার্ট টাইম)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'বিভাগ / ফিল্ড' : 'Department'}
+                        </label>
+                        <select
+                          value={formData.department || 'Yarn Engineering'}
+                          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          <option value="Yarn Engineering">Yarn Engineering (YE)</option>
+                          <option value="Fabric Engineering">Fabric Engineering (FE)</option>
+                          <option value="Wet Process Engineering">Wet Process Engineering (WPE)</option>
+                          <option value="Apparel Manufacturing">Apparel Manufacturing (AE)</option>
+                          <option value="All Textile Engineering">All Textile Disciplines</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'বেতন / পারিশ্রমিক' : 'Salary / Compensation'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.salary || ''}
+                          onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                          placeholder="৳ ৩৫,০০০ - ৪৫,০০০ / Negotiable"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'আবেদনের শেষ তারিখ (Deadline)' : 'Application Deadline'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.deadline || ''}
+                          onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                          placeholder="2026-12-31"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'আবেদনের লিংক বা ইমেইল' : 'Apply URL / Contact Email'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.applyLink || formData.email || ''}
+                          onChange={(e) => setFormData({ ...formData, applyLink: e.target.value, email: e.target.value })}
+                          placeholder="career@company.com বা https://..."
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'কাজের বিবরণ ও প্রার্থীর যোগ্যতা (Job Description) *' : 'Job Description & Requirements *'}
+                      </label>
+                      <textarea
+                        rows="3"
+                        required
+                        value={formData.description || formData.descriptionBn || ''}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value, descriptionBn: e.target.value })}
+                        placeholder="পদের দায়িত্ব, শিক্ষাগত যোগ্যতা এবং অভিজ্ঞতার বিবরণ লিখুন..."
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white leading-relaxed font-sans"
+                      />
+                    </div>
+
+                    <DriveImageInput
+                      label={lang === 'bn' ? 'সার্কুলার ব্যানার বা ছবি (Google Drive লিংক বা Photo URL)' : 'Job Circular Banner / Image (Drive Link or Photo URL)'}
+                      value={formData.image || ''}
+                      onChange={(val) => setFormData({ ...formData, image: val })}
+                      lang={lang}
+                      fallbackIcon={Briefcase}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                    />
+
+                    {/* PDF Circular Link */}
+                    <div>
+                      <label className="text-slate-400 block mb-1 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-bold text-[#DFCA9E]">
+                          <FileText className="w-3.5 h-3.5 text-red-400" />
+                          <span>{lang === 'bn' ? 'অফিসিয়াল PDF সার্কুলার ফাইল লিংক (Google Drive লিংক বা PDF URL)' : 'Official PDF Circular (Drive Link or URL)'}</span>
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono">PDF Attachment</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.pdfUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, pdfUrl: e.target.value })}
+                        placeholder="https://drive.google.com/file/d/.../view বা https://.../circular.pdf"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        {lang === 'bn'
+                          ? 'Google Drive-এর পিডিএফ ফাইলের শেয়ার লিংক ("Anyone with the link can view") এখানে পেস্ট করুন।'
+                          : 'Paste shareable Google Drive link of the circular PDF.'}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {/* NOTICE / NEWS FORM */}
+                {(modalType === 'addNews' || modalType === 'editNews') && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'নোটিশ শিরোনাম (বাংলায়) *' : 'Notice Title (Bengali) *'}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.titleBn || ''}
+                          onChange={(e) => setFormData({ ...formData, titleBn: e.target.value, title: formData.title || e.target.value })}
+                          placeholder="উদা: সেমিস্টার ফাইনাল পরীক্ষার সময়সূচি ঘোষণা"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'Notice Title (English) *' : 'Notice Title (English) *'}
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.title || ''}
+                          onChange={(e) => setFormData({ ...formData, title: e.target.value, titleBn: formData.titleBn || e.target.value })}
+                          placeholder="e.g. Semester Final Examination Schedule Published"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'নোটিশ ক্যাটাগরি *' : 'Category *'}
+                        </label>
+                        <select
+                          value={formData.category || 'Academic Notice'}
+                          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        >
+                          <option value="Academic Notice">Academic Notice (একাডেমিক নোটিশ)</option>
+                          <option value="Examination">Examination (পরীক্ষা সংক্রান্ত)</option>
+                          <option value="Admission">Admission (ভর্তি সংক্রান্ত)</option>
+                          <option value="General Notice">General Notice (সাধারণ নোটিশ)</option>
+                          <option value="Holiday">Holiday & Vacation (ছুটির নোটিশ)</option>
+                          <option value="Career & Placement">Career & Placement (ক্যারিয়ার সংক্রান্ত)</option>
+                          <option value="Urgent Notice">Urgent Circular (জরুরি বিজ্ঞপ্তি)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'প্রকাশনার তারিখ (Date)' : 'Publish Date'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.date || ''}
+                          onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                          placeholder="১৯ নভেম্বর, ২০২৬ বা 2026-11-19"
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'সংক্ষিপ্ত সারসংক্ষেপ (Short Summary)' : 'Short Summary (Preview)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.summaryBn || formData.summary || ''}
+                        onChange={(e) => setFormData({ ...formData, summaryBn: e.target.value, summary: e.target.value })}
+                        placeholder="কার্ডে প্রদর্শনের জন্য ১-২ লাইনের সারসংক্ষেপ..."
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'সম্পূর্ণ নোটিশের বিবরণ (Full Notice Details) *' : 'Full Notice Content *'}
+                      </label>
+                      <textarea
+                        rows="4"
+                        required
+                        value={formData.contentBn || formData.content || formData.description || ''}
+                        onChange={(e) => setFormData({ ...formData, contentBn: e.target.value, content: e.target.value, description: e.target.value })}
+                        placeholder="নোটিশের বিস্তারিত বিষয়বস্তু, নির্দেশনা এবং জরুরি নির্দেশাবলী লিখুন..."
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-sans leading-relaxed"
+                      />
+                    </div>
+
+                    <DriveImageInput
+                      label={lang === 'bn' ? 'নোটিশ ব্যানার বা ছবি (Google Drive লিংক বা Photo URL)' : 'Notice Banner / Image (Drive Link or Photo URL)'}
+                      value={formData.image || ''}
+                      onChange={(val) => setFormData({ ...formData, image: val })}
+                      lang={lang}
+                      fallbackIcon={Newspaper}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                    />
+
+                    {/* PDF Circular Link */}
+                    <div>
+                      <label className="text-slate-400 block mb-1 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-bold text-[#DFCA9E]">
+                          <FileText className="w-3.5 h-3.5 text-red-400" />
+                          <span>{lang === 'bn' ? 'অফিসিয়াল PDF সার্কুলার ফাইল লিংক (Google Drive লিংক বা PDF URL)' : 'Official PDF Circular (Drive Link or URL)'}</span>
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono">PDF Attachment</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.pdfUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, pdfUrl: e.target.value })}
+                        placeholder="https://drive.google.com/file/d/.../view বা https://.../notice.pdf"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        {lang === 'bn'
+                          ? 'Google Drive-এর পিডিএফ ফাইলের শেয়ার লিংক ("Anyone with the link can view") এখানে পেস্ট করুন। ব্যবহারকারীরা সরাসরি ডাউনলোড ও দেখতে পারবে।'
+                          : 'Paste shareable Google Drive link of the official notice PDF.'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2">
+                      <input
+                        type="checkbox"
+                        id="isPinned"
+                        checked={formData.isPinned || false}
+                        onChange={(e) => setFormData({ ...formData, isPinned: e.target.checked })}
+                      />
+                      <label htmlFor="isPinned" className="text-slate-300 font-semibold cursor-pointer">
+                        {lang === 'bn' ? 'পিন নোটিশ হিসেবে ওপরে রাখুন (Pin to top)' : 'Pin notice to top of notice board'}
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {/* Submit Buttons */}
+                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalType(null);
+                      setActiveItem(null);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
+                  >
+                    {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg shadow-emerald-950/50"
+                  >
+                    {lang === 'bn' ? 'সংরক্ষণ করুন (Save)' : 'Save Record'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+
+      {/* DELETE CONFIRMATION MODAL (Smooth 60fps spring animation) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {deleteConfirm && (
+            <motion.div
+              key="admin-delete-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              data-admin-modal="true"
+              data-lenis-prevent="true"
+              data-modal-open="true"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                  setDeleteConfirm(null);
+                }
+              }}
+            >
+              <motion.div
+                key="admin-delete-modal-card"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                data-lenis-prevent="true"
+                className="w-full max-w-sm bg-[#181715] border border-rose-500/40 rounded-3xl p-6 text-center space-y-4 overscroll-contain shadow-2xl"
+              >
+                <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'আপনি কি নিশ্চিত?' : 'Are you sure?'}
+                </h3>
+                <p className="text-xs text-[#DCD3C1]">
+                  <span className="font-bold text-rose-400">{deleteConfirm.name}</span>{' '}
+                  {lang === 'bn' ? '-কে স্থায়ীভাবে ডেটাবেজ থেকে মুছে ফেলা হবে।' : 'will be permanently deleted.'}
+                </p>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => setDeleteConfirm(null)}
+                    className="px-4 py-2 rounded-xl bg-[#201E1A] text-[#DCD3C1] hover:text-[#FDFBF7] text-xs font-semibold cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={executeDelete}
+                    className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition shadow-lg shadow-rose-950/50 cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'হ্যাঁ, মুছে ফেলুন' : 'Yes, Delete'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* VIEW SUBMISSION DETAILS MODAL (Smooth 60fps spring animation) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {viewSubmission && (
+            <motion.div
+              key="admin-viewsub-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              data-admin-modal="true"
+              data-lenis-prevent="true"
+              data-modal-open="true"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setViewSubmission(null);
+              }}
+            >
+              <motion.div
+                key="admin-viewsub-modal-card"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                data-lenis-prevent="true"
+                className="relative w-full max-w-2xl bg-[#181715] border border-[#C5A880]/30 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain"
+              >
+            <button
+              onClick={() => setViewSubmission(null)}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-[#201E1A] text-[#DCD3C1] hover:text-[#FDFBF7]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Profile Overview in Modal */}
+            <div className="flex items-start gap-4 pb-5 border-b border-[#C5A880]/20 mb-6">
+              <UserAvatar
+                src={viewSubmission.avatar}
+                name={viewSubmission.name}
+                role="student"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-[#C5A880]/40 shrink-0 bg-[#121110]"
+                iconClassName="w-8 h-8 sm:w-10 sm:h-10"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-[#FDFBF7] truncate">
+                    {viewSubmission.name || 'নাম নেই'}
+                  </h3>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
+                    viewSubmission.status === 'approved'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : viewSubmission.status === 'declined'
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  }`}>
+                    {viewSubmission.status}
+                  </span>
+                </div>
+                {viewSubmission.nameEn && (
+                  <p className="text-xs text-[#A89884] font-sans">{viewSubmission.nameEn}</p>
+                )}
+                <p className="text-xs text-[#DFCA9E] font-mono-tech mt-1">
+                  {viewSubmission.batch} • {viewSubmission.deptBn || viewSubmission.department}
+                </p>
+                <p className="text-[10px] text-[#A89884] font-mono-tech mt-0.5">
+                  আবেদন সময়: {viewSubmission.submittedAt}
+                </p>
+              </div>
+            </div>
+
+            {/* Detailed Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans mb-6">
+              <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">জিমেইল / ইমেইল</span>
+                <p className="font-bold text-[#FDFBF7] font-mono-tech flex items-center gap-1.5 truncate">
+                  <Mail className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
+                  <a href={`mailto:${viewSubmission.email}`} className="hover:underline truncate">
+                    {viewSubmission.email || 'N/A'}
+                  </a>
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">মোবাইল নম্বর</span>
+                <p className="font-bold text-[#FDFBF7] font-mono-tech flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
+                  <a href={`tel:${viewSubmission.phone}`} className="hover:underline">
+                    {viewSubmission.phone || 'N/A'}
+                  </a>
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">রেজিস্ট্রেশন নম্বর</span>
+                <p className="font-bold text-[#DFCA9E] font-mono-tech">
+                  {viewSubmission.regNo || 'N/A'}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">রক্তের গ্রুপ</span>
+                <p className="font-mono-tech">
+                  <span className="badge-blood-group">
+                    <Droplet className="w-3.5 h-3.5 text-red-600 dark:text-rose-400 fill-current" />
+                    <span>{viewSubmission.bloodGroup || 'N/A'}</span>
+                  </span>
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">এখন কোথায় চাকরি করে</span>
+                <p className="font-bold text-[#FDFBF7] flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
+                  <span>{viewSubmission.currentJob || 'অধ্যয়নরত (চাকরি করছি না)'}</span>
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">এখন কোথায় আছে</span>
+                <p className="font-bold text-[#FDFBF7] flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#DE644E] shrink-0" />
+                  <span>{viewSubmission.currentLocation || 'N/A'}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Bio / Extra note */}
+            {viewSubmission.bio && (
+              <div className="p-4 rounded-xl bg-[#141311] border border-[#C5A880]/15 text-xs font-sans mb-6">
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase block mb-1">
+                  সংক্ষিপ্ত পরিচয় ও বিবরণ
+                </span>
+                <p className="text-[#DCD3C1] leading-relaxed italic">
+                  "{viewSubmission.bio}"
+                </p>
+              </div>
+            )}
+
+            {/* Modal Decision Buttons */}
+            <div className="pt-4 border-t border-[#C5A880]/20 flex flex-wrap items-center justify-between gap-3">
+              <button
+                onClick={() => setViewSubmission(null)}
+                className="px-4 py-2 rounded-xl bg-[#201E1A] text-[#DCD3C1] hover:text-[#FDFBF7] text-xs font-semibold"
+              >
+                {lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
+              </button>
+
+              <div className="flex items-center gap-2">
+                {viewSubmission.status !== 'approved' && (
+                  <button
+                    onClick={() => {
+                      approveSubmission(viewSubmission.id);
+                      showToast(lang === 'bn' ? `✓ ${viewSubmission.name}-এর আবেদন সফলভাবে অনুমোদিত হয়েছে!` : `✓ Approved ${viewSubmission.name}!`);
+                      setViewSubmission(null);
+                    }}
+                    className="btn-approve px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition cursor-pointer"
+                  >
+                    <Check className="w-4 h-4 stroke-[2.5]" />
+                    <span>{lang === 'bn' ? 'অনুমোদন করুন (Approve)' : 'Approve Submission'}</span>
+                  </button>
+                )}
+
+                {viewSubmission.status !== 'declined' && (
+                  <button
+                    onClick={() => {
+                      const target = viewSubmission;
+                      setViewSubmission(null);
+                      setDeclinePrompt(target);
+                    }}
+                    className="btn-decline px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-2 shadow-md transition cursor-pointer"
+                  >
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                    <span>{lang === 'bn' ? 'প্রত্যাখ্যান করুন (Decline)' : 'Decline'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
+  )}
+
+      {/* DECLINE PROMPT MODAL (Smooth 60fps spring animation) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {declinePrompt && (
+            <motion.div
+              key="admin-decline-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              data-admin-modal="true"
+              data-lenis-prevent="true"
+              data-modal-open="true"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setDeclinePrompt(null);
+              }}
+            >
+              <motion.div
+                key="admin-decline-modal-card"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                data-lenis-prevent="true"
+                className="w-full max-w-md bg-[#181715] border border-rose-500/40 rounded-3xl p-6 text-center space-y-4 overscroll-contain shadow-2xl"
+              >
+                <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+                  <XCircle className="w-6 h-6" />
+                </div>
+
+                <h3 className="text-base font-bold text-[#FDFBF7]">
+                  {lang === 'bn' ? 'আবেদন প্রত্যাখ্যানের কারণ' : 'Decline Submission'}
+                </h3>
+                <p className="text-xs text-[#DCD3C1]">
+                  <span className="font-bold text-rose-300">{declinePrompt.name || 'শিক্ষার্থী'}</span>
+                  {lang === 'bn' ? '-এর আবেদনটি প্রত্যাখ্যাত হিসেবে চিহ্নিত হবে।' : "'s submission will be marked as declined."}
+                </p>
+
+                <div className="text-left">
+                  <label className="block text-xs font-semibold text-[#A89884] mb-1">
+                    {lang === 'bn' ? 'প্রত্যাখ্যানের কারণ / মন্তব্য (ঐচ্ছিক):' : 'Reason / Note (Optional):'}
+                  </label>
+                  <input
+                    type="text"
+                    id="declineReasonInput"
+                    placeholder={lang === 'bn' ? 'উদা: রেজিস্ট্রেশন নম্বর মিলছে না' : 'e.g. Registration number does not match'}
+                    defaultValue="তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে"
+                    className="w-full p-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-rose-500 font-sans"
+                  />
+                </div>
+
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => setDeclinePrompt(null)}
+                    className="px-4 py-2 rounded-xl bg-[#201E1A] text-[#DCD3C1] hover:text-[#FDFBF7] text-xs font-semibold cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const inputVal = document.getElementById('declineReasonInput')?.value || '';
+                      declineSubmission(declinePrompt.id, inputVal);
+                      showToast(lang === 'bn' ? `${declinePrompt.name}-এর আবেদন প্রত্যাখ্যাত করা হয়েছে।` : `Declined submission`);
+                      setDeclinePrompt(null);
+                    }}
+                    className="btn-decline px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-md cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'প্রত্যাখ্যান নিশ্চিত করুন' : 'Confirm Decline'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Bulk Excel Import to MongoDB Modal */}
+      <ExcelImportModal
+        isOpen={isExcelImportOpen}
+        onClose={() => setIsExcelImportOpen(false)}
+      />
+
+    </div>
+  );
+}

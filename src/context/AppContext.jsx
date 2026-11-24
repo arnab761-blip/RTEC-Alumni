@@ -1,0 +1,1816 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+  INITIAL_ALUMNI,
+  INITIAL_EVENTS,
+  INITIAL_JOBS,
+  INITIAL_CAMPAIGNS,
+  INITIAL_NEWS,
+  INITIAL_FORUM_POSTS,
+  INITIAL_MEMORIES,
+  INITIAL_TEACHERS,
+  INITIAL_STUDENTS,
+  INITIAL_STUDENT_SUBMISSIONS
+} from '../data/mockData.js';
+import confetti from 'canvas-confetti';
+
+const sanitizeAvatar = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  if (url.includes('unsplash.com')) return '';
+  return url;
+};
+
+export const DEFAULT_ADMIN_EMAILS = ['megasonic298@gmail.com'];
+
+const AppContext = createContext(null);
+
+export function AppProvider({ children }) {
+  // 0. Authorized Admin Emails List (Primary: megasonic298@gmail.com)
+  const [adminEmails, setAdminEmails] = useState(() => {
+    const saved = localStorage.getItem('rtec_admin_emails');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const list = parsed.map(e => String(e).toLowerCase().trim());
+          if (!list.includes('megasonic298@gmail.com')) list.unshift('megasonic298@gmail.com');
+          return list;
+        }
+      } catch (e) {}
+    }
+    return DEFAULT_ADMIN_EMAILS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rtec_admin_emails', JSON.stringify(adminEmails));
+  }, [adminEmails]);
+
+  const isAdminEmail = (email) => {
+    if (!email || typeof email !== 'string') return false;
+    const clean = email.toLowerCase().trim();
+    return clean === 'megasonic298@gmail.com' || adminEmails.some(e => e.toLowerCase().trim() === clean);
+  };
+
+  // 1. Current Authenticated User (Defaults to a regular guest visitor)
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('rtec_user');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.batch && parsed.batch.includes('2011-12')) {
+          parsed.batch = '1st Batch (2018-19)';
+        }
+        if (parsed.avatar) {
+          parsed.avatar = sanitizeAvatar(parsed.avatar);
+        }
+        // Strict Authorization: If parsed user claims admin role, verify their email!
+        if (parsed.role === 'admin') {
+          const cleanEmail = (parsed.email || '').toLowerCase().trim();
+          if (cleanEmail !== 'megasonic298@gmail.com') {
+            const savedAdmins = localStorage.getItem('rtec_admin_emails');
+            let allowed = ['megasonic298@gmail.com'];
+            try {
+              if (savedAdmins) allowed = JSON.parse(savedAdmins);
+            } catch (err) {}
+            if (!allowed.includes(cleanEmail)) {
+              parsed.role = 'student'; // Demote non-authorized users
+            }
+          }
+        }
+        return parsed;
+      } catch (e) {}
+    }
+    return {
+      id: 'guest',
+      name: 'Guest Visitor',
+      nameBn: 'অতিথি পরিদর্শক',
+      role: 'guest',
+      email: '',
+      avatar: '',
+      isVerified: false
+    };
+  });
+
+  // 2. Language State (bn = Bengali, en = English)
+  const [lang, setLangState] = useState(() => localStorage.getItem('rtec_lang') || 'bn');
+
+  const setLang = (newLang) => {
+    localStorage.setItem('rtec_lang', newLang);
+    setLangState(newLang);
+  };
+
+  // 2.1 College Logo (Admin customizable, defaults to official RTEC logo)
+  const [collegeLogo, setCollegeLogo] = useState(() => {
+    return localStorage.getItem('rtec_college_logo') || '/images/rtec-logo.png';
+  });
+
+  // 2.2 Instant 0ms Theme Switching Engine
+  const applyThemeToDOM = (nextTheme) => {
+    const root = document.documentElement;
+    // Suppress CSS transitions temporarily for 0ms instantaneous switch
+    const css = document.createElement('style');
+    css.appendChild(
+      document.createTextNode(
+        `*, *::before, *::after {
+          -webkit-transition: none !important;
+          -moz-transition: none !important;
+          -o-transition: none !important;
+          -ms-transition: none !important;
+          transition: none !important;
+        }`
+      )
+    );
+    document.head.appendChild(css);
+
+    if (nextTheme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+    }
+    localStorage.setItem('rtec_theme', nextTheme);
+
+    // Force flush and cleanup
+    window.getComputedStyle(css).opacity;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (css.parentNode) {
+          css.parentNode.removeChild(css);
+        }
+      });
+    });
+  };
+
+  // Theme State ('light' by default, switchable to 'dark')
+  const [theme, setThemeState] = useState(() => {
+    const saved = localStorage.getItem('rtec_theme') || 'light';
+    const root = document.documentElement;
+    if (saved === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+    }
+    return saved;
+  });
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    applyThemeToDOM(nextTheme);
+    setThemeState(nextTheme);
+  };
+
+  const setTheme = (newTheme) => {
+    applyThemeToDOM(newTheme);
+    setThemeState(newTheme);
+  };
+
+  useEffect(() => {
+    localStorage.setItem('rtec_theme', theme);
+  }, [theme]);
+
+  // 3. Teachers / Faculty List
+  const [teachers, setTeachers] = useState(() => {
+    const saved = localStorage.getItem('rtec_teachers');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 12 && parsed[0]?.name?.includes('Saifur Rahman')) {
+          return parsed.map(t => ({ ...t, photo: sanitizeAvatar(t.photo) }));
+        }
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('rtec_teachers', JSON.stringify(INITIAL_TEACHERS));
+    } catch (e) {}
+    return INITIAL_TEACHERS.map(t => ({ ...t, photo: sanitizeAvatar(t.photo) }));
+  });
+
+  // 4. Current Students List (1st to 8th Batch: 2018-19 to 2025-26)
+  const [students, setStudents] = useState(() => {
+    const saved = localStorage.getItem('rtec_students');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasOldBatch = parsed.some(s => s.batch && s.batch.includes('2015-16'));
+          const hasRoll = parsed.some(s => s.roll !== undefined);
+          const hasDummy = parsed.some(s => s.id === 'std-1' || s.name === 'Md. Rayhan Kabir' || s.regNo === '2022-10-01');
+          const hasSecondBatch = parsed.some(s => s.batch && s.batch.includes('2nd'));
+          const hasThirdBatch = parsed.some(s => s.batch && s.batch.includes('3rd'));
+          const hasFourthBatch = parsed.some(s => s.batch && s.batch.includes('4th'));
+          const hasFifthBatch = parsed.some(s => s.batch && s.batch.includes('5th'));
+          const hasSixthBatch = parsed.some(s => s.batch && s.batch.includes('6th'));
+          const hasSeventhBatch = parsed.some(s => s.batch && s.batch.includes('7th'));
+          const hasEighthBatch = parsed.some(s => s.batch && s.batch.includes('8th'));
+          if (hasOldBatch || hasRoll || hasDummy || !hasSecondBatch || !hasThirdBatch || !hasFourthBatch || !hasFifthBatch || !hasSixthBatch || !hasSeventhBatch || !hasEighthBatch || parsed.length < 834) {
+            localStorage.setItem('rtec_students', JSON.stringify(INITIAL_STUDENTS));
+            return INITIAL_STUDENTS;
+          }
+          return parsed.map(s => ({ ...s, avatar: sanitizeAvatar(s.avatar) }));
+        }
+      } catch (e) {}
+    }
+    return INITIAL_STUDENTS.map(s => ({ ...s, avatar: sanitizeAvatar(s.avatar) }));
+  });
+
+  // 5. Alumni List (1st to 8th Batch: 2018-19 to 2025-26)
+  const [alumni, setAlumni] = useState(() => {
+    const saved = localStorage.getItem('rtec_alumni');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasDummy = parsed.some(a => a.id?.startsWith('alm-') || a.name?.includes('Tanvir Ahmed') || a.company?.includes('Square Textiles'));
+          if (!hasDummy) {
+            return parsed.map(a => ({ ...a, avatar: sanitizeAvatar(a.avatar) }));
+          }
+        }
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('rtec_alumni', JSON.stringify([]));
+    } catch (e) {}
+    return [];
+  });
+
+  // 6. Events List
+  const [events, setEvents] = useState(() => {
+    const saved = localStorage.getItem('rtec_events');
+    return saved ? JSON.parse(saved) : INITIAL_EVENTS;
+  });
+
+  // 7. Jobs List (Clean verified jobs only)
+  const [jobs, setJobs] = useState(() => {
+    const saved = localStorage.getItem('rtec_jobs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const clean = parsed.filter(j => !j.id?.startsWith('job-') || j.isUserCreated);
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('rtec_jobs', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('rtec_jobs', JSON.stringify([]));
+    } catch (e) {}
+    return [];
+  });
+
+  // 8. Fundraising Campaigns
+  const [campaigns, setCampaigns] = useState(() => {
+    const saved = localStorage.getItem('rtec_campaigns');
+    return saved ? JSON.parse(saved) : INITIAL_CAMPAIGNS;
+  });
+
+  // 9. News & Notices (Clean official notices only)
+  const [news, setNews] = useState(() => {
+    const saved = localStorage.getItem('rtec_news');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const clean = parsed.filter(n => !n.id?.startsWith('news-') || n.isUserCreated);
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('rtec_news', JSON.stringify(clean));
+          }
+          return clean;
+        }
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('rtec_news', JSON.stringify([]));
+    } catch (e) {}
+    return [];
+  });
+
+  // 10. Forum Posts & Experience Share
+  const [forumPosts, setForumPosts] = useState(() => {
+    const normalizePost = (p, pIdx) => ({
+      ...p,
+      avatar: sanitizeAvatar(p.avatar),
+      type: p.type || 'experience',
+      authorId: p.authorId || `usr-p-${pIdx}`,
+      authorEmail: p.authorEmail || '',
+      replies: (p.replies || []).map((r, rIdx) => ({
+        ...r,
+        avatar: sanitizeAvatar(r.avatar),
+        id: r.id || `rpl-${p.id || pIdx}-${rIdx}`,
+        authorId: r.authorId || `usr-r-${rIdx}`,
+        authorEmail: r.authorEmail || '',
+        isDeleted: Boolean(r.isDeleted),
+        isEdited: Boolean(r.isEdited)
+      }))
+    });
+
+    const saved = localStorage.getItem('rtec_forum');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const clean = parsed.filter(p => !p.id?.startsWith('frm-') || p.isUserCreated);
+          if (clean.length !== parsed.length) {
+            localStorage.setItem('rtec_forum', JSON.stringify(clean));
+          }
+          return clean.map(normalizePost);
+        }
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('rtec_forum', JSON.stringify([]));
+    } catch (e) {}
+    return [];
+  });
+
+  // 11. Footer & College Contact Details (Admin Configurable)
+  const DEFAULT_FOOTER_CONTACT = {
+    phone: '+880 521-55421',
+    email: 'info@rtec.edu.bd',
+    addressBn: 'টুকুরিয়া, পীরগঞ্জ, রংপুর-৫৪২০, বাংলাদেশ',
+    addressEn: 'Tukuriya, Pirganj, Rangpur-5420, Bangladesh'
+  };
+
+  const [footerContact, setFooterContact] = useState(() => {
+    const saved = localStorage.getItem('rtec_footer_contact');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return { ...DEFAULT_FOOTER_CONTACT, ...parsed };
+      } catch (e) {}
+    }
+    return DEFAULT_FOOTER_CONTACT;
+  });
+
+  const updateFooterContact = (newContact) => {
+    const updated = { ...footerContact, ...newContact };
+    setFooterContact(updated);
+    localStorage.setItem('rtec_footer_contact', JSON.stringify(updated));
+    syncEntityToMongo('/api/settings/contact', 'POST', updated);
+    confetti({ particleCount: 30, spread: 50 });
+    return updated;
+  };
+
+  const resetFooterContact = () => {
+    setFooterContact(DEFAULT_FOOTER_CONTACT);
+    localStorage.setItem('rtec_footer_contact', JSON.stringify(DEFAULT_FOOTER_CONTACT));
+    syncEntityToMongo('/api/settings/contact', 'POST', DEFAULT_FOOTER_CONTACT);
+  };
+
+  const [memories, setMemories] = useState(() => {
+    const saved = localStorage.getItem('rtec_memories');
+    return saved ? JSON.parse(saved) : INITIAL_MEMORIES;
+  });
+
+  // 11. Student Self-Input Submissions (Pending Admin Approval)
+  const [studentSubmissions, setStudentSubmissions] = useState(() => {
+    const saved = localStorage.getItem('rtec_student_submissions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasDummy = parsed.some(s => s.id === 'sub-101' || s.nameEn === 'Md. Touhidul Islam');
+          if (hasDummy) {
+            localStorage.setItem('rtec_student_submissions', JSON.stringify([]));
+            return [];
+          }
+          return parsed.map(s => ({ ...s, avatar: sanitizeAvatar(s.avatar) }));
+        }
+      } catch (e) {}
+    }
+    return INITIAL_STUDENT_SUBMISSIONS.map(s => ({ ...s, avatar: sanitizeAvatar(s.avatar) }));
+  });
+
+  // 11.1 Active Tracked Submission ID for the current student session
+  const [mySubmissionId, setMySubmissionId] = useState(() => {
+    return localStorage.getItem('rtec_my_submission_id') || '';
+  });
+
+  useEffect(() => {
+    if (mySubmissionId) {
+      localStorage.setItem('rtec_my_submission_id', mySubmissionId);
+    }
+  }, [mySubmissionId]);
+
+  // Reactive lookup for current student's submission
+  const mySubmission = studentSubmissions.find(s => {
+    if (mySubmissionId && s.id === mySubmissionId) return true;
+    if (user?.submissionId && s.id === user.submissionId) return true;
+    const savedReg = localStorage.getItem('rtec_my_submission_reg');
+    if (savedReg && s.regNo && s.regNo.trim() === savedReg.trim()) return true;
+    const savedEmail = localStorage.getItem('rtec_my_submission_email');
+    if (savedEmail && s.email && s.email.toLowerCase().trim() === savedEmail.toLowerCase().trim()) return true;
+    if (user?.email && s.email && s.email.toLowerCase().trim() === user.email.toLowerCase().trim()) return true;
+    if (user?.regNo && s.regNo && s.regNo.trim() === user.regNo.trim()) return true;
+    return false;
+  }) || null;
+
+  // 11.2 ID Disputes & Prank Reports
+  const [disputes, setDisputes] = useState(() => {
+    const saved = localStorage.getItem('rtec_disputes');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rtec_disputes', JSON.stringify(disputes));
+  }, [disputes]);
+
+  // Save changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('rtec_user', JSON.stringify(user));
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_lang', lang);
+  }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_teachers', JSON.stringify(teachers));
+  }, [teachers]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_students', JSON.stringify(students));
+  }, [students]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_alumni', JSON.stringify(alumni));
+  }, [alumni]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_events', JSON.stringify(events));
+  }, [events]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_jobs', JSON.stringify(jobs));
+  }, [jobs]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_campaigns', JSON.stringify(campaigns));
+  }, [campaigns]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_news', JSON.stringify(news));
+  }, [news]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_forum', JSON.stringify(forumPosts));
+  }, [forumPosts]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_memories', JSON.stringify(memories));
+  }, [memories]);
+
+  useEffect(() => {
+    localStorage.setItem('rtec_student_submissions', JSON.stringify(studentSubmissions));
+  }, [studentSubmissions]);
+
+  useEffect(() => {
+    if (collegeLogo) {
+      localStorage.setItem('rtec_college_logo', collegeLogo);
+    } else {
+      localStorage.removeItem('rtec_college_logo');
+    }
+  }, [collegeLogo]);
+
+  const updateCollegeLogo = (logoUrl) => {
+    setCollegeLogo(logoUrl || '');
+    confetti({ particleCount: 50, spread: 60 });
+  };
+
+  const resetCollegeLogo = () => {
+    setCollegeLogo('');
+    localStorage.removeItem('rtec_college_logo');
+  };
+
+  // ============================================
+  // MONGODB ATLAS SYNC HELPERS
+  // ============================================
+  const syncEntityToMongo = async (endpoint, method = 'POST', payload = null) => {
+    try {
+      await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: payload ? JSON.stringify(payload) : undefined
+      });
+    } catch (e) {
+      // offline silent fallback
+    }
+  };
+
+  const syncUserToMongo = (userData) => {
+    if (!userData || !userData.email) return;
+    syncEntityToMongo('/api/auth/sync', 'POST', userData);
+  };
+
+  // Auth Functions
+  const login = (role, email, name, batch = '8th Batch (2025-26)', dept = 'Yarn Engineering', extra = {}) => {
+    const regNo = extra.regNo ? String(extra.regNo).trim() : '';
+    const phone = extra.phone ? String(extra.phone).trim() : '';
+    const cleanEmail = (email || '').toLowerCase().trim();
+
+    // STRICT AUTHORIZATION: Only allow admin role if email is authorized!
+    let effectiveRole = role;
+    if (role === 'admin' && !isAdminEmail(cleanEmail)) {
+      effectiveRole = 'student';
+    }
+
+    // If student/alumni logs in with a regNo, automatically bind phone and email to their student record in MongoDB & state!
+    if (regNo) {
+      setStudents(prev => prev.map(s => {
+        if (s.regNo && String(s.regNo).trim().toLowerCase() === regNo.toLowerCase()) {
+          const updated = {
+            ...s,
+            phone: phone || s.phone,
+            email: cleanEmail || s.email
+          };
+          syncEntityToMongo('/api/students', 'POST', updated);
+          return updated;
+        }
+        return s;
+      }));
+    }
+
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      name: name || (effectiveRole === 'admin' ? 'Administrator' : 'Registered Member'),
+      nameBn: name || (effectiveRole === 'admin' ? 'এডমিনিস্ট্রেটর' : 'নিবন্ধিত সদস্য'),
+      role: effectiveRole, // 'admin' | 'alumni' | 'student'
+      batch,
+      department: dept,
+      company: effectiveRole === 'alumni' ? 'Textile Industry' : (effectiveRole === 'admin' ? 'RTEC Administration' : 'Student at RTEC'),
+      email: cleanEmail || 'user@rtec.edu.bd',
+      phone: phone,
+      regNo: regNo,
+      avatar: '',
+      isVerified: effectiveRole === 'admin' || effectiveRole === 'alumni'
+    };
+    setUser(newUser);
+    syncUserToMongo(newUser);
+  };
+
+  const logout = () => {
+    setUser({
+      id: 'guest',
+      name: 'Guest Visitor',
+      nameBn: 'অতিথি পরিদর্শক',
+      role: 'guest',
+      isVerified: false
+    });
+  };
+
+  // ============================================
+  // TEACHERS / FACULTY CRUD
+  // ============================================
+  const addTeacher = (teacherData) => {
+    const newTeacher = {
+      id: `tch-${Date.now()}`,
+      status: 'Active',
+      photo: sanitizeAvatar(teacherData?.photo) || '',
+      ...teacherData
+    };
+    setTeachers(prev => [newTeacher, ...prev]);
+    syncEntityToMongo('/api/teachers', 'POST', newTeacher);
+    confetti({ particleCount: 50, spread: 60 });
+    return newTeacher;
+  };
+
+  const updateTeacher = (id, updatedData) => {
+    setTeachers(prev => prev.map(t => (t.id === id ? { ...t, ...updatedData } : t)));
+    syncEntityToMongo('/api/teachers', 'POST', { id, ...updatedData });
+  };
+
+  const deleteTeacher = (id) => {
+    setTeachers(prev => prev.filter(t => t.id !== id));
+    syncEntityToMongo(`/api/teachers/${id}`, 'DELETE');
+  };
+
+  // ============================================
+  // STUDENTS CRUD
+  // ============================================
+  const addStudent = (studentData) => {
+    const newStudent = {
+      id: `std-${Date.now()}`,
+      status: 'Regular',
+      avatar: sanitizeAvatar(studentData?.avatar) || '',
+      ...studentData
+    };
+    setStudents(prev => [newStudent, ...prev]);
+    syncEntityToMongo('/api/students', 'POST', newStudent);
+    confetti({ particleCount: 50, spread: 60 });
+    return newStudent;
+  };
+
+  const updateStudent = (id, updatedData) => {
+    setStudents(prev => prev.map(s => (s.id === id ? { ...s, ...updatedData } : s)));
+    syncEntityToMongo('/api/students', 'POST', { id, ...updatedData });
+  };
+
+  const deleteStudent = (id) => {
+    setStudents(prev => prev.filter(s => s.id !== id));
+    syncEntityToMongo(`/api/students/${id}`, 'DELETE');
+  };
+
+  // ============================================
+  // MONGODB ATLAS SYNC & API HELPERS
+  // ============================================
+  const [mongoStatus, setMongoStatus] = useState({
+    isConnected: false,
+    database: 'rtec_alumni',
+    host: 'cluster0.4blztie.mongodb.net',
+    error: null,
+    checking: false
+  });
+
+  const bootstrapFromMongo = async () => {
+    try {
+      const res = await fetch('/api/bootstrap');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const {
+            students: dbStudents,
+            alumni: dbAlumni,
+            teachers: dbTeachers,
+            events: dbEvents,
+            jobs: dbJobs,
+            news: dbNews,
+            submissions: dbSubs,
+            disputes: dbDisputes
+          } = json.data;
+
+          if (Array.isArray(dbStudents) && dbStudents.length > 0) {
+            setStudents(dbStudents);
+          }
+          if (Array.isArray(dbAlumni)) {
+            const cleanAlumni = dbAlumni.filter(a => !a.id?.startsWith('alm-') && !a.name?.includes('Tanvir Ahmed'));
+            setAlumni(cleanAlumni);
+          }
+          if (Array.isArray(dbTeachers) && dbTeachers.length > 0) {
+            setTeachers(dbTeachers);
+          }
+          if (Array.isArray(dbEvents) && dbEvents.length > 0) {
+            setEvents(dbEvents);
+          }
+          if (Array.isArray(dbJobs) && dbJobs.length > 0) {
+            setJobs(dbJobs);
+          }
+          if (Array.isArray(dbNews) && dbNews.length > 0) {
+            setNews(dbNews);
+          }
+          if (Array.isArray(dbSubs) && dbSubs.length > 0) {
+            setStudentSubmissions(dbSubs);
+          }
+          if (Array.isArray(dbDisputes) && dbDisputes.length > 0) {
+            setDisputes(dbDisputes);
+          }
+          if (Array.isArray(json.data.adminEmails) && json.data.adminEmails.length > 0) {
+            const list = Array.from(new Set(['megasonic298@gmail.com', ...json.data.adminEmails.map(e => e.toLowerCase().trim())]));
+            setAdminEmails(list);
+            localStorage.setItem('rtec_admin_emails', JSON.stringify(list));
+          }
+          if (json.data.contact && typeof json.data.contact === 'object') {
+            setFooterContact(prev => ({ ...prev, ...json.data.contact }));
+            localStorage.setItem('rtec_footer_contact', JSON.stringify(json.data.contact));
+          }
+        }
+      }
+    } catch (e) {
+      // offline fallback
+    }
+  };
+
+  const checkMongoHealth = async () => {
+    try {
+      setMongoStatus(prev => ({ ...prev, checking: true }));
+      const res = await fetch('/api/health');
+      if (res.ok) {
+        const data = await res.json();
+        const connected = data.status === 'connected';
+        setMongoStatus({
+          isConnected: connected,
+          database: data.database || 'rtec_alumni',
+          host: data.host || 'cluster0.4blztie.mongodb.net',
+          error: data.error,
+          stats: data.stats,
+          checking: false
+        });
+        if (connected) {
+          bootstrapFromMongo();
+        }
+        return data;
+      }
+    } catch (e) {
+      setMongoStatus({
+        isConnected: false,
+        database: 'rtec_alumni',
+        host: 'cluster0.4blztie.mongodb.net',
+        error: 'Backend API server offline',
+        checking: false
+      });
+    }
+  };
+
+  useEffect(() => {
+    checkMongoHealth();
+  }, []);
+
+  // One-time aggressive purge of legacy mock/dummy data (Jobs, News, Forum) from browser localStorage
+  useEffect(() => {
+    try {
+      const purgeKey = 'rtec_dummy_purge_v3';
+      if (!localStorage.getItem(purgeKey)) {
+        // Clean forum
+        const savedForum = localStorage.getItem('rtec_forum');
+        if (savedForum) {
+          try {
+            const parsed = JSON.parse(savedForum);
+            if (Array.isArray(parsed)) {
+              const cleanForum = parsed.filter(p => !p.id?.startsWith('frm-') && Boolean(p.isUserCreated));
+              localStorage.setItem('rtec_forum', JSON.stringify(cleanForum));
+              setForumPosts(cleanForum);
+            }
+          } catch (e) {}
+        }
+        // Clean jobs
+        const savedJobs = localStorage.getItem('rtec_jobs');
+        if (savedJobs) {
+          try {
+            const parsed = JSON.parse(savedJobs);
+            if (Array.isArray(parsed)) {
+              const cleanJobs = parsed.filter(j => !j.id?.startsWith('job-') && Boolean(j.isUserCreated));
+              localStorage.setItem('rtec_jobs', JSON.stringify(cleanJobs));
+              setJobs(cleanJobs);
+            }
+          } catch (e) {}
+        }
+        // Clean news
+        const savedNews = localStorage.getItem('rtec_news');
+        if (savedNews) {
+          try {
+            const parsed = JSON.parse(savedNews);
+            if (Array.isArray(parsed)) {
+              const cleanNews = parsed.filter(n => !n.id?.startsWith('news-') && Boolean(n.isUserCreated));
+              localStorage.setItem('rtec_news', JSON.stringify(cleanNews));
+              setNews(cleanNews);
+            }
+          } catch (e) {}
+        }
+        localStorage.setItem(purgeKey, 'true');
+      }
+    } catch (e) {}
+  }, []);
+
+  const bulkImportStudents = async (newStudents) => {
+    if (!Array.isArray(newStudents) || newStudents.length === 0) {
+      return { success: false, error: 'কোনো শিক্ষার্থীর ডেটা পাওয়া যায়নি।' };
+    }
+
+    let updatedCount = 0;
+    let addedCount = 0;
+
+    setStudents(prev => {
+      const existingMap = new Map();
+      prev.forEach(s => {
+        if (s.regNo) existingMap.set(String(s.regNo).trim(), s);
+      });
+
+      newStudents.forEach(ns => {
+        const key = String(ns.regNo).trim();
+        if (existingMap.has(key)) {
+          const old = existingMap.get(key);
+          existingMap.set(key, { ...old, ...ns, id: old.id });
+          updatedCount++;
+        } else {
+          existingMap.set(key, ns);
+          addedCount++;
+        }
+      });
+
+      return Array.from(existingMap.values());
+    });
+
+    let mongoSynced = false;
+    let mongoError = null;
+
+    try {
+      const res = await fetch('/api/students/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ students: newStudents })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          mongoSynced = true;
+          setMongoStatus(prev => ({ ...prev, isConnected: true, error: null }));
+        } else {
+          mongoError = json.error;
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        mongoError = errJson.error || `Server responded with ${res.status}`;
+      }
+    } catch (err) {
+      mongoError = err.message;
+    }
+
+    confetti({ particleCount: 80, spread: 70 });
+
+    return {
+      success: true,
+      totalImported: newStudents.length,
+      added: addedCount,
+      updated: updatedCount,
+      mongoSynced,
+      mongoError
+    };
+  };
+
+  const syncStudentsToMongo = async () => {
+    try {
+      const res = await fetch('/api/students/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ students })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          setMongoStatus(prev => ({ ...prev, isConnected: true, error: null }));
+          confetti({ particleCount: 50, spread: 60 });
+          return { success: true, count: students.length };
+        }
+        return { success: false, error: json.error };
+      }
+      return { success: false, error: `Server error: ${res.status}` };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  };
+
+  // Live 2-way sync: Pulls latest students from server's Master Excel file
+  const syncWithExcelFile = async () => {
+    try {
+      const res = await fetch('/api/students/excel/sync', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.students)) {
+          setStudents(data.students);
+          localStorage.setItem('rtec_students', JSON.stringify(data.students));
+          confetti({ particleCount: 75, spread: 65 });
+          return { success: true, count: data.students.length };
+        }
+        return { success: false, error: data.error || 'Sync returned invalid response' };
+      }
+      return { success: false, error: `Server responded with ${res.status}` };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Direct download of the live Master Excel file
+  const exportExcelFile = () => {
+    const link = document.createElement('a');
+    link.href = '/api/students/excel/export';
+    link.download = 'RTEC_Students_Master.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // ============================================
+  // ALUMNI CRUD & VERIFICATION
+  // ============================================
+  const addAlumni = (alumniData) => {
+    const newAlum = {
+      id: `alm-${Date.now()}`,
+      isVerified: true,
+      avatar: sanitizeAvatar(alumniData?.avatar) || '',
+      skills: ['Textile Engineering', 'Quality Assurance'],
+      ...alumniData
+    };
+    setAlumni(prev => [newAlum, ...prev]);
+    syncEntityToMongo('/api/alumni', 'POST', newAlum);
+    confetti({ particleCount: 60, spread: 60 });
+    return newAlum;
+  };
+
+  const updateAlumni = (id, updatedData) => {
+    setAlumni(prev => prev.map(a => (a.id === id ? { ...a, ...updatedData } : a)));
+    syncEntityToMongo('/api/alumni', 'POST', { id, ...updatedData });
+  };
+
+  const deleteAlumni = (id) => {
+    setAlumni(prev => prev.filter(a => a.id !== id));
+    syncEntityToMongo(`/api/alumni/${id}`, 'DELETE');
+  };
+
+  const toggleVerifyAlumni = (id) => {
+    setAlumni(prev => {
+      const updated = prev.map(a => {
+        if (a.id === id) {
+          const nextVal = !a.isVerified;
+          syncEntityToMongo('/api/alumni', 'POST', { id, isVerified: nextVal });
+          return { ...a, isVerified: nextVal };
+        }
+        return a;
+      });
+      return updated;
+    });
+  };
+
+  // ============================================
+  // EVENTS CRUD
+  // ============================================
+  const addEvent = (eventData) => {
+    const newEvent = {
+      id: `evt-${Date.now()}`,
+      seatsRegistered: 0,
+      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
+      ...eventData
+    };
+    setEvents(prev => [newEvent, ...prev]);
+    syncEntityToMongo('/api/events', 'POST', newEvent);
+    return newEvent;
+  };
+
+  const updateEvent = (id, updatedData) => {
+    setEvents(prev => prev.map(e => (e.id === id ? { ...e, ...updatedData } : e)));
+    syncEntityToMongo('/api/events', 'POST', { id, ...updatedData });
+  };
+
+  const deleteEvent = (id) => {
+    setEvents(prev => prev.filter(e => e.id !== id));
+    syncEntityToMongo(`/api/events/${id}`, 'DELETE');
+  };
+
+  const registerForEvent = (eventId, attendeeInfo) => {
+    setEvents(prev =>
+      prev.map(evt => {
+        if (evt.id === eventId) {
+          const updatedSeats = (evt.seatsRegistered || 0) + 1;
+          syncEntityToMongo('/api/events', 'POST', { id: eventId, seatsRegistered: updatedSeats });
+          return {
+            ...evt,
+            seatsRegistered: updatedSeats
+          };
+        }
+        return evt;
+      })
+    );
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
+  // ============================================
+  // JOBS CRUD
+  // ============================================
+  const addJob = (jobData) => {
+    const isMasterAdmin = user && user.role === 'admin';
+    const newJob = {
+      id: `job-${Date.now()}`,
+      postedBy: user?.name ? `${user.name} (${user.batch || 'Alumni'})` : (jobData.postedBy || 'Alumni Member'),
+      postedByEmail: user?.email || jobData.postedByEmail || '',
+      postedByRole: user?.role || 'alumni',
+      status: isMasterAdmin ? 'approved' : 'pending',
+      isFeatured: false,
+      postedAt: new Date().toISOString().split('T')[0],
+      ...jobData
+    };
+    if (!isMasterAdmin && !jobData.status) {
+      newJob.status = 'pending';
+    }
+    setJobs(prev => [newJob, ...prev]);
+    syncEntityToMongo('/api/jobs', 'POST', newJob);
+    confetti({ particleCount: 60, spread: 50 });
+    return newJob;
+  };
+
+  const approveJob = (id) => {
+    setJobs(prev => prev.map(j => (j.id === id ? { ...j, status: 'approved' } : j)));
+    syncEntityToMongo('/api/jobs', 'POST', { id, status: 'approved' });
+    confetti({ particleCount: 70, spread: 60 });
+    return true;
+  };
+
+  const declineJob = (id) => {
+    setJobs(prev => prev.map(j => (j.id === id ? { ...j, status: 'declined' } : j)));
+    syncEntityToMongo('/api/jobs', 'POST', { id, status: 'declined' });
+    return true;
+  };
+
+  const updateJob = (id, updatedData) => {
+    setJobs(prev => prev.map(j => (j.id === id ? { ...j, ...updatedData } : j)));
+    syncEntityToMongo('/api/jobs', 'POST', { id, ...updatedData });
+  };
+
+  const deleteJob = (id) => {
+    setJobs(prev => prev.filter(j => j.id !== id));
+    syncEntityToMongo(`/api/jobs/${id}`, 'DELETE');
+  };
+
+  // ============================================
+  // NEWS CRUD
+  // ============================================
+  const addNews = (newsData) => {
+    const newNotice = {
+      id: `news-${Date.now()}`,
+      date: new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }),
+      views: 1,
+      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80',
+      ...newsData
+    };
+    setNews(prev => [newNotice, ...prev]);
+    syncEntityToMongo('/api/news', 'POST', newNotice);
+    return newNotice;
+  };
+
+  const updateNews = (id, updatedData) => {
+    setNews(prev => prev.map(n => (n.id === id ? { ...n, ...updatedData } : n)));
+    syncEntityToMongo('/api/news', 'POST', { id, ...updatedData });
+  };
+
+  const deleteNews = (id) => {
+    setNews(prev => prev.filter(n => n.id !== id));
+    syncEntityToMongo(`/api/news/${id}`, 'DELETE');
+  };
+
+  // ============================================
+  // CAMPAIGNS CRUD & DONATE
+  // ============================================
+  const addCampaign = (campData) => {
+    const newCamp = {
+      id: `camp-${Date.now()}`,
+      raised: 0,
+      donorCount: 0,
+      donors: [],
+      image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1200&q=80',
+      ...campData
+    };
+    setCampaigns(prev => [newCamp, ...prev]);
+    return newCamp;
+  };
+
+  const updateCampaign = (id, updatedData) => {
+    setCampaigns(prev => prev.map(c => (c.id === id ? { ...c, ...updatedData } : c)));
+  };
+
+  const deleteCampaign = (id) => {
+    setCampaigns(prev => prev.filter(c => c.id !== id));
+  };
+
+  const donateToCampaign = (campaignId, amount, donorName, method = 'bKash') => {
+    setCampaigns(prev =>
+      prev.map(camp => {
+        if (camp.id === campaignId) {
+          const numAmount = Number(amount);
+          return {
+            ...camp,
+            raised: camp.raised + numAmount,
+            donorCount: camp.donorCount + 1,
+            donors: [
+              {
+                name: donorName || user.name,
+                amount: numAmount,
+                date: new Date().toISOString().split('T')[0],
+                method
+              },
+              ...camp.donors
+            ]
+          };
+        }
+        return camp;
+      })
+    );
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.5 }
+    });
+  };
+
+  // ============================================
+  // FORUM & MEMORIES
+  // ============================================
+  const addForumPost = (title, body, category = 'Career Advice', tags = ['RTEC'], type = 'question') => {
+    const newPost = {
+      id: `frm-${Date.now()}`,
+      title,
+      titleBn: title,
+      author: user?.name || 'RTEC Member',
+      authorId: user?.id || `usr-${Date.now()}`,
+      authorEmail: user?.email || '',
+      avatar: sanitizeAvatar(user?.avatar) || '',
+      authorRole: user?.role === 'alumni' ? 'Alumni Engineer' : (user?.role === 'admin' ? 'Administrator' : 'Student Engineer'),
+      authorBatch: user?.batch || 'RTEC',
+      type: type || 'question',
+      category,
+      categoryBn: category,
+      date: 'এইমাত্র',
+      upvotes: 1,
+      repliesCount: 0,
+      tags,
+      body,
+      content: body,
+      isEdited: false,
+      replies: []
+    };
+    setForumPosts(prev => [newPost, ...prev]);
+    confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+    return newPost;
+  };
+
+  const updateForumPost = (postId, updatedData) => {
+    setForumPosts(prev =>
+      prev.map(post => {
+        if (post.id === postId) {
+          const body = updatedData.body !== undefined ? updatedData.body : (updatedData.content !== undefined ? updatedData.content : (updatedData.description !== undefined ? updatedData.description : post.body));
+          return {
+            ...post,
+            ...updatedData,
+            title: updatedData.title || post.title,
+            titleBn: updatedData.titleBn || updatedData.title || post.titleBn,
+            body,
+            content: body,
+            description: body,
+            isEdited: true,
+            updatedAt: 'আপডেটেড'
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  const deleteForumPost = (postId) => {
+    setForumPosts(prev => prev.filter(post => post.id !== postId));
+  };
+
+  const addForumReply = (postId, replyText) => {
+    const newReply = {
+      id: `rpl-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      author: user?.name || 'RTEC Member',
+      authorId: user?.id || `usr-${Date.now()}`,
+      authorEmail: user?.email || '',
+      role: user?.role === 'alumni' ? 'Alumni' : (user?.role === 'admin' ? 'Administrator' : 'Student'),
+      avatar: sanitizeAvatar(user?.avatar) || '',
+      date: 'এইমাত্র',
+      content: replyText,
+      isDeleted: false,
+      isEdited: false
+    };
+
+    setForumPosts(prev =>
+      prev.map(post => {
+        if (post.id === postId) {
+          const currentReplies = post.replies || [];
+          return {
+            ...post,
+            repliesCount: currentReplies.length + 1,
+            replies: [...currentReplies, newReply]
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  const updateForumReply = (postId, replyId, newContent) => {
+    setForumPosts(prev =>
+      prev.map(post => {
+        if (post.id === postId) {
+          const updatedReplies = (post.replies || []).map(reply => {
+            if (reply.id === replyId) {
+              return {
+                ...reply,
+                content: newContent,
+                isEdited: true,
+                updatedAt: 'আপডেটেড'
+              };
+            }
+            return reply;
+          });
+          return {
+            ...post,
+            replies: updatedReplies
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  const deleteForumReply = (postId, replyId) => {
+    setForumPosts(prev =>
+      prev.map(post => {
+        if (post.id === postId) {
+          const updatedReplies = (post.replies || []).map(reply => {
+            if (reply.id === replyId) {
+              return {
+                ...reply,
+                isDeleted: true,
+                content: lang === 'bn' ? 'এই মন্তব্যটি মুছে ফেলা হয়েছে।' : 'This comment is deleted.',
+                deletedAt: 'এইমাত্র'
+              };
+            }
+            return reply;
+          });
+          return {
+            ...post,
+            replies: updatedReplies
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  const upvoteForumPost = (postId) => {
+    setForumPosts(prev =>
+      prev.map(post => (post.id === postId ? { ...post, upvotes: post.upvotes + 1 } : post))
+    );
+  };
+
+  const likeMemory = (id) => {
+    setMemories(prev =>
+      prev.map(mem => (mem.id === id ? { ...mem, likes: mem.likes + 1 } : mem))
+    );
+  };
+
+  const addMemory = (memoryData) => {
+    const newMem = {
+      id: `mem-${Date.now()}`,
+      likes: 1,
+      ...memoryData
+    };
+    setMemories([newMem, ...memories]);
+    confetti({ particleCount: 70, spread: 60 });
+  };
+
+  // ============================================
+  // STUDENT SELF-INPUT SUBMISSIONS & ADMIN APPROVAL
+  // ============================================
+  const submitStudentProfile = (data) => {
+    const formattedDate = new Date().toLocaleDateString('bn-BD', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    const formattedTime = new Date().toLocaleTimeString('bn-BD', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Check if updating an existing submission
+    const existingIndex = studentSubmissions.findIndex(
+      s => (data.id && s.id === data.id) ||
+           (mySubmissionId && s.id === mySubmissionId) ||
+           (data.regNo && s.regNo && s.regNo.trim() === data.regNo.trim()) ||
+           (data.email && s.email && s.email.toLowerCase().trim() === data.email.toLowerCase().trim())
+    );
+
+    let updatedOrNew;
+    if (existingIndex >= 0) {
+      const existing = studentSubmissions[existingIndex];
+      updatedOrNew = {
+        ...existing,
+        ...data,
+        id: existing.id,
+        status: 'pending', // Re-enter pending verification on update
+        submittedAt: `${formattedDate} ${formattedTime} (আপডেটেড)`,
+        reviewedAt: null,
+        reviewNotes: ''
+      };
+      setStudentSubmissions(prev => {
+        const next = [...prev];
+        next[existingIndex] = updatedOrNew;
+        return next;
+      });
+    } else {
+      updatedOrNew = {
+        id: data.id || `sub-${Date.now()}`,
+        name: data.name || '',
+        nameEn: data.nameEn || data.name || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        regNo: data.regNo || '',
+        batch: data.batch || '8th Batch (2025-26)',
+        department: data.department || 'Yarn Engineering',
+        deptBn: data.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+        currentJob: data.currentJob || '',
+        currentLocation: data.currentLocation || '',
+        bloodGroup: data.bloodGroup || '',
+        avatar: sanitizeAvatar(data.avatar) || '',
+        bio: data.bio || '',
+        status: 'pending', // 'pending' | 'approved' | 'declined'
+        submittedAt: `${formattedDate} ${formattedTime}`,
+        reviewedAt: null,
+        reviewNotes: ''
+      };
+      setStudentSubmissions(prev => [updatedOrNew, ...prev]);
+    }
+
+    // Persist user's tracking keys
+    setMySubmissionId(updatedOrNew.id);
+    localStorage.setItem('rtec_my_submission_id', updatedOrNew.id);
+    if (updatedOrNew.email) localStorage.setItem('rtec_my_submission_email', updatedOrNew.email);
+    if (updatedOrNew.regNo) localStorage.setItem('rtec_my_submission_reg', updatedOrNew.regNo);
+
+    // If current user is not admin, update active user profile too
+    if (user && user.role !== 'admin') {
+      setUser(prev => ({
+        ...prev,
+        name: updatedOrNew.name || prev.name,
+        nameBn: updatedOrNew.name || prev.nameBn,
+        email: updatedOrNew.email || prev.email,
+        batch: updatedOrNew.batch || prev.batch,
+        department: updatedOrNew.department || prev.department,
+        submissionId: updatedOrNew.id,
+        submissionStatus: 'pending'
+      }));
+    }
+
+    // Automatically bind the phone and email to the pre-seeded student with this regNo in MongoDB & state
+    if (updatedOrNew.regNo) {
+      setStudents(prev => prev.map(s => {
+        if (s.regNo && String(s.regNo).trim().toLowerCase() === String(updatedOrNew.regNo).trim().toLowerCase()) {
+          const updated = {
+            ...s,
+            phone: updatedOrNew.phone || s.phone,
+            email: updatedOrNew.email || s.email,
+            bloodGroup: updatedOrNew.bloodGroup || s.bloodGroup,
+            avatar: updatedOrNew.avatar || s.avatar,
+            currentJob: updatedOrNew.currentJob !== undefined ? updatedOrNew.currentJob : (s.currentJob || ''),
+            currentLocation: updatedOrNew.currentLocation !== undefined ? updatedOrNew.currentLocation : (s.currentLocation || '')
+          };
+          syncEntityToMongo('/api/students', 'POST', updated);
+          return updated;
+        }
+        return s;
+      }));
+    }
+
+    confetti({ particleCount: 80, spread: 60 });
+    syncEntityToMongo('/api/submissions', 'POST', updatedOrNew);
+    return updatedOrNew;
+  };
+
+  const approveSubmission = (id, reviewNotes = '') => {
+    const target = studentSubmissions.find(s => s.id === id);
+    if (!target) return false;
+
+    // 1. Mark status as approved
+    setStudentSubmissions(prev =>
+      prev.map(s =>
+        s.id === id
+          ? {
+              ...s,
+              status: 'approved',
+              reviewedAt: new Date().toLocaleDateString('bn-BD'),
+              reviewNotes: reviewNotes || 'অ্যাডমিন কর্তৃক অনুমোদিত'
+            }
+          : s
+      )
+    );
+    syncEntityToMongo('/api/submissions', 'POST', { id, status: 'approved', reviewNotes: reviewNotes || 'অ্যাডমিন কর্তৃক অনুমোদিত' });
+
+    // 2. Automatically promote/integrate into public directory
+    const isAlumni =
+      target.batch?.includes('1st') ||
+      target.batch?.includes('2nd') ||
+      target.batch?.includes('3rd') ||
+      (target.currentJob && !target.currentJob.includes('শিক্ষার্থী') && !target.currentJob.includes('Student'));
+
+    if (isAlumni) {
+      const newAlum = {
+        id: `alm-sub-${target.id}`,
+        name: target.nameEn || target.name,
+        nameBn: target.name,
+        batch: target.batch,
+        department: target.department,
+        deptBn: target.deptBn,
+        role: target.currentJob || 'Executive Engineer',
+        company: target.currentJob || 'Textile Sector',
+        location: target.currentLocation || 'Bangladesh',
+        email: target.email,
+        phone: target.phone,
+        avatar: target.avatar,
+        bio: target.bio,
+        isVerified: true,
+        regNo: target.regNo
+      };
+      setAlumni(prev => [newAlum, ...prev.filter(a => a.regNo !== target.regNo && a.email !== target.email)]);
+      syncEntityToMongo('/api/alumni', 'POST', newAlum);
+
+      // Keep student record in students directory & sync phone/email/bloodGroup
+      setStudents(prev => prev.map(s => {
+        if (s.regNo && target.regNo && s.regNo.trim().toLowerCase() === target.regNo.trim().toLowerCase()) {
+          const updated = {
+            ...s,
+            phone: target.phone || s.phone,
+            email: target.email || s.email,
+            bloodGroup: target.bloodGroup || s.bloodGroup,
+            avatar: target.avatar || s.avatar,
+            currentJob: target.currentJob !== undefined ? target.currentJob : (s.currentJob || ''),
+            currentLocation: target.currentLocation !== undefined ? target.currentLocation : (s.currentLocation || '')
+          };
+          syncEntityToMongo('/api/students', 'POST', updated);
+          return updated;
+        }
+        return s;
+      }));
+    } else {
+      const newStd = {
+        id: `std-sub-${target.id}`,
+        name: target.nameEn || target.name,
+        nameBn: target.name,
+        regNo: target.regNo,
+        batch: target.batch,
+        department: target.department,
+        deptBn: target.deptBn,
+        email: target.email,
+        phone: target.phone,
+        bloodGroup: target.bloodGroup || 'A+',
+        avatar: target.avatar,
+        role: 'Verified Student Member',
+        activities: target.bio || 'RTEC Student',
+        status: 'Regular',
+        currentJob: target.currentJob,
+        currentLocation: target.currentLocation
+      };
+      setStudents(prev => [newStd, ...prev.filter(s => s.regNo !== target.regNo && s.email !== target.email)]);
+      syncEntityToMongo('/api/students', 'POST', newStd);
+    }
+
+    confetti({ particleCount: 90, spread: 70 });
+    return true;
+  };
+
+  const declineSubmission = (id, reviewNotes = '') => {
+    setStudentSubmissions(prev =>
+      prev.map(s =>
+        s.id === id
+          ? {
+              ...s,
+              status: 'declined',
+              reviewedAt: new Date().toLocaleDateString('bn-BD'),
+              reviewNotes: reviewNotes || 'তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে'
+            }
+          : s
+      )
+    );
+    syncEntityToMongo('/api/submissions', 'POST', { id, status: 'declined', reviewNotes: reviewNotes || 'তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে' });
+    return true;
+  };
+
+  const deleteSubmission = (id) => {
+    setStudentSubmissions(prev => prev.filter(s => s.id !== id));
+    syncEntityToMongo(`/api/submissions/${id}`, 'DELETE');
+    if (mySubmissionId === id) {
+      untrackSubmission();
+    }
+  };
+
+  const trackSubmission = (idOrRegOrEmail) => {
+    if (!idOrRegOrEmail) return null;
+    const query = idOrRegOrEmail.trim().toLowerCase();
+    const matched = studentSubmissions.find(s =>
+      s.id === query ||
+      (s.regNo && s.regNo.trim().toLowerCase() === query) ||
+      (s.email && s.email.trim().toLowerCase() === query) ||
+      (s.phone && s.phone.trim() === query)
+    );
+    if (matched) {
+      setMySubmissionId(matched.id);
+      localStorage.setItem('rtec_my_submission_id', matched.id);
+      if (matched.email) localStorage.setItem('rtec_my_submission_email', matched.email);
+      if (matched.regNo) localStorage.setItem('rtec_my_submission_reg', matched.regNo);
+      return matched;
+    }
+    return null;
+  };
+
+  const untrackSubmission = () => {
+    setMySubmissionId('');
+    localStorage.removeItem('rtec_my_submission_id');
+    localStorage.removeItem('rtec_my_submission_email');
+    localStorage.removeItem('rtec_my_submission_reg');
+  };
+
+  const loginWithGmail = (email, name = '', additional = {}) => {
+    const userEmail = email.toLowerCase().trim();
+    const existingSub = studentSubmissions.find(s => s.email?.toLowerCase().trim() === userEmail);
+    const isMasterAdmin = isAdminEmail(userEmail);
+    const assignedRole = isMasterAdmin ? 'admin' : (additional.role || 'student');
+
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      name: isMasterAdmin ? (name || 'RTEC Administrator') : (name || existingSub?.name || 'RTEC Member'),
+      nameBn: isMasterAdmin ? (name || 'সিস্টেম অ্যাডমিনিস্ট্রেটর') : (existingSub?.name || name || 'আরটেক সদস্য'),
+      role: assignedRole,
+      email: userEmail,
+      batch: existingSub?.batch || additional.batch || '8th Batch (2025-26)',
+      department: existingSub?.department || additional.department || 'Yarn Engineering',
+      company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || 'Student at RTEC'),
+      avatar: sanitizeAvatar(existingSub?.avatar) || '',
+      isVerified: isMasterAdmin || existingSub?.status === 'approved',
+      regNo: existingSub?.regNo || additional.regNo || '',
+      phone: existingSub?.phone || additional.phone || '',
+      submissionStatus: existingSub?.status || 'none',
+      submissionId: existingSub?.id || null
+    };
+    setUser(newUser);
+    syncUserToMongo(newUser);
+    return newUser;
+  };
+
+  // ============================================
+  // ADMIN EMAILS AUTHORIZATION MANAGEMENT
+  // ============================================
+  const addAdminEmail = (newEmail, note = 'Administrator') => {
+    if (!newEmail || typeof newEmail !== 'string') return false;
+    const clean = newEmail.toLowerCase().trim();
+    if (!clean.includes('@')) return false;
+    if (!adminEmails.includes(clean)) {
+      const updated = [...adminEmails, clean];
+      setAdminEmails(updated);
+      localStorage.setItem('rtec_admin_emails', JSON.stringify(updated));
+      syncEntityToMongo('/api/admin-emails', 'POST', {
+        email: clean,
+        addedBy: user?.email || 'megasonic298@gmail.com',
+        note
+      });
+    }
+    return true;
+  };
+
+  const removeAdminEmail = (emailToRemove) => {
+    const clean = String(emailToRemove || '').toLowerCase().trim();
+    if (clean === 'megasonic298@gmail.com') {
+      return false; // cannot delete primary super admin
+    }
+    const updated = adminEmails.filter(e => e.toLowerCase().trim() !== clean);
+    setAdminEmails(updated);
+    localStorage.setItem('rtec_admin_emails', JSON.stringify(updated));
+    syncEntityToMongo(`/api/admin-emails/${encodeURIComponent(clean)}`, 'DELETE');
+    return true;
+  };
+
+  // ============================================
+  // ID DISPUTES & COMPLAINT SYSTEM
+  // ============================================
+  const submitDispute = (disputeData) => {
+    const newDispute = {
+      id: `disp-${Date.now()}`,
+      regNo: String(disputeData.regNo || '').trim(),
+      name: String(disputeData.name || '').trim(),
+      email: String(disputeData.email || user?.email || '').trim().toLowerCase(),
+      phone: String(disputeData.phone || '').trim(),
+      description: String(disputeData.description || '').trim(),
+      status: 'pending',
+      actionTaken: '',
+      createdAt: new Date().toISOString()
+    };
+
+    setDisputes(prev => [newDispute, ...prev]);
+    syncEntityToMongo('/api/disputes', 'POST', newDispute);
+    confetti({ particleCount: 60, spread: 60 });
+    return newDispute;
+  };
+
+  const resolveDispute = (disputeId, actionNote = 'অভিযোগ পর্যালোচনা করে সমাধান করা হয়েছে') => {
+    setDisputes(prev =>
+      prev.map(d =>
+        d.id === disputeId
+          ? { ...d, status: 'resolved', actionTaken: actionNote, resolvedAt: new Date().toISOString() }
+          : d
+      )
+    );
+    syncEntityToMongo('/api/disputes', 'POST', {
+      id: disputeId,
+      status: 'resolved',
+      actionTaken: actionNote,
+      resolvedAt: new Date()
+    });
+  };
+
+  const deleteDispute = (disputeId) => {
+    setDisputes(prev => prev.filter(d => d.id !== disputeId));
+    syncEntityToMongo(`/api/disputes/${disputeId}`, 'DELETE');
+  };
+
+  const resetStudentClaim = async (regNo, disputeId = null) => {
+    if (!regNo) return false;
+    const cleanReg = String(regNo).trim();
+
+    // 1. Remove from studentSubmissions
+    setStudentSubmissions(prev =>
+      prev.filter(s => String(s.regNo || '').trim().toLowerCase() !== cleanReg.toLowerCase())
+    );
+
+    // 2. Clear phone, email, avatar from students record so real student can claim fresh
+    setStudents(prev =>
+      prev.map(s => {
+        if (s.regNo && String(s.regNo).trim().toLowerCase() === cleanReg.toLowerCase()) {
+          return {
+            ...s,
+            phone: '',
+            email: '',
+            avatar: '',
+            activities: ''
+          };
+        }
+        return s;
+      })
+    );
+
+    // 3. Mark dispute resolved if disputeId given
+    if (disputeId) {
+      resolveDispute(disputeId, `রেজিস্ট্রেশন ${cleanReg}-এর ভুয়া ক্লেইম ও সাবমিশন সম্পূর্ণ মুছে দেওয়া হয়েছে`);
+    }
+
+    // 4. Send request to server reset-reg endpoint
+    syncEntityToMongo('/api/disputes/reset-reg', 'POST', { regNo: cleanReg, disputeId });
+
+    return true;
+  };
+
+  // ============================================
+  // RESET ALL SYSTEM DATA
+  // ============================================
+  const resetAllData = () => {
+    localStorage.removeItem('rtec_teachers');
+    localStorage.removeItem('rtec_students');
+    localStorage.removeItem('rtec_alumni');
+    localStorage.removeItem('rtec_events');
+    localStorage.removeItem('rtec_jobs');
+    localStorage.removeItem('rtec_campaigns');
+    localStorage.removeItem('rtec_news');
+    localStorage.removeItem('rtec_forum');
+    localStorage.removeItem('rtec_memories');
+    localStorage.removeItem('rtec_college_logo');
+    localStorage.removeItem('rtec_student_submissions');
+    localStorage.removeItem('rtec_my_submission_id');
+    localStorage.removeItem('rtec_my_submission_email');
+    localStorage.removeItem('rtec_my_submission_reg');
+
+    setTeachers(INITIAL_TEACHERS);
+    setStudents(INITIAL_STUDENTS);
+    setAlumni(INITIAL_ALUMNI);
+    setEvents(INITIAL_EVENTS);
+    setJobs(INITIAL_JOBS);
+    setCampaigns(INITIAL_CAMPAIGNS);
+    setNews(INITIAL_NEWS);
+    setForumPosts(INITIAL_FORUM_POSTS);
+    setMemories(INITIAL_MEMORIES);
+    setCollegeLogo('');
+    setStudentSubmissions(INITIAL_STUDENT_SUBMISSIONS);
+    setMySubmissionId('');
+  };
+
+  return (
+    <AppContext.Provider
+      value={{
+        user,
+        setUser,
+        login,
+        logout,
+        lang,
+        setLang,
+        // Theme
+        theme,
+        setTheme,
+        toggleTheme,
+        // College Logo & Branding
+        collegeLogo,
+        setCollegeLogo,
+        updateCollegeLogo,
+        resetCollegeLogo,
+        // Footer & Official Contact Info (Admin Configurable)
+        footerContact,
+        setFooterContact,
+        updateFooterContact,
+        resetFooterContact,
+        // Teachers
+        teachers,
+        setTeachers,
+        addTeacher,
+        updateTeacher,
+        deleteTeacher,
+        // Students
+        students,
+        setStudents,
+        addStudent,
+        updateStudent,
+        deleteStudent,
+        bulkImportStudents,
+        syncStudentsToMongo,
+        syncWithExcelFile,
+        exportExcelFile,
+        mongoStatus,
+        checkMongoHealth,
+        // Alumni
+        alumni,
+        setAlumni,
+        addAlumni,
+        updateAlumni,
+        deleteAlumni,
+        toggleVerifyAlumni,
+        // Events
+        events,
+        setEvents,
+        addEvent,
+        updateEvent,
+        deleteEvent,
+        registerForEvent,
+        // Jobs
+        jobs,
+        setJobs,
+        addJob,
+        approveJob,
+        declineJob,
+        updateJob,
+        deleteJob,
+        // Campaigns
+        campaigns,
+        setCampaigns,
+        addCampaign,
+        updateCampaign,
+        deleteCampaign,
+        donateToCampaign,
+        // News
+        news,
+        setNews,
+        addNews,
+        updateNews,
+        deleteNews,
+        // Forum & Memories
+        forumPosts,
+        setForumPosts,
+        addForumPost,
+        updateForumPost,
+        deleteForumPost,
+        addForumReply,
+        updateForumReply,
+        deleteForumReply,
+        upvoteForumPost,
+        memories,
+        likeMemory,
+        addMemory,
+        // Student Submissions & Approvals
+        studentSubmissions,
+        setStudentSubmissions,
+        mySubmissionId,
+        setMySubmissionId,
+        mySubmission,
+        trackSubmission,
+        untrackSubmission,
+        submitStudentProfile,
+        approveSubmission,
+        declineSubmission,
+        deleteSubmission,
+        loginWithGmail,
+        // ID Dispute & Complaint Management
+        disputes,
+        submitDispute,
+        resolveDispute,
+        deleteDispute,
+        resetStudentClaim,
+        // Admin Authorization Management
+        adminEmails,
+        addAdminEmail,
+        removeAdminEmail,
+        isAdminEmail,
+        // System
+        resetAllData
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useApp() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+}
