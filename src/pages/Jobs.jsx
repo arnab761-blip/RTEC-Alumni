@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
@@ -15,19 +16,76 @@ import {
   Send,
   Sparkles,
   Search,
-  Filter
+  Lock,
+  ShieldAlert,
+  EyeOff
 } from 'lucide-react';
 
 export default function Jobs() {
-  const { jobs, addJob, user, lang = 'en' } = useApp();
+  const { jobs, addJob, user, lang = 'en', students = [], alumni = [], mySubmission } = useApp();
   const [selectedJob, setSelectedJob] = useState(null);
   const [postJobModalOpen, setPostJobModalOpen] = useState(false);
+  const [graduateGateModalOpen, setGraduateGateModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [appliedSuccess, setAppliedSuccess] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [salaryMode, setSalaryMode] = useState('negotiable'); // 'negotiable' | 'range'
 
   // Lock background scroll when any job modal is open
-  useScrollLock(Boolean(postJobModalOpen || (applyModalOpen && selectedJob)));
+  useScrollLock(Boolean(postJobModalOpen || graduateGateModalOpen || selectedJob));
+
+  const isGraduateBatch = (batchStr = '') => {
+    const b = String(batchStr).toLowerCase();
+    return b.includes('1st') || b.includes('2nd') || b.includes('3rd') || b.includes('১ম') || b.includes('২য়') || b.includes('৩য়');
+  };
+
+  const matchedStudent = useMemo(() => {
+    if (!user && !mySubmission) return null;
+    return students.find(s =>
+      (user?.regNo && s.regNo === user.regNo) ||
+      (mySubmission?.regNo && s.regNo === mySubmission.regNo) ||
+      (user?.email && s.email?.toLowerCase() === user.email.toLowerCase())
+    ) || null;
+  }, [students, user, mySubmission]);
+
+  const matchedAlumni = useMemo(() => {
+    if (!user && !mySubmission) return null;
+    return alumni.find(a =>
+      (user?.email && a.email?.toLowerCase() === user.email.toLowerCase() && a.isVerified) ||
+      (mySubmission?.email && a.email?.toLowerCase() === mySubmission.email.toLowerCase() && a.isVerified)
+    ) || null;
+  }, [alumni, user, mySubmission]);
+
+  const isApprovedAccount = Boolean(
+    user?.role === 'alumni' ||
+    mySubmission?.status === 'approved' ||
+    user?.submissionStatus === 'approved' ||
+    (user?.isVerified && user?.status === 'approved') ||
+    matchedAlumni
+  );
+
+  // Strict restriction: ONLY verified Graduate Students / Alumni can post jobs
+  const isVerifiedGraduate = Boolean(
+    user &&
+    user.role !== 'guest' && (
+      user.role === 'alumni' ||
+      matchedAlumni ||
+      (isApprovedAccount && (
+        user.studentType === 'Graduate' ||
+        mySubmission?.studentType === 'Graduate' ||
+        matchedStudent?.studentType === 'Graduate' ||
+        isGraduateBatch(user.batch || mySubmission?.batch || matchedStudent?.batch)
+      ))
+    )
+  );
+
+  const handleOpenPostJob = () => {
+    if (isVerifiedGraduate) {
+      setPostJobModalOpen(true);
+    } else {
+      setGraduateGateModalOpen(true);
+    }
+  };
 
   // Search and filter
   const [search, setSearch] = useState('');
@@ -52,22 +110,38 @@ export default function Jobs() {
 
   const handlePostSubmit = (e) => {
     e.preventDefault();
-    const isMasterAdmin = user?.role === 'admin';
+    if (!isVerifiedGraduate) {
+      setPostJobModalOpen(false);
+      setGraduateGateModalOpen(true);
+      return;
+    }
+
+    const finalSalary = salaryMode === 'negotiable' || !newJobData.salary.trim()
+      ? 'Negotiable'
+      : newJobData.salary.trim();
+
     addJob({
       ...newJobData,
+      salary: finalSalary,
       postedBy: newJobData.posterName || (user?.name ? `${user.name} (${user.batch || 'Graduate'})` : 'Alumni Member'),
       postedByEmail: newJobData.posterEmail || user?.email || '',
-      status: isMasterAdmin ? 'approved' : 'pending'
+      status: 'pending'
     });
     setPostJobModalOpen(false);
+    setSalaryMode('negotiable');
+    setNewJobData(prev => ({
+      ...prev,
+      title: '',
+      titleBn: '',
+      company: '',
+      location: '',
+      salary: '',
+      description: ''
+    }));
     setToastMessage(
-      isMasterAdmin
-        ? (lang === 'bn'
-          ? '✓ চাকরির বিজ্ঞপ্তি সরাসরি ওয়েবসাইটে প্রকাশিত হয়েছে!'
-          : '✓ Job circular published directly to the website!')
-        : (lang === 'bn'
-          ? '✓ আপনার চাকরির সার্কুলার সফলভাবে অ্যাডমিনের কাছে জমা হয়েছে! অ্যাডমিন যাচাই-বাছাই করে অনুমোদন (Approve) করলেই এটি সবার জন্য লাইভ হবে।'
-          : '✓ Your job circular has been submitted for admin verification! It will go live for everyone once approved.')
+      lang === 'bn'
+        ? '✓ আপনার চাকরির সার্কুলার সফলভাবে অ্যাডমিনের কাছে জমা হয়েছে! অ্যাডমিন যাচাই করে অনুমোদন (Approve) করলে এটি সবার জন্য লাইভ হবে।'
+        : '✓ Your job circular has been submitted for admin verification! It will go live once approved by an admin.'
     );
     setTimeout(() => setToastMessage(''), 6000);
   };
@@ -140,13 +214,24 @@ export default function Jobs() {
             </p>
           </div>
 
-          <button
-            onClick={() => setPostJobModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm shadow-xl shadow-emerald-950/50 transition hover:scale-105 cursor-pointer"
-          >
-            <PlusCircle className="w-4 h-4 text-slate-950" />
-            <span>{lang === 'bn' ? 'নতুন চাকরির বিজ্ঞপ্তি দিন' : 'Post a Job'}</span>
-          </button>
+          <div className="flex flex-col items-start sm:items-end gap-1.5">
+            <button
+              onClick={handleOpenPostJob}
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm shadow-xl shadow-emerald-950/50 transition hover:scale-105 cursor-pointer"
+            >
+              {isVerifiedGraduate ? (
+                <PlusCircle className="w-4 h-4 text-slate-950" />
+              ) : (
+                <Lock className="w-4 h-4 text-slate-950" />
+              )}
+              <span>{lang === 'bn' ? 'নতুন চাকরির বিজ্ঞপ্তি দিন' : 'Post a Job'}</span>
+            </button>
+            <span className="text-[10px] font-mono text-slate-400">
+              {lang === 'bn'
+                ? 'শুধুমাত্র গ্র্যাজুয়েট শিক্ষার্থীরা পোস্ট করতে পারবেন • সবাই দেখতে পারবেন'
+                : 'Graduates only can post • Everyone can view & apply'}
+            </span>
+          </div>
         </div>
 
         {/* Search & Filter Bar */}
@@ -214,7 +299,11 @@ export default function Jobs() {
                     </div>
                     <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
                       <DollarSign className="w-3.5 h-3.5" />
-                      <span>{job.salary}</span>
+                      <span>
+                        {!job.salary || job.salary.toLowerCase().includes('negotiable')
+                          ? (lang === 'bn' ? 'আলোচনা সাপেক্ষে' : 'Negotiable')
+                          : job.salary}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400">
                       <Clock className="w-3.5 h-3.5" />
@@ -267,10 +356,10 @@ export default function Jobs() {
             </p>
             <div className="pt-2">
               <button
-                onClick={() => setPostJobModalOpen(true)}
+                onClick={handleOpenPostJob}
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition cursor-pointer"
               >
-                <PlusCircle className="w-4 h-4" />
+                {isVerifiedGraduate ? <PlusCircle className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                 <span>{lang === 'bn' ? 'নতুন চাকরি বা ইন্টার্নশিপ পোস্ট করুন' : 'Post a Job or Internship'}</span>
               </button>
             </div>
@@ -362,7 +451,7 @@ export default function Jobs() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">
                         {lang === 'bn' ? 'কাজের ধরন' : 'Employment Type'}
@@ -378,16 +467,52 @@ export default function Jobs() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        {lang === 'bn' ? 'বেতন সীমা' : 'Salary Range'}
-                      </label>
-                      <input
-                        type="text"
-                        placeholder={lang === 'bn' ? '৳ ৩৫,০০০ - ৳ ৪৫,০০০' : 'BDT 35,000 - 45,000'}
-                        value={newJobData.salary}
-                        onChange={(e) => setNewJobData({ ...newJobData, salary: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-                      />
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-xs font-semibold text-slate-300">
+                          {lang === 'bn' ? 'বেতন (ঐচ্ছিক)' : 'Salary (Optional)'}
+                        </label>
+                        <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 text-[10px] font-semibold">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSalaryMode('negotiable');
+                              setNewJobData({ ...newJobData, salary: '' });
+                            }}
+                            className={`px-2 py-0.5 rounded-md transition cursor-pointer ${
+                              salaryMode === 'negotiable'
+                                ? 'bg-emerald-600 text-white'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {lang === 'bn' ? 'গোপন / আলোচনা' : 'Negotiable'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSalaryMode('range')}
+                            className={`px-2 py-0.5 rounded-md transition cursor-pointer ${
+                              salaryMode === 'range'
+                                ? 'bg-emerald-600 text-white'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {lang === 'bn' ? 'রেঞ্জ দিন' : 'Specify'}
+                          </button>
+                        </div>
+                      </div>
+                      {salaryMode === 'negotiable' ? (
+                        <div className="w-full px-3 py-2 rounded-xl bg-slate-900/70 border border-slate-700/80 text-xs text-emerald-300 flex items-center gap-1.5">
+                          <EyeOff className="w-3.5 h-3.5 shrink-0" />
+                          <span>{lang === 'bn' ? 'আলোচনা সাপেক্ষে (বেতন গোপন থাকবে)' : 'Negotiable (Salary kept hidden)'}</span>
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder={lang === 'bn' ? 'যেমন: ৳ ৩৫,০০০ - ৳ ৪৫,০০০' : 'e.g., BDT 35,000 - 45,000'}
+                          value={newJobData.salary}
+                          onChange={(e) => setNewJobData({ ...newJobData, salary: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -436,16 +561,12 @@ export default function Jobs() {
                     />
                   </div>
 
-                  <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-300 text-[11px] leading-relaxed flex items-start gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-[11px] leading-relaxed flex items-start gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span>
-                      {user?.role === 'admin'
-                        ? (lang === 'bn'
-                          ? 'অ্যাডমিন অ্যাকাউন্ট দিয়ে পোস্ট করায় এটি সরাসরি লাইভ হবে।'
-                          : 'Posting as Admin will publish this opening directly.')
-                        : (lang === 'bn'
-                          ? 'বিজ্ঞপ্তিটি জমা দেওয়ার পর অ্যাডমিন প্যানেল থেকে যাচাই-বাছাই শেষে অনুমোদন (Approve) করা হলে তা প্ল্যাটফর্মের সকল শিক্ষার্থী ও অ্যালামনাইদের জন্য প্রকাশিত হবে।'
-                          : 'Once submitted, your circular will be reviewed by admins and published to all RTEC students and alumni upon approval.')}
+                      {lang === 'bn'
+                        ? 'বিজ্ঞপ্তিটি জমা দেওয়ার পর অ্যাডমিন প্যানেলে যাচাইয়ের জন্য যাবে। অ্যাডমিন অনুমোদন (Approve) করলে এটি সবার জন্য প্রকাশিত হবে।'
+                        : 'Once submitted, your circular will enter the Admin approval queue and go live after being approved by an administrator.'}
                     </span>
                   </div>
 
@@ -453,11 +574,174 @@ export default function Jobs() {
                     type="submit"
                     className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-950/50 cursor-pointer"
                   >
-                    {user?.role === 'admin'
-                      ? (lang === 'bn' ? 'বিজ্ঞপ্তি প্রকাশ করুন' : 'Publish Directly')
-                      : (lang === 'bn' ? 'বিজ্ঞপ্তি জমার জন্য পাঠান' : 'Submit for Admin Approval')}
+                    {lang === 'bn' ? 'বিজ্ঞপ্তি জমার জন্য পাঠান' : 'Submit for Admin Approval'}
                   </button>
                 </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Job Details Modal (when View Details is clicked) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedJob && !applyModalOpen && (
+            <motion.div
+              key="job-details-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setSelectedJob(null);
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-panel w-full max-w-lg rounded-3xl p-6 border border-slate-700 relative overscroll-contain max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setSelectedJob(null)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono border border-emerald-500/30 mb-2">
+                  {selectedJob.type} • {selectedJob.department}
+                </span>
+
+                <h3 className="text-lg font-bold text-white mb-1">
+                  {lang === 'bn' ? (selectedJob.titleBn || selectedJob.title) : (selectedJob.title || selectedJob.titleBn)}
+                </h3>
+                <p className="text-xs text-emerald-400 font-semibold mb-4">{selectedJob.company}</p>
+
+                <div className="grid grid-cols-2 gap-3 text-xs mb-4 p-3 rounded-2xl bg-slate-900/70 border border-slate-800">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block">{lang === 'bn' ? 'লোকেশন' : 'Location'}</span>
+                    <span className="font-semibold text-white">{selectedJob.location}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block">{lang === 'bn' ? 'বেতন' : 'Salary'}</span>
+                    <span className="font-semibold text-emerald-400">
+                      {!selectedJob.salary || selectedJob.salary.toLowerCase().includes('negotiable')
+                        ? (lang === 'bn' ? 'আলোচনা সাপেক্ষে' : 'Negotiable')
+                        : selectedJob.salary}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block">{lang === 'bn' ? 'শেষ তারিখ' : 'Deadline'}</span>
+                    <span className="font-semibold text-white">{selectedJob.deadline}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block">{lang === 'bn' ? 'পোস্ট করেছেন' : 'Posted By'}</span>
+                    <span className="font-semibold text-emerald-300">{selectedJob.postedBy}</span>
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-300 leading-relaxed whitespace-pre-line mb-5">
+                  {selectedJob.description}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedJob(null)}
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700 cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
+                  </button>
+                  <button
+                    onClick={() => setApplyModalOpen(true)}
+                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'আবেদন করুন' : 'Apply Now'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Graduate-Only Job Posting Restriction Gate Modal */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {graduateGateModalOpen && (
+            <motion.div
+              key="graduate-job-gate-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setGraduateGateModalOpen(false);
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-panel w-full max-w-md rounded-3xl p-6 border border-amber-500/40 relative shadow-2xl text-center space-y-4 overscroll-contain"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => setGraduateGateModalOpen(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center mx-auto">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+
+                <h3 className="text-lg font-bold text-white">
+                  {lang === 'bn'
+                    ? 'শুধুমাত্র গ্র্যাজুয়েট শিক্ষার্থীরা জব পোস্ট করতে পারবেন'
+                    : 'Graduate Verification Required to Post Jobs'}
+                </h3>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  {lang === 'bn'
+                    ? 'RTEC জব বোর্ডে নতুন চাকরির বিজ্ঞপ্তি বা রেফারেন্স পোস্ট করার সুবিধা শুধুমাত্র অনুমোদিত গ্র্যাজুয়েট শিক্ষার্থীদের (১ম–৩য় ব্যাচ ও ভেরিফাইড অ্যালামনাই) জন্য সংরক্ষিত। বর্তমান শিক্ষার্থী ও অন্য সবাই প্রকাশিত সব চাকরির বিজ্ঞপ্তি দেখতে ও আবেদন করতে পারবেন।'
+                    : 'Posting new job openings on the RTEC Job Board is exclusively restricted to verified Graduate Students (1st–3rd Batch & verified Alumni). Current students and visitors can view all openings and apply directly.'}
+                </p>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+                  {(!user || user.role === 'guest') ? (
+                    <Link
+                      to="/auth"
+                      onClick={() => setGraduateGateModalOpen(false)}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition text-center"
+                    >
+                      {lang === 'bn' ? 'অ্যাকাউন্ট লগইন করুন' : 'Sign In to Account'}
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/student-portal"
+                      onClick={() => setGraduateGateModalOpen(false)}
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition text-center"
+                    >
+                      {lang === 'bn' ? 'স্টুডেন্ট পোর্টাল দেখুন' : 'Verify via Student Portal'}
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => setGraduateGateModalOpen(false)}
+                    className="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700 cursor-pointer"
+                  >
+                    {lang === 'bn' ? 'ঠিক আছে' : 'Understood'}
+                  </button>
+                </div>
               </motion.div>
             </motion.div>
           )}
