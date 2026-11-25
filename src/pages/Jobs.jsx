@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Jobs() {
-  const { jobs, addJob, user, lang = 'bn' } = useApp();
+  const { jobs, addJob, user, lang = 'en' } = useApp();
   const [selectedJob, setSelectedJob] = useState(null);
   const [postJobModalOpen, setPostJobModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
@@ -62,8 +62,12 @@ export default function Jobs() {
     setPostJobModalOpen(false);
     setToastMessage(
       isMasterAdmin
-        ? '✓ চাকরির বিজ্ঞপ্তি সরাসরি ওয়েবসাইটে প্রকাশিত হয়েছে!'
-        : '✓ আপনার চাকরির সার্কুলার সফলভাবে অ্যাডমিনের কাছে জমা হয়েছে! অ্যাডমিন যাচাই-বাছাই করে অনুমোদন (Approve) করলেই এটি সবার জন্য লাইভ হবে।'
+        ? (lang === 'bn'
+          ? '✓ চাকরির বিজ্ঞপ্তি সরাসরি ওয়েবসাইটে প্রকাশিত হয়েছে!'
+          : '✓ Job circular published directly to the website!')
+        : (lang === 'bn'
+          ? '✓ আপনার চাকরির সার্কুলার সফলভাবে অ্যাডমিনের কাছে জমা হয়েছে! অ্যাডমিন যাচাই-বাছাই করে অনুমোদন (Approve) করলেই এটি সবার জন্য লাইভ হবে।'
+          : '✓ Your job circular has been submitted for admin verification! It will go live for everyone once approved.')
     );
     setTimeout(() => setToastMessage(''), 6000);
   };
@@ -98,47 +102,50 @@ export default function Jobs() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header with Post Job Button */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              key="jobs-toast"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="mb-6 p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 text-xs sm:text-sm font-semibold flex items-center gap-3 shadow-lg">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div
+                key="jobs-toast"
+                initial={{ opacity: 0, y: -16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.2 }}
+                className="system-toast fixed top-28 sm:top-[116px] right-4 sm:right-8 z-[99999] max-w-md p-4 rounded-2xl border-2 border-emerald-400 bg-[#064E3B] text-white text-xs sm:text-sm font-bold flex items-center gap-3 shadow-2xl"
+              >
+                <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
                 <div className="flex-1">{toastMessage}</div>
-                <button onClick={() => setToastMessage('')} className="p-1 hover:text-white text-emerald-400 cursor-pointer">
+                <button type="button" onClick={() => setToastMessage('')} className="p-1 hover:text-emerald-200 text-white cursor-pointer">
                   <X className="w-4 h-4" />
                 </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
               <Briefcase className="w-4 h-4" />
-              <span>ক্যারিয়ার ও কর্মসংস্থান • Career Portal</span>
+              <span>{lang === 'bn' ? 'ক্যারিয়ার ও কর্মসংস্থান' : 'Career & Employment Portal'}</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              টেক্সটাইল জব বোর্ড ও রেফারেন্স
+              {lang === 'bn' ? 'টেক্সটাইল জব বোর্ড ও রেফারেন্স' : 'Textile Job Board & Referrals'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-              সিনিয়র অ্যালামনাইদের সরাসরি তত্ত্বাবধানে ও রেফারেন্সে টেক্সটাইল মিলস ও বায়িং হাউসের চাকরির সুযোগ।
+              {lang === 'bn'
+                ? 'সিনিয়র অ্যালামনাইদের সরাসরি তত্ত্বাবধানে ও রেফারেন্সে টেক্সটাইল মিলস ও বায়িং হাউসের চাকরির সুযোগ।'
+                : 'Textile mill, apparel, and buying house career opportunities shared and referred directly by RTEC senior alumni.'}
             </p>
           </div>
 
           <button
             onClick={() => setPostJobModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm shadow-xl shadow-emerald-950/50 transition hover:scale-105"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs sm:text-sm shadow-xl shadow-emerald-950/50 transition hover:scale-105 cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 text-slate-950" />
-            <span>নতুন চাকরির বিজ্ঞপ্তি দিন (Post a Job)</span>
+            <span>{lang === 'bn' ? 'নতুন চাকরির বিজ্ঞপ্তি দিন' : 'Post a Job'}</span>
           </button>
         </div>
 
@@ -150,7 +157,7 @@ export default function Jobs() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="চাকরির পদবি, কোম্পানি বা লোকেশন দিয়ে সার্চ করুন..."
+              placeholder={lang === 'bn' ? 'চাকরির পদবি, কোম্পানি বা লোকেশন দিয়ে সার্চ করুন...' : 'Search by job title, company, or location...'}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
             />
           </div>
@@ -161,7 +168,7 @@ export default function Jobs() {
               onChange={(e) => setSelectedType(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
             >
-              <option value="All">সকল কাজের ধরন (All Types)</option>
+              <option value="All">{lang === 'bn' ? 'সকল কাজের ধরন' : 'All Job Types'}</option>
               <option value="Full-time">Full-time</option>
               <option value="Internship / Entry Level">Internship / Entry Level</option>
               <option value="Remote">Remote</option>
@@ -193,7 +200,7 @@ export default function Jobs() {
                   </div>
 
                   <h3 className="text-lg font-bold text-white hover:text-emerald-300 transition-colors">
-                    {job.titleBn || job.title}
+                    {lang === 'bn' ? (job.titleBn || job.title) : (job.title || job.titleBn)}
                   </h3>
 
                   <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">
@@ -211,7 +218,7 @@ export default function Jobs() {
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400">
                       <Clock className="w-3.5 h-3.5" />
-                      <span>শেষ তারিখ: {job.deadline}</span>
+                      <span>{lang === 'bn' ? 'শেষ তারিখ:' : 'Deadline:'} {job.deadline}</span>
                     </div>
                   </div>
 
@@ -220,7 +227,7 @@ export default function Jobs() {
                   </p>
 
                   <div className="pt-2 text-[11px] text-slate-500">
-                    পোস্ট করেছেন: <span className="text-emerald-400 font-medium">{job.postedBy}</span>
+                    {lang === 'bn' ? 'পোস্ট করেছেন:' : 'Posted by:'} <span className="text-emerald-400 font-medium">{job.postedBy}</span>
                   </div>
                 </div>
 
@@ -231,15 +238,15 @@ export default function Jobs() {
                       setSelectedJob(job);
                       setApplyModalOpen(true);
                     }}
-                    className="w-full sm:w-36 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow"
+                    className="w-full sm:w-36 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow cursor-pointer"
                   >
-                    আবেদন করুন (Apply)
+                    {lang === 'bn' ? 'আবেদন করুন' : 'Apply Now'}
                   </button>
                   <button
                     onClick={() => setSelectedJob(job)}
-                    className="w-full sm:w-36 py-2 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700/80 transition"
+                    className="w-full sm:w-36 py-2 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700/80 transition cursor-pointer"
                   >
-                    বিস্তারিত বিবরণ
+                    {lang === 'bn' ? 'বিস্তারিত বিবরণ' : 'View Details'}
                   </button>
                 </div>
               </div>
@@ -303,19 +310,23 @@ export default function Jobs() {
                 </button>
 
                 <h3 className="text-lg font-bold text-white mb-1">
-                  নতুন চাকরির বিজ্ঞপ্তি / রেফারেন্স পোস্ট করুন
+                  {lang === 'bn' ? 'নতুন চাকরির বিজ্ঞপ্তি / রেফারেন্স পোস্ট করুন' : 'Post a Job Opening or Alumni Referral'}
                 </h3>
                 <p className="text-xs text-slate-400 mb-4">
-                  আপনার প্রতিষ্ঠানে উন্মুক্ত পদ সম্পর্কে আরটেকের শিক্ষার্থী ও অ্যালামনাইদের জানান।
+                  {lang === 'bn'
+                    ? 'আপনার প্রতিষ্ঠানে উন্মুক্ত পদ সম্পর্কে আরটেকের শিক্ষার্থী ও অ্যালামনাইদের জানান।'
+                    : 'Share open positions or referral opportunities at your organization with RTEC students & alumni.'}
                 </p>
 
                 <form onSubmit={handlePostSubmit} className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">পদের নাম (Job Title)</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {lang === 'bn' ? 'পদের নাম *' : 'Job Title *'}
+                    </label>
                     <input
                       type="text"
                       required
-                      placeholder="যেমন: Assistant Merchandiser / Quality Officer"
+                      placeholder={lang === 'bn' ? 'যেমন: Assistant Merchandiser / Quality Officer' : 'e.g., Assistant Merchandiser / Quality Officer'}
                       value={newJobData.title}
                       onChange={(e) => setNewJobData({ ...newJobData, title: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -324,22 +335,26 @@ export default function Jobs() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">কোম্পানির নাম</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'কোম্পানির নাম *' : 'Company Name *'}
+                      </label>
                       <input
                         type="text"
                         required
-                        placeholder="প্রতিষ্ঠানের নাম"
+                        placeholder={lang === 'bn' ? 'প্রতিষ্ঠানের নাম' : 'Organization / Mill name'}
                         value={newJobData.company}
                         onChange={(e) => setNewJobData({ ...newJobData, company: e.target.value })}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">কাজের লোকেশন</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'কাজের লোকেশন *' : 'Job Location *'}
+                      </label>
                       <input
                         type="text"
                         required
-                        placeholder="যেমন: Gazipur / Dhaka"
+                        placeholder={lang === 'bn' ? 'যেমন: গাজীপুর / ঢাকা' : 'e.g., Gazipur / Dhaka'}
                         value={newJobData.location}
                         onChange={(e) => setNewJobData({ ...newJobData, location: e.target.value })}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -349,7 +364,9 @@ export default function Jobs() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">কাজের ধরন</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'কাজের ধরন' : 'Employment Type'}
+                      </label>
                       <select
                         value={newJobData.type}
                         onChange={(e) => setNewJobData({ ...newJobData, type: e.target.value })}
@@ -361,10 +378,12 @@ export default function Jobs() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">বেতন সীমা</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'বেতন সীমা' : 'Salary Range'}
+                      </label>
                       <input
                         type="text"
-                        placeholder="৳ 35,000 - ৳ 45,000"
+                        placeholder={lang === 'bn' ? '৳ ৩৫,০০০ - ৳ ৪৫,০০০' : 'BDT 35,000 - 45,000'}
                         value={newJobData.salary}
                         onChange={(e) => setNewJobData({ ...newJobData, salary: e.target.value })}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -374,7 +393,9 @@ export default function Jobs() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">আপনার নাম ও পদবি/ব্যাচ *</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'আপনার নাম ও পদবি/ব্যাচ *' : 'Your Name & Designation / Batch *'}
+                      </label>
                       <input
                         type="text"
                         required
@@ -385,7 +406,9 @@ export default function Jobs() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">যোগাযোগের ইমেইল *</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'যোগাযোগের ইমেইল *' : 'Contact Email *'}
+                      </label>
                       <input
                         type="email"
                         required
@@ -398,11 +421,15 @@ export default function Jobs() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">চাকরির বিবরণ ও আবেদনের নিয়ম *</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {lang === 'bn' ? 'চাকরির বিবরণ ও আবেদনের নিয়ম *' : 'Job Description & Application Instructions *'}
+                    </label>
                     <textarea
                       rows="3"
                       required
-                      placeholder="দায়িত্ব, প্রয়োজনীয় যোগ্যতা ও কীভাবে সিভি পাঠাতে হবে..."
+                      placeholder={lang === 'bn'
+                        ? 'দায়িত্ব, প্রয়োজনীয় যোগ্যতা ও কীভাবে সিভি পাঠাতে হবে...'
+                        : 'Key responsibilities, eligibility requirements, and how to submit CV...'}
                       value={newJobData.description}
                       onChange={(e) => setNewJobData({ ...newJobData, description: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -413,8 +440,12 @@ export default function Jobs() {
                     <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <span>
                       {user?.role === 'admin'
-                        ? 'অ্যাডমিন অ্যাকাউন্ট দিয়ে পোস্ট করায় এটি সরাসরি লাইভ হবে।'
-                        : 'বিজ্ঞপ্তিটি জমা দেওয়ার পর অ্যাডমিন প্যানেল থেকে যাচাই-বাছাই শেষে অনুমোদন (Approve) করা হলে তা প্ল্যাটফর্মের সকল শিক্ষার্থী ও অ্যালামনাইদের জন্য প্রকাশিত হবে।'}
+                        ? (lang === 'bn'
+                          ? 'অ্যাডমিন অ্যাকাউন্ট দিয়ে পোস্ট করায় এটি সরাসরি লাইভ হবে।'
+                          : 'Posting as Admin will publish this opening directly.')
+                        : (lang === 'bn'
+                          ? 'বিজ্ঞপ্তিটি জমা দেওয়ার পর অ্যাডমিন প্যানেল থেকে যাচাই-বাছাই শেষে অনুমোদন (Approve) করা হলে তা প্ল্যাটফর্মের সকল শিক্ষার্থী ও অ্যালামনাইদের জন্য প্রকাশিত হবে।'
+                          : 'Once submitted, your circular will be reviewed by admins and published to all RTEC students and alumni upon approval.')}
                     </span>
                   </div>
 
@@ -422,7 +453,9 @@ export default function Jobs() {
                     type="submit"
                     className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-950/50 cursor-pointer"
                   >
-                    {user?.role === 'admin' ? 'বিজ্ঞপ্তি প্রকাশ করুন (Publish Directly)' : 'বিজ্ঞপ্তি জমার জন্য পাঠান (Submit for Admin Approval)'}
+                    {user?.role === 'admin'
+                      ? (lang === 'bn' ? 'বিজ্ঞপ্তি প্রকাশ করুন' : 'Publish Directly')
+                      : (lang === 'bn' ? 'বিজ্ঞপ্তি জমার জন্য পাঠান' : 'Submit for Admin Approval')}
                   </button>
                 </form>
               </motion.div>
@@ -463,22 +496,28 @@ export default function Jobs() {
                 </button>
 
                 <h3 className="text-base font-bold text-white mb-1">
-                  আবেদন: {selectedJob.titleBn || selectedJob.title}
+                  {lang === 'bn' ? 'আবেদন:' : 'Apply:'} {lang === 'bn' ? (selectedJob.titleBn || selectedJob.title) : (selectedJob.title || selectedJob.titleBn)}
                 </h3>
                 <p className="text-xs text-emerald-400 mb-4">{selectedJob.company}</p>
 
                 {appliedSuccess ? (
                   <div className="p-6 text-center bg-emerald-950/40 rounded-2xl border border-emerald-500/40 space-y-2">
                     <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                    <h4 className="font-bold text-white text-sm">আবেদন সফলভাবে গ্রহণ করা হয়েছে!</h4>
+                    <h4 className="font-bold text-white text-sm">
+                      {lang === 'bn' ? 'আবেদন সফলভাবে গ্রহণ করা হয়েছে!' : 'Application Submitted Successfully!'}
+                    </h4>
                     <p className="text-xs text-slate-300">
-                      আপনার সিভি ও আবেদনপত্রটি সরাসরি পোস্টকারী সিনিয়র প্রকৌশলীর কাছে পাঠানো হয়েছে।
+                      {lang === 'bn'
+                        ? 'আপনার সিভি ও আবেদনপত্রটি সরাসরি পোস্টকারী সিনিয়র প্রকৌশলীর কাছে পাঠানো হয়েছে।'
+                        : 'Your CV and application note have been forwarded to the posting alumnus/referrer.'}
                     </p>
                   </div>
                 ) : (
                   <form onSubmit={handleApplySubmit} className="space-y-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">আপনার নাম</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'আপনার নাম' : 'Your Full Name'}
+                      </label>
                       <input
                         type="text"
                         required
@@ -487,7 +526,9 @@ export default function Jobs() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">ব্যাচ ও ডিপার্টমেন্ট</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'ব্যাচ ও ডিপার্টমেন্ট' : 'Batch & Department'}
+                      </label>
                       <input
                         type="text"
                         required
@@ -496,7 +537,9 @@ export default function Jobs() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">সিভি / রেজুমে লিংক (Drive/Dropbox/PDF)</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'সিভি / রেজুমে লিংক (Drive/Dropbox/PDF)' : 'CV / Resume Link (Drive / Dropbox / PDF)'}
+                      </label>
                       <input
                         type="url"
                         required
@@ -505,18 +548,20 @@ export default function Jobs() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">রেফারারের উদ্দেশ্যে ছোট বার্তা (Cover Note)</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {lang === 'bn' ? 'রেফারারের উদ্দেশ্যে ছোট বার্তা (Cover Note)' : 'Cover Note to Referrer'}
+                      </label>
                       <textarea
                         rows="3"
-                        placeholder="আপনার কাজের আগ্রহ ও অভিজ্ঞতা সম্পর্কে লিখুন..."
+                        placeholder={lang === 'bn' ? 'আপনার কাজের আগ্রহ ও অভিজ্ঞতা সম্পর্কে লিখুন...' : 'Share your relevant background and interest...'}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow"
+                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow cursor-pointer"
                     >
-                      আবেদন নিশ্চিত করুন
+                      {lang === 'bn' ? 'আবেদন নিশ্চিত করুন' : 'Confirm Application'}
                     </button>
                   </form>
                 )}

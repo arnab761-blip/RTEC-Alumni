@@ -540,23 +540,31 @@ export default function Students() {
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">SESSION:</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'সেশন:' : 'SESSION:'}
+                    </span>
                     <span className="text-stone-900 dark:text-[#FDFBF7] font-semibold">{selectedStudent.session || '2018-2019'}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">DEPARTMENT:</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'বিভাগ:' : 'DEPARTMENT:'}
+                    </span>
                     <span className="text-stone-900 dark:text-[#FDFBF7] font-bold">{lang === 'bn' ? selectedStudent.deptBn || selectedStudent.department : selectedStudent.department}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">STUDENT TYPE:</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'শিক্ষার্থীর ধরন:' : 'STUDENT TYPE:'}
+                    </span>
                     <span className={selectedStudent.studentType === 'Undergraduate' ? 'badge-undergraduate' : 'badge-graduate'}>
                       {selectedStudent.studentType === 'Undergraduate'
-                        ? (lang === 'bn' ? 'আন্ডারগ্র্যাজুয়েট (Undergraduate)' : 'Undergraduate')
-                        : (lang === 'bn' ? 'গ্র্যাজুয়েট (Graduate)' : 'Graduate')}
+                        ? (lang === 'bn' ? 'আন্ডারগ্র্যাজুয়েট' : 'Undergraduate')
+                        : (lang === 'bn' ? 'গ্র্যাজুয়েট' : 'Graduate')}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">CURRENT JOB:</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'বর্তমান কর্মক্ষেত্র:' : 'CURRENT JOB:'}
+                    </span>
                     {selectedStudent.currentJob ? (
                       <span className="text-amber-800 dark:text-amber-300 font-bold">{selectedStudent.currentJob}</span>
                     ) : (
@@ -566,9 +574,13 @@ export default function Students() {
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">JOB LOCATION:</span>
-                    {selectedStudent.currentLocation ? (
-                      <span className="text-stone-800 dark:text-[#DFCA9E] font-medium">{selectedStudent.currentLocation}</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'ঠিকানা:' : 'ADDRESS:'}
+                    </span>
+                    {(selectedStudent.address || selectedStudent.currentLocation) ? (
+                      <span className="text-stone-800 dark:text-[#DFCA9E] font-medium text-right max-w-[60%] break-words">
+                        {selectedStudent.address || selectedStudent.currentLocation}
+                      </span>
                     ) : (
                       <span className="badge-empty-unset">
                         {lang === 'bn' ? 'অপ্রদত্ত' : 'Not specified'}
@@ -577,12 +589,16 @@ export default function Students() {
                   </div>
                   {selectedStudent.remarks && (
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-stone-600 dark:text-[#A89884] font-semibold">REMARKS:</span>
+                      <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                        {lang === 'bn' ? 'মন্তব্য:' : 'REMARKS:'}
+                      </span>
                       <span className="text-stone-800 dark:text-stone-300">{selectedStudent.remarks}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">BLOOD GROUP:</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'রক্তের গ্রুপ:' : 'BLOOD GROUP:'}
+                    </span>
                     {selectedStudent.bloodGroup ? (
                       <span className="badge-blood-group">
                         <Droplet className="w-3.5 h-3.5 text-red-600 dark:text-rose-400 fill-current" />
@@ -596,7 +612,9 @@ export default function Students() {
                   </div>
                   <div className="pt-2 border-t border-stone-200 dark:border-[#C5A880]/20 flex flex-col gap-1.5 text-xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-stone-600 dark:text-[#A89884] font-semibold">PHONE:</span>
+                      <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                        {lang === 'bn' ? 'ফোন:' : 'PHONE:'}
+                      </span>
                       {selectedStudent.phone ? (
                         <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">{selectedStudent.phone}</span>
                       ) : (
@@ -606,7 +624,9 @@ export default function Students() {
                       )}
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-stone-600 dark:text-[#A89884] font-semibold">EMAIL:</span>
+                      <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                        {lang === 'bn' ? 'ইমেইল:' : 'EMAIL:'}
+                      </span>
                       {selectedStudent.email ? (
                         <span className="text-stone-800 dark:text-[#DFCA9E] font-medium">{selectedStudent.email}</span>
                       ) : (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useApp } from '../context/AppContext.jsx';
 import {
   Volume2,
   VolumeX,
@@ -24,6 +25,7 @@ export default function BuildingInfoModal({
   onSpeak,
   isSpeaking,
 }) {
+  const { lang = 'en' } = useApp();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'facts' | 'stats'
 
   if (!landmark) return null;
@@ -41,10 +43,10 @@ export default function BuildingInfoModal({
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold flex items-center gap-1 border border-emerald-500/30">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            স্টপ {landmark.step} / ১৫
+            {lang === 'bn' ? `স্টপ ${landmark.step} / ১৫` : `Stop ${landmark.step} / 15`}
           </span>
           <span className="text-xs text-slate-400 font-medium hidden sm:inline-block">
-            {landmark.categoryBn}
+            {lang === 'bn' ? landmark.categoryBn : (landmark.categoryEn || landmark.category || landmark.categoryBn)}
           </span>
         </div>
 
@@ -124,7 +126,7 @@ export default function BuildingInfoModal({
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          বিবরণ (Overview)
+          {lang === 'bn' ? 'বিবরণ' : 'Overview'}
         </button>
         <button
           onClick={() => setActiveTab('facts')}
@@ -134,7 +136,7 @@ export default function BuildingInfoModal({
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          বৈশিষ্ট্য (Features)
+          {lang === 'bn' ? 'বৈশিষ্ট্য' : 'Features'}
         </button>
         <button
           onClick={() => setActiveTab('stats')}
@@ -144,7 +146,7 @@ export default function BuildingInfoModal({
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          পরিসংখ্যান (Specs)
+          {lang === 'bn' ? 'পরিসংখ্যান' : 'Specs'}
         </button>
       </div>
 
@@ -160,8 +162,9 @@ export default function BuildingInfoModal({
           >
             {activeTab === 'overview' && (
               <div>
-                <p className="text-slate-200 mb-2">{landmark.descriptionBn}</p>
-                <p className="text-slate-400 text-[11px] italic font-sans">{landmark.descriptionEn}</p>
+                <p className="text-slate-200 mb-2">
+                  {lang === 'bn' ? (landmark.descriptionBn || landmark.descriptionEn) : (landmark.descriptionEn || landmark.descriptionBn)}
+                </p>
               </div>
             )}
 
@@ -198,7 +201,7 @@ export default function BuildingInfoModal({
           className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 text-slate-200 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
-          পূর্ববর্তী
+          {lang === 'bn' ? 'পূর্ববর্তী' : 'Previous'}
         </button>
 
         <span className="text-xs text-slate-400 font-mono">
@@ -210,7 +213,7 @@ export default function BuildingInfoModal({
           disabled={isLast}
           className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 text-white shadow-lg shadow-emerald-900/30 cursor-pointer"
         >
-          পরবর্তী
+          {lang === 'bn' ? 'পরবর্তী' : 'Next'}
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>

@@ -444,22 +444,25 @@ export default function StudentPortal() {
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
-        {/* Global Toast Notification */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              key="portal-toast"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="system-toast fixed top-20 right-4 z-50 px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{toastMessage}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Global Toast Notification (Portaled above sticky header & crisp in both modes) */}
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div
+                key="portal-toast"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="system-toast fixed top-28 sm:top-[116px] right-4 sm:right-8 z-[99999] px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold shadow-2xl flex items-center gap-2.5 max-w-md"
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{toastMessage}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
         {/* Masthead Header */}
         <div className="pb-6 border-b border-[#C5A880]/20 text-center sm:text-left">
@@ -699,9 +702,9 @@ export default function StudentPortal() {
                           : 'text-amber-900 dark:text-amber-300'
                       }`}
                     >
-                      <span>আইডি: <strong>{activeSubmission.id}</strong></span>
+                      <span>{lang === 'bn' ? 'আইডি:' : 'ID:'} <strong>{activeSubmission.id}</strong></span>
                       <span>•</span>
-                      <span>জমা দেওয়া হয়েছে: <strong>{activeSubmission.submittedAt}</strong></span>
+                      <span>{lang === 'bn' ? 'জমা দেওয়া হয়েছে:' : 'Submitted:'} <strong>{activeSubmission.submittedAt}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -1000,7 +1003,7 @@ export default function StudentPortal() {
                         type="text"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="উদা: মো. রিয়াজুল ইসলাম"
+                        placeholder={lang === 'bn' ? 'উদা: মো. রিয়াজুল ইসলাম' : 'e.g. Md. Riazul Islam'}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
                       />
                     </div>
@@ -1272,17 +1275,17 @@ export default function StudentPortal() {
                       </div>
                     </div>
 
-                    {/* Current Location */}
+                    {/* Current Location / Address */}
                     <div>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'এখন কোথায় আছে (Current Location)' : 'Current City / Location'}
+                        {lang === 'bn' ? 'ঠিকানা / বর্তমান অবস্থান (Address / Location)' : 'Address / Current Location'}
                       </label>
                       <div className="relative">
                         <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
                         <input
                           type="text"
                           value={formData.currentLocation}
-                          onChange={(e) => setFormData({ ...formData, currentLocation: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, currentLocation: e.target.value, address: e.target.value })}
                           placeholder={lang === 'bn' ? 'উদা: পীরগঞ্জ, রংপুর / উত্তরা, ঢাকা' : 'e.g. Pirganj, Rangpur / Dhaka'}
                           className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
                         />

@@ -67,6 +67,9 @@ export default function Forum() {
   const [editCategory, setEditCategory] = useState('Career Advice');
   const [editTags, setEditTags] = useState('Career, Textile');
   const [editPostType, setEditPostType] = useState('question');
+  const [editTargetAudience, setEditTargetAudience] = useState('Any Senior / Alumni');
+  const [editRoleAndCompany, setEditRoleAndCompany] = useState('');
+  const [editKeyTakeaways, setEditKeyTakeaways] = useState('');
 
   // Edit Reply State
   const [editingReplyId, setEditingReplyId] = useState(null);
@@ -143,11 +146,14 @@ export default function Forum() {
   // Post Actions
   const handleStartEditPost = (post) => {
     setEditingPost(post);
-    setEditTitle(post.titleBn || post.title || '');
+    setEditTitle(lang === 'bn' ? (post.titleBn || post.title || '') : (post.title || post.titleBn || ''));
     setEditBody(post.body || post.content || '');
     setEditCategory(post.category || 'Career Advice');
     setEditTags(Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ''));
     setEditPostType(post.type || 'question');
+    setEditTargetAudience(post.targetAudience || 'Any Senior / Alumni');
+    setEditRoleAndCompany(post.roleAndCompany || '');
+    setEditKeyTakeaways(post.keyTakeaways || '');
     setEditPostModalOpen(true);
   };
 
@@ -161,9 +167,12 @@ export default function Forum() {
       body: editBody,
       content: editBody,
       category: editCategory,
-      categoryBn: editCategory,
+      categoryBn: getCategoryLabel(editCategory, 'bn'),
       tags: tagArray,
-      type: editPostType
+      type: editPostType,
+      targetAudience: editPostType === 'question' ? editTargetAudience : '',
+      roleAndCompany: editPostType === 'experience' ? editRoleAndCompany.trim() : '',
+      keyTakeaways: editPostType === 'experience' ? editKeyTakeaways.trim() : ''
     });
     setEditPostModalOpen(false);
     setEditingPost(null);
@@ -204,12 +213,40 @@ export default function Forum() {
     }
   };
 
-  // New post form
+  // New post form (Tailored for Ask Question vs Share Experience)
   const [postType, setPostType] = useState('question'); // 'question' | 'experience'
   const [newTitle, setNewTitle] = useState('');
   const [newCategory, setNewCategory] = useState('Career Advice');
   const [newBody, setNewBody] = useState('');
   const [newTags, setNewTags] = useState('Career, Textile');
+  const [newTargetAudience, setNewTargetAudience] = useState('Any Senior / Alumni');
+  const [newRoleAndCompany, setNewRoleAndCompany] = useState('');
+  const [newKeyTakeaways, setNewKeyTakeaways] = useState('');
+
+  const questionCategories = [
+    { id: 'Career Advice', bn: 'ক্যারিয়ার পরামর্শ', en: 'Career Guidance' },
+    { id: 'Academic & Lab', bn: 'একাডেমিক ও ল্যাব', en: 'Academic & Lab' },
+    { id: 'Internship & Viva', bn: 'ইন্টার্নশিপ ও ভাইভা', en: 'Internship & Viva' },
+    { id: 'Higher Studies', bn: 'বিদেশে উচ্চশিক্ষা', en: 'Higher Studies Abroad' },
+    { id: 'Campus & Facilities', bn: 'ক্যাম্পাস ও সুযোগ-সুবিধা', en: 'Campus & Facilities' }
+  ];
+
+  const experienceCategories = [
+    { id: 'Industry Experience', bn: 'ইন্ডাস্ট্রি ও মিল লাইফ', en: 'Industry & Plant Life' },
+    { id: 'Job & Interviews', bn: 'জব ও ইন্টারভিউ গল্প', en: 'Job & Interview Story' },
+    { id: 'Higher Studies', bn: 'বিদেশে উচ্চশিক্ষা ও গবেষণা', en: 'Higher Studies & Research' },
+    { id: 'Merchandising', bn: 'মার্চেন্ডাইজিং ও বায়িং হাউস', en: 'Merchandising & Buying House' },
+    { id: 'Entrepreneurship', bn: 'উদ্যোক্তা ও স্টার্টআপ', en: 'Entrepreneurship & Startup' }
+  ];
+
+  const audienceOptions = [
+    { id: 'Any Senior / Alumni', bn: 'যেকোনো সিনিয়র / অ্যালামনাই', en: 'Any Senior / Alumni' },
+    { id: '1st-3rd Batch Graduates', bn: '১ম–৩য় ব্যাচের গ্র্যাজুয়েটস', en: '1st–3rd Batch Graduates' },
+    { id: 'Yarn Engineering Seniors', bn: 'ইয়ার্ন ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Yarn Engineering Seniors' },
+    { id: 'Fabric Engineering Seniors', bn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Fabric Engineering Seniors' },
+    { id: 'Wet Process Seniors', bn: 'ওয়েট প্রসেস সিনিয়রস', en: 'Wet Process Seniors' },
+    { id: 'Apparel Engineering Seniors', bn: 'অ্যাপারেল ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Apparel Engineering Seniors' }
+  ];
 
   const categories = [
     { id: 'All', bn: 'সকল বিষয়', en: 'All Topics' },
@@ -217,16 +254,47 @@ export default function Forum() {
     { id: 'Job & Interviews', bn: 'জব ও ইন্টারভিউ', en: 'Job & Interviews' },
     { id: 'Higher Studies', bn: 'বিদেশে উচ্চশিক্ষা', en: 'Higher Studies Abroad' },
     { id: 'Career Advice', bn: 'ক্যারিয়ার পরামর্শ', en: 'Career Guidance' },
+    { id: 'Academic & Lab', bn: 'একাডেমিক ও ল্যাব', en: 'Academic & Lab' },
+    { id: 'Internship & Viva', bn: 'ইন্টার্নশিপ ও ভাইভা', en: 'Internship & Viva' },
     { id: 'Merchandising', bn: 'মার্চেন্ডাইজিং', en: 'Merchandising' }
   ];
+
+  const getCategoryLabel = (catId, targetLang = lang) => {
+    const found = [...categories, ...questionCategories, ...experienceCategories].find(c => c.id === catId);
+    if (found) return targetLang === 'bn' ? found.bn : found.en;
+    return catId;
+  };
+
+  const getAudienceLabel = (audId) => {
+    const found = audienceOptions.find(a => a.id === audId);
+    if (found) return lang === 'bn' ? found.bn : found.en;
+    return audId;
+  };
+
+  const handleSwitchPostType = (nextType) => {
+    setPostType(nextType);
+    if (nextType === 'question') {
+      setNewCategory('Career Advice');
+      setNewTags('Guidance, Internship, Career');
+    } else {
+      setNewCategory('Industry Experience');
+      setNewTags('Industry, Journey, Advice');
+    }
+  };
 
   const handlePostSubmit = (e) => {
     e.preventDefault();
     if (!newTitle.trim() || !newBody.trim()) return;
     const tagArray = newTags.split(',').map(t => t.trim()).filter(Boolean);
-    addForumPost(newTitle, newBody, newCategory, tagArray, postType);
+    addForumPost(newTitle, newBody, newCategory, tagArray, postType, {
+      targetAudience: postType === 'question' ? newTargetAudience : '',
+      roleAndCompany: postType === 'experience' ? newRoleAndCompany.trim() : '',
+      keyTakeaways: postType === 'experience' ? newKeyTakeaways.trim() : ''
+    });
     setNewTitle('');
     setNewBody('');
+    setNewRoleAndCompany('');
+    setNewKeyTakeaways('');
     setNewPostModalOpen(false);
     showToast(lang === 'bn' ? 'আপনার পোস্টটি সফলভাবে প্রকাশ করা হয়েছে!' : 'Your post has been published!');
   };
@@ -318,7 +386,8 @@ export default function Forum() {
             </div>
 
             <span className="text-xs font-mono-tech text-[#57534E] dark:text-[#A89884]">
-              TOTAL DISCUSSIONS: <strong className="text-[#854D0E] dark:text-[#DFCA9E] font-bold">{filteredPosts.length}</strong>
+              {lang === 'bn' ? 'মোট আলোচনা:' : 'TOTAL DISCUSSIONS:'}{' '}
+              <strong className="text-[#854D0E] dark:text-[#DFCA9E] font-bold">{filteredPosts.length}</strong>
             </span>
           </div>
 
@@ -386,12 +455,18 @@ export default function Forum() {
                     }`}>
                       {post.type === 'experience'
                         ? (lang === 'bn' ? '⭐ অভিজ্ঞতা' : '⭐ Experience')
-                        : (lang === 'bn' ? '💡 ক্যারিয়ার টিপস' : '💡 Career Insight')}
+                        : (lang === 'bn' ? '❓ প্রশ্ন' : '❓ Question')}
                     </span>
 
                     <span className="px-2.5 py-1 rounded-lg bg-[#F4EFE6] dark:bg-[#141311] text-[#854D0E] dark:text-[#DFCA9E] text-[10px] font-mono-tech font-bold border border-[#C5A880]/25">
-                      {post.categoryBn || post.category}
+                      {getCategoryLabel(post.category)}
                     </span>
+
+                    {post.type === 'question' && post.targetAudience && (
+                      <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300 text-[10px] font-mono-tech font-bold border border-sky-500/30">
+                        {lang === 'bn' ? `উদ্দেশ্য: ${getAudienceLabel(post.targetAudience)}` : `For: ${getAudienceLabel(post.targetAudience)}`}
+                      </span>
+                    )}
 
                     {/* Author Edit & Delete buttons */}
                     {isPostAuthor(post) && (
@@ -437,9 +512,28 @@ export default function Forum() {
                   <h3 className="font-serif-regal font-bold text-lg sm:text-xl text-[#0C0A09] dark:text-[#FDFBF7] leading-snug">
                     {lang === 'bn' ? post.titleBn || post.title : post.title}
                   </h3>
+
+                  {post.type === 'experience' && post.roleAndCompany && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold">
+                      <Briefcase className="w-3.5 h-3.5 shrink-0" />
+                      <span>{post.roleAndCompany}</span>
+                    </div>
+                  )}
+
                   <p className="text-xs sm:text-sm text-[#292524] dark:text-[#DCD3C1] font-sans leading-relaxed whitespace-pre-line">
                     {post.body}
                   </p>
+
+                  {post.type === 'experience' && post.keyTakeaways && (
+                    <div className="p-3 rounded-xl bg-amber-50 dark:bg-[#141311] border border-amber-300/60 dark:border-[#C5A880]/25 text-xs">
+                      <span className="font-mono-tech font-bold text-[10px] uppercase text-amber-800 dark:text-[#DFCA9E] block mb-0.5">
+                        {lang === 'bn' ? '★ মূল পরামর্শ ও শিক্ষা (Key Takeaways)' : '★ Key Takeaways for Juniors'}
+                      </span>
+                      <p className="text-[#1C1917] dark:text-[#EDE8DF] font-medium leading-relaxed">
+                        {post.keyTakeaways}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Tags */}
@@ -915,72 +1009,192 @@ export default function Forum() {
               <div className="flex items-center gap-2 font-mono-tech text-xs">
                 <button
                   type="button"
-                  onClick={() => setPostType('question')}
+                  onClick={() => handleSwitchPostType('question')}
                   className={`flex-1 py-2.5 rounded-xl border transition text-center font-bold cursor-pointer ${
                     postType === 'question'
                       ? 'bg-[#C5A880] text-[#121110] border-[#C5A880] shadow'
                       : 'bg-[#F4EFE6] dark:bg-[#141311] text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] border-[#C5A880]/20'
                   }`}
                 >
-                  {lang === 'bn' ? '❓ প্রশ্ন জিজ্ঞাসা (Ask Question)' : '❓ Ask Question'}
+                  {lang === 'bn' ? '❓ প্রশ্ন করুন (শিক্ষার্থীদের জন্য)' : '❓ Ask Question (Students)'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setPostType('experience')}
+                  onClick={() => handleSwitchPostType('experience')}
                   className={`flex-1 py-2.5 rounded-xl border transition text-center font-bold cursor-pointer ${
                     postType === 'experience'
                       ? 'bg-[#BD452F] text-white border-[#BD452F] shadow'
                       : 'bg-[#F4EFE6] dark:bg-[#141311] text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] border-[#C5A880]/20'
                   }`}
                 >
-                  {lang === 'bn' ? '⭐ অভিজ্ঞতা শেয়ার (Share Story)' : '⭐ Share Experience'}
+                  {lang === 'bn' ? '⭐ অভিজ্ঞতা শেয়ার (গ্র্যাজুয়েটস)' : '⭐ Share Experience (Graduates)'}
                 </button>
               </div>
 
-              <div>
-                <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
-                  {lang === 'bn' ? 'ক্যাটাগরি বা বিষয়' : 'CATEGORY'}
-                </label>
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
-                >
-                  <option value="Industry Experience">ইন্ডাস্ট্রি ও মিল লাইফ (Industry Experience)</option>
-                  <option value="Job & Interviews">জব ও ইন্টারভিউ (Job & Interviews)</option>
-                  <option value="Higher Studies">বিদেশে উচ্চশিক্ষা (Higher Studies Abroad)</option>
-                  <option value="Career Advice">ক্যারিয়ার পরামর্শ (Career Advice)</option>
-                  <option value="Merchandising">মার্চেন্ডাইজিং (Merchandising)</option>
-                </select>
-              </div>
+              <AnimatePresence mode="wait">
+                {postType === 'question' ? (
+                  <motion.div
+                    key="form-ask-question"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.18 }}
+                    className="space-y-4"
+                  >
+                    <div className="p-3 rounded-xl bg-amber-50 dark:bg-[#141311] border border-amber-300/60 dark:border-[#C5A880]/25 text-[11px] text-[#44403C] dark:text-[#DCD3C1]">
+                      {lang === 'bn'
+                        ? '🎓 সাধারণ শিক্ষার্থীদের পড়াশোনা, ল্যাব, ইন্টার্নশিপ বা ক্যারিয়ার সংক্রান্ত যেকোনো প্রশ্ন সিনিয়রদের উদ্দেশ্যে লিখুন।'
+                        : '🎓 Designed for current students seeking advice on academics, labs, internships, or career paths from seniors.'}
+                    </div>
 
-              <div>
-                <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
-                  {lang === 'bn' ? 'শিরোনাম (Topic Title)' : 'TITLE'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder={lang === 'bn' ? 'যেমন: স্পিনিং মিলে শিফট ডিউটিতে কী কী চ্যালেঞ্জ আসে?' : 'e.g., What are the key skills needed for buying house merchandising?'}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
-                />
-              </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                          {lang === 'bn' ? 'প্রশ্নের বিষয় / ক্যাটাগরি' : 'QUESTION TOPIC'}
+                        </label>
+                        <select
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                        >
+                          {questionCategories.map(c => (
+                            <option key={c.id} value={c.id}>{lang === 'bn' ? c.bn : c.en}</option>
+                          ))}
+                        </select>
+                      </div>
 
-              <div>
-                <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
-                  {lang === 'bn' ? 'বিস্তারিত বর্ণনা (Detailed Description)' : 'DETAILED DESCRIPTION'}
-                </label>
-                <textarea
-                  rows="4"
-                  required
-                  value={newBody}
-                  onChange={(e) => setNewBody(e.target.value)}
-                  placeholder={lang === 'bn' ? 'আপনার অভিজ্ঞতা বা প্রশ্নের প্রেক্ষাপট বিস্তারিত লিখুন...' : 'Write the context of your question or detailed industry experience...'}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
-                />
-              </div>
+                      <div>
+                        <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                          {lang === 'bn' ? 'কাদের উদ্দেশ্যে প্রশ্ন' : 'TARGET AUDIENCE'}
+                        </label>
+                        <select
+                          value={newTargetAudience}
+                          onChange={(e) => setNewTargetAudience(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                        >
+                          {audienceOptions.map(a => (
+                            <option key={a.id} value={a.id}>{lang === 'bn' ? a.bn : a.en}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                        {lang === 'bn' ? 'আপনার প্রশ্নটি কী?' : 'QUESTION HEADLINE'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        placeholder={lang === 'bn' ? 'যেমন: বায়িং হাউসে মার্চেন্ডাইজিং ইন্টারভিউয়ের জন্য কীভাবে প্রস্তুতি নেব?' : 'e.g., How should I prepare for buying house merchandising interviews?'}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                        {lang === 'bn' ? 'বিস্তারিত প্রশ্ন ও প্রেক্ষাপট' : 'YOUR QUESTION IN DETAIL'}
+                      </label>
+                      <textarea
+                        rows="4"
+                        required
+                        value={newBody}
+                        onChange={(e) => setNewBody(e.target.value)}
+                        placeholder={lang === 'bn' ? 'আপনার ব্যাচ/বর্ষ, কী জানতে চাইছেন এবং কোথায় দ্বিধায় আছেন তা লিখুন...' : 'Describe what stage you are in and what specific guidance you need...'}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                      />
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form-share-experience"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.18 }}
+                    className="space-y-4"
+                  >
+                    <div className="p-3 rounded-xl bg-rose-50 dark:bg-[#BD452F]/15 border border-rose-300/60 dark:border-[#BD452F]/30 text-[11px] text-[#44403C] dark:text-[#DCD3C1]">
+                      {lang === 'bn'
+                        ? '⭐ গ্র্যাজুয়েট ও সিনিয়রদের বাস্তব কর্মজীবন, মিল-ফ্যাক্টরি বা উচ্চশিক্ষার গল্প জুনিয়রদের অনুপ্রেরণার জন্য শেয়ার করুন।'
+                        : '⭐ Designed for graduates & alumni to share career journeys, industry stories, and lessons learned with juniors.'}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                          {lang === 'bn' ? 'অভিজ্ঞতার ক্ষেত্র' : 'STORY CATEGORY'}
+                        </label>
+                        <select
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                        >
+                          {experienceCategories.map(c => (
+                            <option key={c.id} value={c.id}>{lang === 'bn' ? c.bn : c.en}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                          {lang === 'bn' ? 'বর্তমান পদবি ও প্রতিষ্ঠান' : 'CURRENT ROLE & COMPANY'}
+                        </label>
+                        <input
+                          type="text"
+                          value={newRoleAndCompany}
+                          onChange={(e) => setNewRoleAndCompany(e.target.value)}
+                          placeholder={lang === 'bn' ? 'যেমন: Senior Officer (Dyeing), DBL Group' : 'e.g., Senior Officer (Dyeing), DBL Group'}
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                        {lang === 'bn' ? 'আপনার গল্পের শিরোনাম' : 'STORY HEADLINE'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        placeholder={lang === 'bn' ? 'যেমন: আরটেক ক্যাম্পাস থেকে টেক্সটাইল মিলে আমার প্রথম বছরের অভিজ্ঞতা' : 'e.g., My first year transitioning from RTEC Lab to a Knit Composite Plant'}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                        {lang === 'bn' ? 'আপনার পূর্ণ অভিজ্ঞতা ও গল্প' : 'YOUR FULL EXPERIENCE / JOURNEY'}
+                      </label>
+                      <textarea
+                        rows="4"
+                        required
+                        value={newBody}
+                        onChange={(e) => setNewBody(e.target.value)}
+                        placeholder={lang === 'bn' ? 'কীভাবে শুরু করলেন, কী কী চ্যালেঞ্জ পার করলেন ও বাস্তব অভিজ্ঞতা শেয়ার করুন...' : 'Share how you started, challenges you navigated, and real workplace insights...'}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                        {lang === 'bn' ? 'জুনিয়রদের জন্য মূল পরামর্শ (Key Takeaways)' : 'KEY TAKEAWAYS FOR JUNIORS (OPTIONAL)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={newKeyTakeaways}
+                        onChange={(e) => setNewKeyTakeaways(e.target.value)}
+                        placeholder={lang === 'bn' ? 'যেমন: ফ্যাব্রিক টেস্টিং ও ইংরেজি কমিউনিকেশন স্কিলে জোর দিন' : 'e.g., Master fabric quality metrics and build strong communication skills early'}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div>
                 <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
@@ -1008,7 +1222,9 @@ export default function Forum() {
                   type="submit"
                   className="btn-agency btn-agency-terracotta flex-[2] py-2.5 rounded-xl text-xs font-sans uppercase tracking-wider text-white font-bold cursor-pointer"
                 >
-                  {lang === 'bn' ? 'পোস্ট প্রকাশ করুন' : 'Publish Thread'}
+                  {postType === 'question'
+                    ? (lang === 'bn' ? 'প্রশ্ন পোস্ট করুন' : 'Post Question')
+                    : (lang === 'bn' ? 'অভিজ্ঞতা প্রকাশ করুন' : 'Publish Experience')}
                 </button>
               </div>
             </form>
@@ -1090,20 +1306,62 @@ export default function Forum() {
 
               <div>
                 <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
-                  {lang === 'bn' ? 'ক্যাটাগরি বা বিষয়' : 'CATEGORY'}
+                  {editPostType === 'question'
+                    ? (lang === 'bn' ? 'প্রশ্নের বিষয় / ক্যাটাগরি' : 'QUESTION TOPIC')
+                    : (lang === 'bn' ? 'অভিজ্ঞতার ক্ষেত্র' : 'STORY CATEGORY')}
                 </label>
                 <select
                   value={editCategory}
                   onChange={(e) => setEditCategory(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                 >
-                  <option value="Industry Experience">ইন্ডাস্ট্রি ও মিল লাইফ (Industry Experience)</option>
-                  <option value="Job & Interviews">জব ও ইন্টারভিউ (Job & Interviews)</option>
-                  <option value="Higher Studies">বিদেশে উচ্চশিক্ষা (Higher Studies Abroad)</option>
-                  <option value="Career Advice">ক্যারিয়ার পরামর্শ (Career Advice)</option>
-                  <option value="Merchandising">মার্চেন্ডাইজিং (Merchandising)</option>
+                  {(editPostType === 'question' ? questionCategories : experienceCategories).map(c => (
+                    <option key={c.id} value={c.id}>{lang === 'bn' ? c.bn : c.en}</option>
+                  ))}
                 </select>
               </div>
+
+              {editPostType === 'question' ? (
+                <div>
+                  <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                    {lang === 'bn' ? 'কাদের উদ্দেশ্যে প্রশ্ন' : 'TARGET AUDIENCE'}
+                  </label>
+                  <select
+                    value={editTargetAudience}
+                    onChange={(e) => setEditTargetAudience(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                  >
+                    {audienceOptions.map(a => (
+                      <option key={a.id} value={a.id}>{lang === 'bn' ? a.bn : a.en}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                      {lang === 'bn' ? 'বর্তমান পদবি ও প্রতিষ্ঠান' : 'CURRENT ROLE & COMPANY'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editRoleAndCompany}
+                      onChange={(e) => setEditRoleAndCompany(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
+                      {lang === 'bn' ? 'জুনিয়রদের জন্য মূল পরামর্শ' : 'KEY TAKEAWAYS FOR JUNIORS'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editKeyTakeaways}
+                      onChange={(e) => setEditKeyTakeaways(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] mb-1.5">
@@ -1167,22 +1425,25 @@ export default function Forum() {
         document.body
       )}
 
-      {/* Floating Toast Feedback */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            key="forum-toast"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-[10000] px-4 py-2.5 rounded-xl bg-[#0C0A09] text-white text-xs font-sans font-bold shadow-2xl border border-[#C5A880]/40 flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{toast}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Floating Toast Feedback (Portaled above header & high contrast in both modes) */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              key="forum-toast"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="system-toast fixed top-28 sm:top-[116px] right-4 sm:right-8 z-[99999] px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold shadow-2xl flex items-center gap-2.5 max-w-md"
+            >
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{toast}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
     </motion.div>
   );

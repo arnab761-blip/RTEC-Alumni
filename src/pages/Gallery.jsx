@@ -352,7 +352,7 @@ export default function Gallery() {
                   <input
                     type="url"
                     required
-                    placeholder="https://drive.google.com/file/d/... বা সরাসরি লিংক"
+                    placeholder={lang === 'bn' ? 'https://drive.google.com/file/d/... বা সরাসরি লিংক' : 'https://drive.google.com/file/d/... or direct link'}
                     value={newMemory.image}
                     onChange={(e) => setNewMemory({ ...newMemory, image: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-white focus:outline-none focus:border-emerald-500"

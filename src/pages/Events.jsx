@@ -253,16 +253,16 @@ export default function Events() {
                   
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-[9px] font-mono-tech text-[#A89884] uppercase">
-                      <span>ADMIT ONE</span>
-                      <span>TEAR-OFF NOTCH</span>
+                      <span>{lang === 'bn' ? 'প্রবেশপত্র (একজন)' : 'ADMIT ONE'}</span>
+                      <span>{lang === 'bn' ? 'অফিসিয়াল পাস' : 'OFFICIAL PASS'}</span>
                     </div>
 
                     <div className="p-3.5 rounded bg-[#121110] border border-[#C5A880]/20 space-y-1.5">
                       <span className="text-[9px] font-mono-tech uppercase text-[#A89884] block">
-                        ACCESS LEVEL
+                        {lang === 'bn' ? 'অ্যাক্সেস লেভেল' : 'ACCESS LEVEL'}
                       </span>
                       <span className="font-serif-regal font-bold text-base text-[#DFCA9E] block">
-                        CONFIRMED DELEGATE
+                        {lang === 'bn' ? 'নিশ্চিত ডেলিগেট' : 'CONFIRMED DELEGATE'}
                       </span>
                       <span className="text-[10px] text-[#A89884] font-mono-tech block">
                         {lang === 'bn' ? 'সেন্ট্রাল ক্যাম্পাস, পীরগঞ্জ' : 'Pirganj Campus Auditorium'}

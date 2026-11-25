@@ -629,19 +629,31 @@ export default function Admin() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Notification Toast */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="system-toast fixed top-20 right-4 sm:right-8 z-50 p-4 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-3 shadow-2xl backdrop-blur-xl"
-            >
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-              <span>{toastMessage}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div
+                key="admin-toast"
+                initial={{ opacity: 0, y: -16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.2 }}
+                className="system-toast fixed top-28 sm:top-[116px] right-4 sm:right-8 z-[99999] max-w-md p-4 rounded-2xl border-2 border-emerald-400 bg-[#064E3B] text-white text-xs sm:text-sm font-bold flex items-center gap-3 shadow-2xl"
+              >
+                <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
+                <span className="flex-1">{toastMessage}</span>
+                <button
+                  type="button"
+                  onClick={() => setToastMessage('')}
+                  className="p-1 rounded-lg hover:bg-emerald-800/80 text-white cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
         {/* Admin Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#C5A880]/20">
@@ -1010,11 +1022,11 @@ export default function Admin() {
                     title: '',
                     titleBn: '',
                     category: 'Reunion',
-                    date: '২০২৬',
-                    time: 'সকাল ১০:০০ টা',
+                    date: '2026',
+                    time: lang === 'bn' ? 'সকাল ১০:০০ টা' : '10:00 AM',
                     venue: 'RTEC Campus, Pirganj',
                     venueBn: 'আরটেক ক্যাম্পাস, পীরগঞ্জ',
-                    registrationFee: '৳ ৫০০',
+                    registrationFee: lang === 'bn' ? '৳ ৫০০' : 'BDT 500',
                     descriptionBn: ''
                   })}
                   className="p-3.5 rounded-xl bg-[#181715] hover:bg-[#201E1A] border border-[#C5A880]/20 text-left transition hover:border-amber-500/40 flex items-center gap-3 cursor-pointer"
@@ -1060,7 +1072,7 @@ export default function Admin() {
                     summary: '',
                     contentBn: '',
                     content: '',
-                    date: '১৯ নভেম্বর, ২০২৬',
+                    date: lang === 'bn' ? '১৯ নভেম্বর, ২০২৬' : '19 Nov, 2026',
                     pdfUrl: '',
                     image: '',
                     isPinned: false
@@ -1255,7 +1267,7 @@ export default function Admin() {
                                   className="w-10 h-10 rounded-xl shrink-0 border border-[#C5A880]/25 bg-[#121110]"
                                 />
                                 <div className="min-w-0">
-                                  <p className="font-bold text-[#FDFBF7] truncate">{sub.name || 'নাম নেই'}</p>
+                                  <p className="font-bold text-[#FDFBF7] truncate">{sub.name || (lang === 'bn' ? 'নাম নেই' : 'Unnamed')}</p>
                                   {sub.nameEn && sub.nameEn !== sub.name && (
                                     <p className="text-[11px] text-[#A89884] truncate">{sub.nameEn}</p>
                                   )}
@@ -1287,10 +1299,10 @@ export default function Admin() {
                             {/* Reg No & Batch */}
                             <td className="p-4 space-y-0.5">
                               <span className="px-2 py-0.5 rounded font-mono-tech font-bold text-[11px] bg-[#141311] text-[#DFCA9E] border border-[#C5A880]/25 inline-block">
-                                {sub.regNo ? `রেজি: ${sub.regNo}` : 'রেজি: N/A'}
+                                {sub.regNo ? (lang === 'bn' ? `রেজি: ${sub.regNo}` : `Reg: ${sub.regNo}`) : (lang === 'bn' ? 'রেজি: N/A' : 'Reg: N/A')}
                               </span>
                               <p className="text-[11px] text-[#DCD3C1] truncate">{sub.batch}</p>
-                              <p className="text-[10px] text-[#A89884] truncate">{sub.deptBn || sub.department}</p>
+                              <p className="text-[10px] text-[#A89884] truncate">{lang === 'bn' ? (sub.deptBn || sub.department) : (sub.department || sub.deptBn)}</p>
                             </td>
 
                             {/* Job & Location */}
@@ -1485,11 +1497,11 @@ export default function Admin() {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-[#C5A880]/20 bg-[#141311] text-[#A89884] font-mono-tech uppercase text-[10px]">
-                        <th className="p-4">বিরোধপূর্ণ রেজি. নং</th>
-                        <th className="p-4">আসল শিক্ষার্থীর নাম ও তথ্য</th>
-                        <th className="p-4">অভিযোগের বিবরণ / কারণ</th>
-                        <th className="p-4">স্ট্যাটাস</th>
-                        <th className="p-4 text-right">১-ক্লিক অ্যাকশন</th>
+                        <th className="p-4">{lang === 'bn' ? 'বিরোধপূর্ণ রেজি. নং' : 'Disputed Reg. No'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'আসল শিক্ষার্থীর নাম ও তথ্য' : 'True Owner Details'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'অভিযোগের বিবরণ / কারণ' : 'Dispute Reason / Description'}</th>
+                        <th className="p-4">{lang === 'bn' ? 'স্ট্যাটাস' : 'Status'}</th>
+                        <th className="p-4 text-right">{lang === 'bn' ? '১-ক্লিক অ্যাকশন' : '1-Click Actions'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#C5A880]/15">
@@ -1512,7 +1524,7 @@ export default function Admin() {
                             {/* Real Student Contact */}
                             <td className="p-4 align-top space-y-1">
                               <p className="font-bold text-[#FDFBF7] text-xs">
-                                {disp.name || 'শিক্ষার্থী'}
+                                {disp.name || (lang === 'bn' ? 'শিক্ষার্থী' : 'Student')}
                               </p>
                               {disp.phone && (
                                 <p className="text-[11px] text-[#A89884] flex items-center gap-1 font-mono">
@@ -1531,11 +1543,11 @@ export default function Admin() {
                             {/* Description */}
                             <td className="p-4 align-top max-w-xs">
                               <p className="text-xs text-[#EDE8DF] font-sans leading-relaxed">
-                                {disp.description || 'রেজিস্ট্রেশন নম্বর সংক্রান্ত ভুয়া ক্লেইম'}
+                                {disp.description || (lang === 'bn' ? 'রেজিস্ট্রেশন নম্বর সংক্রান্ত ভুয়া ক্লেইম' : 'Unauthorized claim reported for registration number')}
                               </p>
                               {disp.actionTaken && (
                                 <p className="text-[10px] text-emerald-400 mt-1 font-sans italic">
-                                  পদক্ষেপ: {disp.actionTaken}
+                                  {lang === 'bn' ? 'পদক্ষেপ:' : 'Action:'} {disp.actionTaken}
                                 </p>
                               )}
                             </td>
@@ -1545,12 +1557,12 @@ export default function Admin() {
                               {isPending ? (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
                                   <Clock className="w-3 h-3 text-amber-400 animate-pulse" />
-                                  <span>অপেক্ষমাণ</span>
+                                  <span>{lang === 'bn' ? 'অপেক্ষমাণ' : 'Pending'}</span>
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                                   <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                                  <span>সমাধানকৃত</span>
+                                  <span>{lang === 'bn' ? 'সমাধানকৃত' : 'Resolved'}</span>
                                 </span>
                               )}
                             </td>
@@ -1562,16 +1574,21 @@ export default function Admin() {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (window.confirm(`রেজিস্ট্রেশন নং ${disp.regNo}-এর ভুয়া ক্লেইমটি বাতিল ও রিসেট করবেন?\n\nএতে এই রেজিস্ট্রেশন নম্বরে জমা হওয়া ভুয়া আবেদন বা তথ্য মুছে যাবে এবং প্রকৃত শিক্ষার্থীর জন্য আইডি উন্মুক্ত হবে।`)) {
+                                    const confirmMsg = lang === 'bn'
+                                      ? `রেজিস্ট্রেশন নং ${disp.regNo}-এর ভুয়া ক্লেইমটি বাতিল ও রিসেট করবেন?\n\nএতে এই রেজিস্ট্রেশন নম্বরে জমা হওয়া ভুয়া আবেদন বা তথ্য মুছে যাবে এবং প্রকৃত শিক্ষার্থীর জন্য আইডি উন্মুক্ত হবে।`
+                                      : `Cancel and reset the disputed claim for Registration No. ${disp.regNo}?\n\nThis will clear the fraudulent claim/submission and free the ID for the rightful student.`;
+                                    if (window.confirm(confirmMsg)) {
                                       resetStudentClaim(disp.regNo, disp.id);
-                                      showToast(`✓ রেজিস্ট্রেশন ${disp.regNo}-এর ভুয়া ক্লেইম মুছে দেওয়া হয়েছে ও আইডি রিসেট হয়েছে!`);
+                                      showToast(lang === 'bn'
+                                        ? `✓ রেজিস্ট্রেশন ${disp.regNo}-এর ভুয়া ক্লেইম মুছে দেওয়া হয়েছে ও আইডি রিসেট হয়েছে!`
+                                        : `✓ Cleared claim and reset ID for registration ${disp.regNo}!`);
                                     }
                                   }}
                                   className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-rose-950/30 transition active:scale-95 cursor-pointer"
-                                  title="ভুয়া ক্লেইম ডিলিট ও আইডি রিসেট করুন"
+                                  title={lang === 'bn' ? 'ভুয়া ক্লেইম ডিলিট ও আইডি রিসেট করুন' : 'Delete false claim & reset ID'}
                                 >
                                   <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                                  <span>রিসেট ও ক্লেইম বাতিল</span>
+                                  <span>{lang === 'bn' ? 'রিসেট ও ক্লেইম বাতিল' : 'Reset & Clear Claim'}</span>
                                 </button>
 
                                 {/* Mark Resolved */}
@@ -1579,11 +1596,11 @@ export default function Admin() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      resolveDispute(disp.id, 'অ্যাডমিন কর্তৃক নিষ্পত্তি করা হয়েছে');
-                                      showToast('✓ অভিযোগ নিষ্পত্তি হিসেবে চিহ্নিত হয়েছে');
+                                      resolveDispute(disp.id, lang === 'bn' ? 'অ্যাডমিন কর্তৃক নিষ্পত্তি করা হয়েছে' : 'Resolved by Admin');
+                                      showToast(lang === 'bn' ? '✓ অভিযোগ নিষ্পত্তি হিসেবে চিহ্নিত হয়েছে' : '✓ Dispute marked as resolved');
                                     }}
                                     className="p-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 transition cursor-pointer"
-                                    title="নিষ্পত্তি চিহ্নিত করুন"
+                                    title={lang === 'bn' ? 'নিষ্পত্তি চিহ্নিত করুন' : 'Mark as Resolved'}
                                   >
                                     <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                                   </button>
@@ -1593,13 +1610,13 @@ export default function Admin() {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (window.confirm('এই অভিযোগ রেকর্ডটি মুছে ফেলতে চান?')) {
+                                    if (window.confirm(lang === 'bn' ? 'এই অভিযোগ রেকর্ডটি মুছে ফেলতে চান?' : 'Delete this dispute record?')) {
                                       deleteDispute(disp.id);
-                                      showToast('অভিযোগ রেকর্ড মুছে ফেলা হয়েছে');
+                                      showToast(lang === 'bn' ? 'অভিযোগ রেকর্ড মুছে ফেলা হয়েছে' : 'Dispute record deleted');
                                     }
                                   }}
                                   className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 border border-slate-700 transition cursor-pointer"
-                                  title="রেকর্ড মুছুন"
+                                  title={lang === 'bn' ? 'রেকর্ড মুছুন' : 'Delete Record'}
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -1726,15 +1743,19 @@ export default function Admin() {
                             <span className="text-[#EDE8DF] font-mono-tech">{t.phone || t.mobile}</span>
                             <span className="text-[10px] text-[#A89884] font-mono-tech">{t.email}</span>
                             {t.joiningDate && t.joiningDate !== 'N/A' && (
-                              <span className="text-[10px] text-[#DFCA9E]">যোগদান: {t.joiningDate}</span>
+                              <span className="text-[10px] text-[#DFCA9E]">
+                                {lang === 'bn' ? 'যোগদান:' : 'Joined:'} {lang === 'bn' ? t.joiningDate : (t.joiningDateEn || t.joiningDate)}
+                              </span>
                             )}
                             {t.homeDistrict && t.homeDistrict !== 'N/A' && (
-                              <span className="text-[10px] text-[#A89884]">জেলা: {t.homeDistrict}</span>
+                              <span className="text-[10px] text-[#A89884]">
+                                {lang === 'bn' ? 'জেলা:' : 'District:'} {lang === 'bn' ? t.homeDistrict : (t.homeDistrictEn || t.homeDistrict)}
+                              </span>
                             )}
                           </div>
                         </td>
                         <td className="p-4 text-[#A89884]">
-                          {t.officeRoom || 'N/A'}
+                          {lang === 'bn' ? (t.officeRoom || 'N/A') : (t.officeRoomEn || t.officeRoom || 'N/A')}
                         </td>
                         <td className="p-4 text-right space-x-1">
                           <button
@@ -2803,9 +2824,9 @@ export default function Admin() {
                       {/* Footer Actions: Comment Toggle & Direct Link */}
                       <div className="pt-3 border-t border-[#C5A880]/15 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3 text-xs font-mono-tech text-[#A89884]">
-                          <span>▲ {post.upvotes || 0} ভোট</span>
+                          <span>▲ {post.upvotes || 0} {lang === 'bn' ? 'ভোট' : 'votes'}</span>
                           <span>•</span>
-                          <span>{post.views || 0} বার দেখা হয়েছে</span>
+                          <span>{post.views || 0} {lang === 'bn' ? 'বার দেখা হয়েছে' : 'views'}</span>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -2814,7 +2835,11 @@ export default function Admin() {
                             className="px-3.5 py-1.5 rounded-xl bg-[#141311] hover:bg-[#201E1A] text-xs font-mono-tech font-bold text-[#DCD3C1] hover:text-[#FDFBF7] border border-[#C5A880]/25 flex items-center gap-2 transition cursor-pointer"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
-                            <span>{replies.length} টি মন্তব্য ({activeRepliesCount} সক্রিয়)</span>
+                            <span>
+                              {lang === 'bn'
+                                ? `${replies.length} টি মন্তব্য (${activeRepliesCount} সক্রিয়)`
+                                : `${replies.length} Replies (${activeRepliesCount} active)`}
+                            </span>
                             {isExpanded ? (
                               <ChevronUp className="w-3.5 h-3.5" />
                             ) : (
@@ -2909,7 +2934,7 @@ export default function Admin() {
                                               type: 'forumReply',
                                               id: reply.id,
                                               postId: post.id,
-                                              name: `${reply.author}-এর মন্তব্য`
+                                              name: lang === 'bn' ? `${reply.author}-এর মন্তব্য` : `Reply by ${reply.author}`
                                             })}
                                             className="btn-action-delete px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all duration-200 cursor-pointer"
                                             title={lang === 'bn' ? 'এই মন্তব্যটি মুছে ফেলুন' : 'Delete comment'}
@@ -3394,13 +3419,15 @@ export default function Admin() {
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">নাম (বাংলায়) *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'নাম (বাংলায়) *' : 'Name (Bengali) *'}
+                        </label>
                         <input
                           type="text"
                           required
                           value={formData.nameBn || ''}
                           onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
-                          placeholder="উদা: ইঞ্জিনিয়ার মো. রঞ্জু মিয়া"
+                          placeholder={lang === 'bn' ? 'উদা: ইঞ্জিনিয়ার মো. রঞ্জু মিয়া' : 'e.g. ইঞ্জিনিয়ার মো. রঞ্জু মিয়া'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -3419,13 +3446,15 @@ export default function Admin() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">পদবী (বাংলায়) *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'পদবী (বাংলায়) *' : 'Designation (Bengali) *'}
+                        </label>
                         <input
                           type="text"
                           required
                           value={formData.designationBn || ''}
                           onChange={(e) => setFormData({ ...formData, designationBn: e.target.value })}
-                          placeholder="উদা: সহযোগী অধ্যাপক"
+                          placeholder={lang === 'bn' ? 'উদা: সহযোগী অধ্যাপক' : 'e.g. সহযোগী অধ্যাপক'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -3444,7 +3473,9 @@ export default function Admin() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">বিভাগ (Department) *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'বিভাগ (Department) *' : 'Department *'}
+                        </label>
                         <select
                           value={formData.department || 'Yarn Engineering'}
                           onChange={(e) => {
@@ -3464,15 +3495,17 @@ export default function Admin() {
                           }}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         >
-                          <option value="Yarn Engineering">Yarn Engineering (ইয়ার্ন ইঞ্জিনিয়ারিং)</option>
-                          <option value="Fabric Engineering">Fabric Engineering (ফ্যাব্রিক ইঞ্জিনিয়ারিং)</option>
-                          <option value="Wet Process Engineering">Wet Process Engineering (ওয়েট প্রসেস ইঞ্জিনিয়ারিং)</option>
-                          <option value="Apparel Manufacturing">Apparel Manufacturing (অ্যাপারেল ম্যানুফ্যাকচারিং)</option>
-                          <option value="Basic Science">Basic Science (বেসিক সায়েন্স)</option>
+                          <option value="Yarn Engineering">{lang === 'bn' ? 'ইয়ার্ন ইঞ্জিনিয়ারিং (YE)' : 'Yarn Engineering (YE)'}</option>
+                          <option value="Fabric Engineering">{lang === 'bn' ? 'ফ্যাব্রিক ইঞ্জিনিয়ারিং (FE)' : 'Fabric Engineering (FE)'}</option>
+                          <option value="Wet Process Engineering">{lang === 'bn' ? 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং (WPE)' : 'Wet Process Engineering (WPE)'}</option>
+                          <option value="Apparel Manufacturing">{lang === 'bn' ? 'অ্যাপারেল ম্যানুফ্যাকচারিং (AE)' : 'Apparel Manufacturing (AE)'}</option>
+                          <option value="Basic Science">{lang === 'bn' ? 'বেসিক সায়েন্স' : 'Basic Science'}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">অফিস কক্ষ (Office Room)</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'অফিস কক্ষ (Office Room)' : 'Office Room'}
+                        </label>
                         <input
                           type="text"
                           value={formData.officeRoom || ''}
@@ -3485,7 +3518,9 @@ export default function Admin() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">ইমেইল (Email)</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ইমেইল (Email)' : 'Email Address'}
+                        </label>
                         <input
                           type="email"
                           value={formData.email || ''}
@@ -3495,7 +3530,9 @@ export default function Admin() {
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">ফোন নম্বর (Phone)</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ফোন নম্বর (Phone)' : 'Phone Number'}
+                        </label>
                         <input
                           type="text"
                           value={formData.phone || ''}
@@ -3507,7 +3544,9 @@ export default function Admin() {
                     </div>
 
                     <div>
-                      <label className="text-slate-400 block mb-1">শিক্ষাগত যোগ্যতা (Education)</label>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'শিক্ষাগত যোগ্যতা (Education)' : 'Academic Qualifications / Education'}
+                      </label>
                       <input
                         type="text"
                         value={formData.education || ''}
@@ -3518,7 +3557,9 @@ export default function Admin() {
                     </div>
 
                     <div>
-                      <label className="text-slate-400 block mb-1">গবেষণা ও স্পেশালাইজেশন (Research Interests)</label>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'গবেষণা ও স্পেশালাইজেশন (Research Interests)' : 'Research & Specialization'}
+                      </label>
                       <input
                         type="text"
                         value={formData.research || ''}
@@ -3557,13 +3598,15 @@ export default function Admin() {
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">নাম (বাংলায়) *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'নাম (বাংলায়) *' : 'Name (Bengali) *'}
+                        </label>
                         <input
                           type="text"
                           required
                           value={formData.nameBn || ''}
                           onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
-                          placeholder="উদা: মো. রায়হান কবির"
+                          placeholder={lang === 'bn' ? 'উদা: মো. রায়হান কবির' : 'e.g. মো. রায়হান কবির'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -3626,7 +3669,9 @@ export default function Admin() {
                         </select>
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">বিভাগ (Department) *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'বিভাগ (Department) *' : 'Department *'}
+                        </label>
                         <select
                           value={formData.department || 'Yarn Engineering'}
                           onChange={(e) => {
@@ -3682,7 +3727,9 @@ export default function Admin() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">ইমেইল (Email)</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ইমেইল (Email)' : 'Email Address'}
+                        </label>
                         <input
                           type="email"
                           value={formData.email || ''}
@@ -3692,7 +3739,9 @@ export default function Admin() {
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">ফোন নম্বর (Phone)</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ফোন নম্বর (Phone)' : 'Phone Number'}
+                        </label>
                         <input
                           type="text"
                           value={formData.phone || ''}
@@ -3732,13 +3781,15 @@ export default function Admin() {
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">নাম (বাংলায়) *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'নাম (বাংলায়) *' : 'Name (Bengali) *'}
+                        </label>
                         <input
                           type="text"
                           required
                           value={formData.nameBn || ''}
                           onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
-                          placeholder="প্রকৌ. তানভীর আহমেদ"
+                          placeholder={lang === 'bn' ? 'প্রকৌ. তানভীর আহমেদ' : 'প্রকৌ. তানভীর আহমেদ'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -3771,7 +3822,9 @@ export default function Admin() {
                         </select>
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">পাসিং বছর *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'পাসিং বছর *' : 'Passing Year *'}
+                        </label>
                         <input
                           type="text"
                           required
@@ -3782,7 +3835,9 @@ export default function Admin() {
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">বিভাগ *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'বিভাগ *' : 'Department *'}
+                        </label>
                         <select
                           value={formData.department || 'Yarn Engineering'}
                           onChange={(e) => setFormData({ ...formData, department: e.target.value })}
@@ -3798,7 +3853,9 @@ export default function Admin() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">বর্তমান পদবী *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'বর্তমান পদবী *' : 'Current Role / Designation *'}
+                        </label>
                         <input
                           type="text"
                           required
@@ -3809,7 +3866,9 @@ export default function Admin() {
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">কোম্পানি / প্রতিষ্ঠান *</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'কোম্পানি / প্রতিষ্ঠান *' : 'Company / Organization *'}
+                        </label>
                         <input
                           type="text"
                           required
@@ -3823,7 +3882,9 @@ export default function Admin() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">ইমেইল</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ইমেইল' : 'Email'}
+                        </label>
                         <input
                           type="email"
                           value={formData.email || ''}
@@ -3832,7 +3893,9 @@ export default function Admin() {
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">লোকেশন</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'লোকেশন' : 'Location'}
+                        </label>
                         <input
                           type="text"
                           value={formData.location || ''}
@@ -3870,54 +3933,64 @@ export default function Admin() {
                 {(modalType === 'addEvent' || modalType === 'editEvent') && (
                   <>
                     <div>
-                      <label className="text-slate-400 block mb-1">ইভেন্ট শিরোনাম *</label>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'ইভেন্ট শিরোনাম *' : 'Event Title *'}
+                      </label>
                       <input
                         type="text"
                         required
-                        value={formData.titleBn || ''}
+                        value={lang === 'bn' ? (formData.titleBn || formData.title || '') : (formData.title || formData.titleBn || '')}
                         onChange={(e) => setFormData({ ...formData, titleBn: e.target.value, title: e.target.value })}
-                        placeholder="গ্র্যান্ড রিইউনিয়ন ও টেক্সটাইল ফেস্ট"
+                        placeholder={lang === 'bn' ? 'গ্র্যান্ড রিইউনিয়ন ও টেক্সটাইল ফেস্ট' : 'e.g. Grand Reunion & Textile Fest'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                       />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-slate-400 block mb-1">তারিখ</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'তারিখ' : 'Date'}
+                        </label>
                         <input
                           type="text"
                           value={formData.date || ''}
                           onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                          placeholder="১৫ ডিসেম্বর, ২০২৬"
+                          placeholder={lang === 'bn' ? '১৫ ডিসেম্বর, ২০২৬' : '15 December, 2026'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">ভেন্যু</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'ভেন্যু' : 'Venue'}
+                        </label>
                         <input
                           type="text"
-                          value={formData.venueBn || ''}
-                          onChange={(e) => setFormData({ ...formData, venueBn: e.target.value })}
-                          placeholder="আরটেক অডিটোরিয়াম"
+                          value={lang === 'bn' ? (formData.venueBn || formData.venue || '') : (formData.venue || formData.venueBn || '')}
+                          onChange={(e) => setFormData({ ...formData, venueBn: e.target.value, venue: e.target.value })}
+                          placeholder={lang === 'bn' ? 'আরটেক অডিটোরিয়াম' : 'RTEC Auditorium'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
                       <div>
-                        <label className="text-slate-400 block mb-1">রেজিস্ট্রেশন ফি</label>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'রেজিস্ট্রেশন ফি' : 'Registration Fee'}
+                        </label>
                         <input
                           type="text"
                           value={formData.registrationFee || ''}
                           onChange={(e) => setFormData({ ...formData, registrationFee: e.target.value })}
-                          placeholder="৳ ৫০০"
+                          placeholder={lang === 'bn' ? '৳ ৫০০' : 'BDT 500'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-slate-400 block mb-1">বিস্তারিত বিবরণ</label>
+                      <label className="text-slate-400 block mb-1">
+                        {lang === 'bn' ? 'বিস্তারিত বিবরণ' : 'Event Description'}
+                      </label>
                       <textarea
                         rows="3"
-                        value={formData.descriptionBn || ''}
-                        onChange={(e) => setFormData({ ...formData, descriptionBn: e.target.value })}
+                        value={lang === 'bn' ? (formData.descriptionBn || formData.description || '') : (formData.description || formData.descriptionBn || '')}
+                        onChange={(e) => setFormData({ ...formData, descriptionBn: e.target.value, description: e.target.value })}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                       />
                     </div>
@@ -3939,14 +4012,14 @@ export default function Admin() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-slate-400 block mb-1">
-                          {lang === 'bn' ? 'চাকরির পদবী (বাংলায়) *' : 'Job Title (Bengali)'}
+                          {lang === 'bn' ? 'চাকরির পদবী (বাংলায়) *' : 'Job Title (Bengali) *'}
                         </label>
                         <input
                           type="text"
                           required
                           value={formData.titleBn || ''}
                           onChange={(e) => setFormData({ ...formData, titleBn: e.target.value, title: formData.title || e.target.value })}
-                          placeholder="উদা: কোয়ালিটি অ্যাসুরেন্স এক্সিকিউটিভ"
+                          placeholder={lang === 'bn' ? 'উদা: কোয়ালিটি অ্যাসুরেন্স এক্সিকিউটিভ' : 'e.g. কোয়ালিটি অ্যাসুরেন্স এক্সিকিউটিভ'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -4003,11 +4076,11 @@ export default function Admin() {
                           onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         >
-                          <option value="Full Time">Full Time (ফুল টাইম)</option>
-                          <option value="Internship">Internship (ইন্টার্নশিপ)</option>
+                          <option value="Full Time">{lang === 'bn' ? 'Full Time (ফুল টাইম)' : 'Full Time'}</option>
+                          <option value="Internship">{lang === 'bn' ? 'Internship (ইন্টার্নশিপ)' : 'Internship'}</option>
                           <option value="Management Trainee (MTO)">Management Trainee (MTO)</option>
-                          <option value="Contractual">Contractual (চুক্তিভিত্তিক)</option>
-                          <option value="Part Time">Part Time (পার্ট টাইম)</option>
+                          <option value="Contractual">{lang === 'bn' ? 'Contractual (চুক্তিভিত্তিক)' : 'Contractual'}</option>
+                          <option value="Part Time">{lang === 'bn' ? 'Part Time (পার্ট টাইম)' : 'Part Time'}</option>
                         </select>
                       </div>
                       <div>
@@ -4034,7 +4107,7 @@ export default function Admin() {
                           type="text"
                           value={formData.salary || ''}
                           onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                          placeholder="৳ ৩৫,০০০ - ৪৫,০০০ / Negotiable"
+                          placeholder={lang === 'bn' ? '৳ ৩৫,০০০ - ৪৫,০০০ / Negotiable' : 'BDT 35,000 - 45,000 / Negotiable'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -4061,7 +4134,7 @@ export default function Admin() {
                           type="text"
                           value={formData.applyLink || formData.email || ''}
                           onChange={(e) => setFormData({ ...formData, applyLink: e.target.value, email: e.target.value })}
-                          placeholder="career@company.com বা https://..."
+                          placeholder={lang === 'bn' ? 'career@company.com বা https://...' : 'career@company.com or https://...'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -4076,7 +4149,7 @@ export default function Admin() {
                         required
                         value={formData.description || formData.descriptionBn || ''}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value, descriptionBn: e.target.value })}
-                        placeholder="পদের দায়িত্ব, শিক্ষাগত যোগ্যতা এবং অভিজ্ঞতার বিবরণ লিখুন..."
+                        placeholder={lang === 'bn' ? 'পদের দায়িত্ব, শিক্ষাগত যোগ্যতা এবং অভিজ্ঞতার বিবরণ লিখুন...' : 'Outline role responsibilities, qualifications, and experience requirements...'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white leading-relaxed font-sans"
                       />
                     </div>
@@ -4103,7 +4176,7 @@ export default function Admin() {
                         type="text"
                         value={formData.pdfUrl || ''}
                         onChange={(e) => setFormData({ ...formData, pdfUrl: e.target.value })}
-                        placeholder="https://drive.google.com/file/d/.../view বা https://.../circular.pdf"
+                        placeholder={lang === 'bn' ? 'https://drive.google.com/file/d/.../view বা https://.../circular.pdf' : 'https://drive.google.com/file/d/.../view or https://.../circular.pdf'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
                       />
                       <p className="text-[10px] text-slate-500 mt-1">
@@ -4128,7 +4201,7 @@ export default function Admin() {
                           required
                           value={formData.titleBn || ''}
                           onChange={(e) => setFormData({ ...formData, titleBn: e.target.value, title: formData.title || e.target.value })}
-                          placeholder="উদা: সেমিস্টার ফাইনাল পরীক্ষার সময়সূচি ঘোষণা"
+                          placeholder={lang === 'bn' ? 'উদা: সেমিস্টার ফাইনাল পরীক্ষার সময়সূচি ঘোষণা' : 'e.g. সেমিস্টার ফাইনাল পরীক্ষার সময়সূচি'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -4157,13 +4230,13 @@ export default function Admin() {
                           onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         >
-                          <option value="Academic Notice">Academic Notice (একাডেমিক নোটিশ)</option>
-                          <option value="Examination">Examination (পরীক্ষা সংক্রান্ত)</option>
-                          <option value="Admission">Admission (ভর্তি সংক্রান্ত)</option>
-                          <option value="General Notice">General Notice (সাধারণ নোটিশ)</option>
-                          <option value="Holiday">Holiday & Vacation (ছুটির নোটিশ)</option>
-                          <option value="Career & Placement">Career & Placement (ক্যারিয়ার সংক্রান্ত)</option>
-                          <option value="Urgent Notice">Urgent Circular (জরুরি বিজ্ঞপ্তি)</option>
+                          <option value="Academic Notice">{lang === 'bn' ? 'Academic Notice (একাডেমিক নোটিশ)' : 'Academic Notice'}</option>
+                          <option value="Examination">{lang === 'bn' ? 'Examination (পরীক্ষা সংক্রান্ত)' : 'Examination'}</option>
+                          <option value="Admission">{lang === 'bn' ? 'Admission (ভর্তি সংক্রান্ত)' : 'Admission'}</option>
+                          <option value="General Notice">{lang === 'bn' ? 'General Notice (সাধারণ নোটিশ)' : 'General Notice'}</option>
+                          <option value="Holiday">{lang === 'bn' ? 'Holiday & Vacation (ছুটির নোটিশ)' : 'Holiday & Vacation'}</option>
+                          <option value="Career & Placement">{lang === 'bn' ? 'Career & Placement (ক্যারিয়ার সংক্রান্ত)' : 'Career & Placement'}</option>
+                          <option value="Urgent Notice">{lang === 'bn' ? 'Urgent Circular (জরুরি বিজ্ঞপ্তি)' : 'Urgent Circular'}</option>
                         </select>
                       </div>
                       <div>
@@ -4174,7 +4247,7 @@ export default function Admin() {
                           type="text"
                           value={formData.date || ''}
                           onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                          placeholder="১৯ নভেম্বর, ২০২৬ বা 2026-11-19"
+                          placeholder={lang === 'bn' ? '১৯ নভেম্বর, ২০২৬ বা 2026-11-19' : '19 Nov, 2026 or 2026-11-19'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -4186,9 +4259,9 @@ export default function Admin() {
                       </label>
                       <input
                         type="text"
-                        value={formData.summaryBn || formData.summary || ''}
+                        value={lang === 'bn' ? (formData.summaryBn || formData.summary || '') : (formData.summary || formData.summaryBn || '')}
                         onChange={(e) => setFormData({ ...formData, summaryBn: e.target.value, summary: e.target.value })}
-                        placeholder="কার্ডে প্রদর্শনের জন্য ১-২ লাইনের সারসংক্ষেপ..."
+                        placeholder={lang === 'bn' ? 'কার্ডে প্রদর্শনের জন্য ১-২ লাইনের সারসংক্ষেপ...' : '1-2 line preview summary for the notice card...'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                       />
                     </div>
@@ -4200,9 +4273,9 @@ export default function Admin() {
                       <textarea
                         rows="4"
                         required
-                        value={formData.contentBn || formData.content || formData.description || ''}
+                        value={lang === 'bn' ? (formData.contentBn || formData.content || formData.description || '') : (formData.content || formData.contentBn || formData.description || '')}
                         onChange={(e) => setFormData({ ...formData, contentBn: e.target.value, content: e.target.value, description: e.target.value })}
-                        placeholder="নোটিশের বিস্তারিত বিষয়বস্তু, নির্দেশনা এবং জরুরি নির্দেশাবলী লিখুন..."
+                        placeholder={lang === 'bn' ? 'নোটিশের বিস্তারিত বিষয়বস্তু, নির্দেশনা এবং জরুরি নির্দেশাবলী লিখুন...' : 'Write full notice details, instructions, and important guidelines...'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-sans leading-relaxed"
                       />
                     </div>
@@ -4229,7 +4302,7 @@ export default function Admin() {
                         type="text"
                         value={formData.pdfUrl || ''}
                         onChange={(e) => setFormData({ ...formData, pdfUrl: e.target.value })}
-                        placeholder="https://drive.google.com/file/d/.../view বা https://.../notice.pdf"
+                        placeholder={lang === 'bn' ? 'https://drive.google.com/file/d/.../view বা https://.../notice.pdf' : 'https://drive.google.com/file/d/.../view or https://.../notice.pdf'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
                       />
                       <p className="text-[10px] text-slate-500 mt-1">
@@ -4380,7 +4453,7 @@ export default function Admin() {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-bold text-[#FDFBF7] truncate">
-                    {viewSubmission.name || 'নাম নেই'}
+                    {viewSubmission.name || (lang === 'bn' ? 'নাম নেই' : 'Unnamed')}
                   </h3>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
                     viewSubmission.status === 'approved'
@@ -4396,10 +4469,10 @@ export default function Admin() {
                   <p className="text-xs text-[#A89884] font-sans">{viewSubmission.nameEn}</p>
                 )}
                 <p className="text-xs text-[#DFCA9E] font-mono-tech mt-1">
-                  {viewSubmission.batch} • {viewSubmission.deptBn || viewSubmission.department}
+                  {viewSubmission.batch} • {lang === 'bn' ? (viewSubmission.deptBn || viewSubmission.department) : (viewSubmission.department || viewSubmission.deptBn)}
                 </p>
                 <p className="text-[10px] text-[#A89884] font-mono-tech mt-0.5">
-                  আবেদন সময়: {viewSubmission.submittedAt}
+                  {lang === 'bn' ? 'আবেদন সময়:' : 'Submitted:'} {viewSubmission.submittedAt}
                 </p>
               </div>
             </div>
@@ -4407,7 +4480,9 @@ export default function Admin() {
             {/* Detailed Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans mb-6">
               <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
-                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">জিমেইল / ইমেইল</span>
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'জিমেইল / ইমেইল' : 'Gmail / Email'}
+                </span>
                 <p className="font-bold text-[#FDFBF7] font-mono-tech flex items-center gap-1.5 truncate">
                   <Mail className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
                   <a href={`mailto:${viewSubmission.email}`} className="hover:underline truncate">
@@ -4417,7 +4492,9 @@ export default function Admin() {
               </div>
 
               <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
-                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">মোবাইল নম্বর</span>
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'মোবাইল নম্বর' : 'Mobile Phone'}
+                </span>
                 <p className="font-bold text-[#FDFBF7] font-mono-tech flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
                   <a href={`tel:${viewSubmission.phone}`} className="hover:underline">
@@ -4427,14 +4504,18 @@ export default function Admin() {
               </div>
 
               <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
-                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">রেজিস্ট্রেশন নম্বর</span>
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'রেজিস্ট্রেশন নম্বর' : 'Registration No'}
+                </span>
                 <p className="font-bold text-[#DFCA9E] font-mono-tech">
                   {viewSubmission.regNo || 'N/A'}
                 </p>
               </div>
 
               <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
-                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">রক্তের গ্রুপ</span>
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'রক্তের গ্রুপ' : 'Blood Group'}
+                </span>
                 <p className="font-mono-tech">
                   <span className="badge-blood-group">
                     <Droplet className="w-3.5 h-3.5 text-red-600 dark:text-rose-400 fill-current" />
@@ -4444,18 +4525,22 @@ export default function Admin() {
               </div>
 
               <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
-                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">এখন কোথায় চাকরি করে</span>
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'এখন কোথায় চাকরি করে' : 'Current Workplace / Role'}
+                </span>
                 <p className="font-bold text-[#FDFBF7] flex items-center gap-1.5">
                   <Briefcase className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
-                  <span>{viewSubmission.currentJob || 'অধ্যয়নরত (চাকরি করছি না)'}</span>
+                  <span>{viewSubmission.currentJob || (lang === 'bn' ? 'অধ্যয়নরত (চাকরি করছি না)' : 'Studying (Currently Enrolled)')}</span>
                 </p>
               </div>
 
               <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-1">
-                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">এখন কোথায় আছে</span>
+                <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
+                  {lang === 'bn' ? 'ঠিকানা / বর্তমান অবস্থান' : 'Address / Current Location'}
+                </span>
                 <p className="font-bold text-[#FDFBF7] flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-[#DE644E] shrink-0" />
-                  <span>{viewSubmission.currentLocation || 'N/A'}</span>
+                  <span>{viewSubmission.address || viewSubmission.currentLocation || 'N/A'}</span>
                 </p>
               </div>
             </div>
@@ -4464,7 +4549,7 @@ export default function Admin() {
             {viewSubmission.bio && (
               <div className="p-4 rounded-xl bg-[#141311] border border-[#C5A880]/15 text-xs font-sans mb-6">
                 <span className="text-[10px] font-mono-tech text-[#A89884] uppercase block mb-1">
-                  সংক্ষিপ্ত পরিচয় ও বিবরণ
+                  {lang === 'bn' ? 'সংক্ষিপ্ত পরিচয় ও বিবরণ' : 'Short Bio & Note'}
                 </span>
                 <p className="text-[#DCD3C1] leading-relaxed italic">
                   "{viewSubmission.bio}"
@@ -4550,7 +4635,7 @@ export default function Admin() {
                   {lang === 'bn' ? 'আবেদন প্রত্যাখ্যানের কারণ' : 'Decline Submission'}
                 </h3>
                 <p className="text-xs text-[#DCD3C1]">
-                  <span className="font-bold text-rose-300">{declinePrompt.name || 'শিক্ষার্থী'}</span>
+                  <span className="font-bold text-rose-300">{declinePrompt.name || (lang === 'bn' ? 'শিক্ষার্থী' : 'Student')}</span>
                   {lang === 'bn' ? '-এর আবেদনটি প্রত্যাখ্যাত হিসেবে চিহ্নিত হবে।' : "'s submission will be marked as declined."}
                 </p>
 
@@ -4559,10 +4644,11 @@ export default function Admin() {
                     {lang === 'bn' ? 'প্রত্যাখ্যানের কারণ / মন্তব্য (ঐচ্ছিক):' : 'Reason / Note (Optional):'}
                   </label>
                   <input
+                    key={`${declinePrompt.id}-${lang}`}
                     type="text"
                     id="declineReasonInput"
                     placeholder={lang === 'bn' ? 'উদা: রেজিস্ট্রেশন নম্বর মিলছে না' : 'e.g. Registration number does not match'}
-                    defaultValue="তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে"
+                    defaultValue={lang === 'bn' ? 'তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে' : 'Incomplete information or verification mismatch'}
                     className="w-full p-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-rose-500 font-sans"
                   />
                 </div>

@@ -92,7 +92,7 @@ export default function ExcelImportModal({ isOpen, onClose }) {
         : `✓ Successfully imported ${res.totalImported} students!`
       );
     } catch (err) {
-      setErrorMsg(err.message || 'ইমপোর্ট করতে সমস্যা হয়েছে');
+      setErrorMsg(err.message || (lang === 'bn' ? 'ইমপোর্ট করতে সমস্যা হয়েছে' : 'Failed to import Excel data'));
     } finally {
       setIsSubmitting(false);
     }
@@ -182,10 +182,10 @@ export default function ExcelImportModal({ isOpen, onClose }) {
         <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-300/60 dark:border-amber-700/40 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="text-xs font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
-              <span>১. নমুনা এক্সেল ফাইল না থাকলে ডাউনলোড করুন:</span>
+              <span>{lang === 'bn' ? '১. নমুনা এক্সেল ফাইল না থাকলে ডাউনলোড করুন:' : '1. Need a sample Excel file? Download template:'}</span>
             </h4>
             <p className="text-[11px] text-amber-900/80 dark:text-amber-300/80 mt-0.5">
-              কলামসমূহ: <code className="font-mono font-bold">Name, RegNo, Batch, Department, Session, BloodGroup</code>
+              {lang === 'bn' ? 'কলামসমূহ:' : 'Columns:'} <code className="font-mono font-bold">Name, RegNo, Batch, Department, Session, BloodGroup</code>
             </p>
           </div>
 
@@ -304,7 +304,9 @@ export default function ExcelImportModal({ isOpen, onClose }) {
                   </table>
                   {parseResult.students.length > 5 && (
                     <div className="p-2 bg-[#F5F0E6] dark:bg-[#1A1916] text-center text-[10px] text-[#57534E] dark:text-[#A89884] italic">
-                      ... এবং আরও {parseResult.students.length - 5} জন শিক্ষার্থী
+                      {lang === 'bn'
+                        ? `... এবং আরও ${parseResult.students.length - 5} জন শিক্ষার্থী`
+                        : `... and ${parseResult.students.length - 5} more students`}
                     </div>
                   )}
                 </div>
@@ -366,11 +368,13 @@ export default function ExcelImportModal({ isOpen, onClose }) {
 
             <div className="p-3 rounded-xl bg-[#FAF8F5] dark:bg-[#141311] border border-[#C5A880]/30 inline-block text-xs font-mono">
               <span className="text-emerald-700 dark:text-emerald-400 font-bold">
-                ✓ নতুন যুক্ত: {submitResult.added || submitResult.totalImported} জন
+                {lang === 'bn'
+                  ? `✓ নতুন যুক্ত: ${submitResult.added || submitResult.totalImported} জন`
+                  : `✓ Added: ${submitResult.added || submitResult.totalImported}`}
               </span>
               {submitResult.updated > 0 && (
                 <span className="text-sky-600 dark:text-sky-400 font-bold ml-3">
-                  • আপডেট: {submitResult.updated} জন
+                  {lang === 'bn' ? `• আপডেট: ${submitResult.updated} জন` : `• Updated: ${submitResult.updated}`}
                 </span>
               )}
             </div>

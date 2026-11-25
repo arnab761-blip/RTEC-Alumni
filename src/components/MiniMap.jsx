@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { CAMPUS_LANDMARKS } from '../three/CampusData.js';
+import { useApp } from '../context/AppContext.jsx';
 import { MapPin, Navigation, Maximize2, Minimize2, Eye } from 'lucide-react';
 
 export default function MiniMap({ currentStep, onSelectLandmark, isMobile }) {
+  const { lang = 'en' } = useApp();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Normalization constants to map 3D coordinates (X: -150 to 150, Z: -150 to 100) onto a 2D radar
@@ -30,7 +32,7 @@ export default function MiniMap({ currentStep, onSelectLandmark, isMobile }) {
       <div className="flex items-center justify-between px-2 py-1 mb-2 border-b border-slate-700/50">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
           <Navigation className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '6s' }} />
-          <span>ক্যাম্পাস ম্যাপ (Radar)</span>
+          <span>{lang === 'bn' ? 'ক্যাম্পাস ম্যাপ' : 'Campus Radar'}</span>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -49,18 +51,18 @@ export default function MiniMap({ currentStep, onSelectLandmark, isMobile }) {
         {/* River on East (Right side) */}
         <div className="absolute right-0 top-0 bottom-0 w-8 bg-sky-900/60 border-l border-sky-500/40 flex items-center justify-center">
           <span className="text-[9px] text-sky-300 font-mono rotate-90 whitespace-nowrap opacity-75">
-            করতোয়া নদী
+            {lang === 'bn' ? 'করতোয়া নদী' : 'Karatoa River'}
           </span>
         </div>
 
         {/* Central Field on Northwest */}
         <div className="absolute left-2 top-2 w-14 h-12 rounded bg-emerald-950/70 border border-emerald-600/40 flex items-center justify-center">
-          <span className="text-[8px] text-emerald-300 font-medium">খেলার মাঠ</span>
+          <span className="text-[8px] text-emerald-300 font-medium">{lang === 'bn' ? 'খেলার মাঠ' : 'Sports Field'}</span>
         </div>
 
         {/* Highway Road at South (Bottom) */}
         <div className="absolute left-0 right-0 bottom-1 h-3 bg-slate-800 border-t border-slate-700 flex items-center justify-center">
-          <span className="text-[7px] text-slate-400">মহাসড়ক (Highway)</span>
+          <span className="text-[7px] text-slate-400">{lang === 'bn' ? 'মহাসড়ক' : 'Highway'}</span>
         </div>
 
         {/* All 15 Landmark Pins */}

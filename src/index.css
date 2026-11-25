@@ -1554,10 +1554,14 @@ html:not(.dark) .system-toast,
 html.dark .system-toast,
 html[data-theme="light"] .system-toast,
 html[data-theme="dark"] .system-toast {
-  background-color: #064E3B !important; /* Rich deep forest emerald */
+  background-color: #064E3B !important; /* Rich solid deep forest emerald */
   border: 2px solid #34D399 !important; /* Crisp bright emerald border */
   color: #FFFFFF !important; /* Pure radiant white text */
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  z-index: 99999 !important;
+  box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.45), 0 8px 14px -6px rgba(0, 0, 0, 0.45) !important;
 }
 
 .system-toast *,

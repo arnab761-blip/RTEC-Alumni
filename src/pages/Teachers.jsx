@@ -235,25 +235,25 @@ export default function Teachers() {
                       {teacher.designation?.toLowerCase().includes('principal') || teacher.designationBn?.includes('অধ্যক্ষ') ? (
                         <span className="px-2.5 py-1 rounded text-[10px] font-mono-tech font-black bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-md flex items-center gap-1 uppercase tracking-wider border border-amber-300/40">
                           <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>PRINCIPAL / অধ্যক্ষ</span>
+                          <span>{lang === 'bn' ? 'অধ্যক্ষ' : 'PRINCIPAL'}</span>
                         </span>
                       ) : teacher.isHod ? (
                         <span className="px-2.5 py-1 rounded text-[10px] font-mono-tech font-bold bg-[#BD452F] text-white shadow flex items-center gap-1 uppercase tracking-wider">
                           <Award className="w-3 h-3" />
-                          <span>HOD / বিভাগীয় প্রধান</span>
+                          <span>{lang === 'bn' ? 'বিভাগীয় প্রধান' : 'HOD'}</span>
                         </span>
                       ) : null}
 
                       {teacher.bcsBatch && teacher.bcsBatch !== 'N/A' && (
                         <span className="px-2 py-0.5 rounded text-[10px] font-mono-tech bg-indigo-950/80 text-indigo-300 border border-indigo-500/30">
-                          {teacher.bcsBatch}
+                          {lang === 'bn' ? teacher.bcsBatch : (teacher.bcsBatchEn || teacher.bcsBatch)}
                         </span>
                       )}
                     </div>
 
                     <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
                       <span className="px-2.5 py-0.5 rounded text-[10px] font-mono-tech bg-[#181715]/90 text-[#DFCA9E] border border-[#C5A880]/30 uppercase font-medium">
-                        {teacher.deptBn || teacher.department}
+                        {lang === 'bn' ? (teacher.deptBn || teacher.department) : (teacher.department || teacher.deptBn)}
                       </span>
                       {teacher.order && (
                         <span className="text-[10px] font-mono-tech text-[#A89884] bg-black/60 px-2 py-0.5 rounded">
@@ -429,53 +429,77 @@ export default function Teachers() {
                       {lang === 'bn' ? selectedTeacher.designationBn || selectedTeacher.designation : selectedTeacher.designation}
                     </p>
                     <p className="text-xs text-amber-700 dark:text-[#DFCA9E] font-mono-tech mt-0.5 font-medium">
-                      {selectedTeacher.deptBn || selectedTeacher.department}
+                      {lang === 'bn' ? (selectedTeacher.deptBn || selectedTeacher.department) : (selectedTeacher.department || selectedTeacher.deptBn)}
                     </p>
                     {selectedTeacher.bcsBatch && selectedTeacher.bcsBatch !== 'N/A' && (
                       <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-mono-tech bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 rounded font-semibold">
-                        {selectedTeacher.bcsBatch}
+                        {lang === 'bn' ? selectedTeacher.bcsBatch : (selectedTeacher.bcsBatchEn || selectedTeacher.bcsBatch)}
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-stone-50 dark:bg-[#141311] border border-stone-200 dark:border-[#C5A880]/15 space-y-2.5 text-xs mb-5 font-mono-tech">
-                  <div className="flex items-center justify-between">
-                    <span className="text-stone-500 dark:text-[#A89884] font-medium">দপ্তর / OFFICE:</span>
-                    <span className="text-stone-900 dark:text-[#FDFBF7] font-bold text-right">{selectedTeacher.office || 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ'}</span>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-stone-500 dark:text-[#A89884] font-medium shrink-0">
+                      {lang === 'bn' ? 'দপ্তর:' : 'OFFICE:'}
+                    </span>
+                    <span className="text-stone-900 dark:text-[#FDFBF7] font-bold text-right">
+                      {lang === 'bn'
+                        ? (selectedTeacher.office || 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ')
+                        : (selectedTeacher.officeEn || 'Rangpur Textile Engineering College')}
+                    </span>
                   </div>
                   {selectedTeacher.officeRoom && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-stone-500 dark:text-[#A89884] font-medium">কক্ষ / CHAMBER:</span>
-                      <span className="text-stone-900 dark:text-[#FDFBF7] font-bold text-right">{selectedTeacher.officeRoom}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-stone-500 dark:text-[#A89884] font-medium shrink-0">
+                        {lang === 'bn' ? 'কক্ষ:' : 'CHAMBER:'}
+                      </span>
+                      <span className="text-stone-900 dark:text-[#FDFBF7] font-bold text-right">
+                        {lang === 'bn' ? selectedTeacher.officeRoom : (selectedTeacher.officeRoomEn || selectedTeacher.officeRoom)}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-500 dark:text-[#A89884] font-medium">মোবাইল / PHONE:</span>
+                    <span className="text-stone-500 dark:text-[#A89884] font-medium">
+                      {lang === 'bn' ? 'মোবাইল:' : 'PHONE:'}
+                    </span>
                     <a href={`tel:${selectedTeacher.phone || selectedTeacher.mobile}`} className="text-amber-800 dark:text-[#DFCA9E] font-bold hover:underline">
                       {selectedTeacher.phone || selectedTeacher.mobile || 'N/A'}
                     </a>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-500 dark:text-[#A89884] font-medium">ইমেইল / EMAIL:</span>
+                    <span className="text-stone-500 dark:text-[#A89884] font-medium">
+                      {lang === 'bn' ? 'ইমেইল:' : 'EMAIL:'}
+                    </span>
                     <a href={`mailto:${selectedTeacher.email}`} className="text-amber-800 dark:text-[#DFCA9E] font-bold hover:underline">
                       {selectedTeacher.email || 'N/A'}
                     </a>
                   </div>
                   {selectedTeacher.joiningDate && selectedTeacher.joiningDate !== 'N/A' && (
                     <div className="flex items-center justify-between">
-                      <span className="text-stone-500 dark:text-[#A89884] font-medium">যোগদানের তারিখ:</span>
-                      <span className="text-stone-900 dark:text-[#EDE8DF] font-semibold">{selectedTeacher.joiningDate}</span>
+                      <span className="text-stone-500 dark:text-[#A89884] font-medium">
+                        {lang === 'bn' ? 'যোগদানের তারিখ:' : 'JOINING DATE:'}
+                      </span>
+                      <span className="text-stone-900 dark:text-[#EDE8DF] font-semibold">
+                        {lang === 'bn' ? selectedTeacher.joiningDate : (selectedTeacher.joiningDateEn || selectedTeacher.joiningDate)}
+                      </span>
                     </div>
                   )}
                   {selectedTeacher.homeDistrict && selectedTeacher.homeDistrict !== 'N/A' && (
                     <div className="flex items-center justify-between">
-                      <span className="text-stone-500 dark:text-[#A89884] font-medium">নিজ জেলা:</span>
-                      <span className="text-stone-900 dark:text-[#EDE8DF] font-semibold">{selectedTeacher.homeDistrict}</span>
+                      <span className="text-stone-500 dark:text-[#A89884] font-medium">
+                        {lang === 'bn' ? 'নিজ জেলা:' : 'HOME DISTRICT:'}
+                      </span>
+                      <span className="text-stone-900 dark:text-[#EDE8DF] font-semibold">
+                        {lang === 'bn' ? selectedTeacher.homeDistrict : (selectedTeacher.homeDistrictEn || selectedTeacher.homeDistrict)}
+                      </span>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-500 dark:text-[#A89884] font-medium">স্ট্যাটাস / STATUS:</span>
+                    <span className="text-stone-500 dark:text-[#A89884] font-medium">
+                      {lang === 'bn' ? 'স্ট্যাটাস:' : 'STATUS:'}
+                    </span>
                     <span className="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       {selectedTeacher.status || 'Active Official'}

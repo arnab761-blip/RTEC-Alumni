@@ -14,6 +14,7 @@ export default function CampusScene({
   activeTargetLandmark = null,
   dragMode = 'move', // 'move' (Google Earth ground drag) | 'rotate' (360° free look)
   onToggleDragMode,
+  lang = 'en',
 }) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
@@ -455,7 +456,9 @@ export default function CampusScene({
       <div
         ref={mountRef}
         className="w-full h-full cursor-grab active:cursor-grabbing"
-        title="মাউসের লেফট বাটন চেপে ধরে রাস্তা ও ক্যাম্পাস ড্র্যাগ করুন। রাস্তায় ক্লিক করলে সেখানে হেঁটে যাবে।"
+        title={lang === 'bn'
+          ? 'মাউসের লেফট বাটন চেপে ধরে রাস্তা ও ক্যাম্পাস ড্র্যাগ করুন। রাস্তায় ক্লিক করলে সেখানে হেঁটে যাবে।'
+          : 'Left-click & drag to explore campus roads. Click any road to walk directly there.'}
       />
 
       {/* Floating 2D Screen-Projected Building Detail Button (Single discreet button, high above roof, NEVER moves camera) */}
@@ -478,14 +481,16 @@ export default function CampusScene({
                   if (onOpenBuildingDetails) onOpenBuildingDetails(landmark);
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950/90 hover:bg-emerald-600 text-white shadow-2xl border border-emerald-500/60 backdrop-blur-md transition-all hover:scale-105 active:scale-95 group cursor-pointer"
-                title={`${landmark.name} এর বিস্তারিত তথ্য দেখতে চাপ দিন`}
+                title={lang === 'bn'
+                  ? `${landmark.name} এর বিস্তারিত তথ্য দেখতে চাপ দিন`
+                  : `Click to inspect ${landmark.nameEn || landmark.name}`}
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 group-hover:bg-white animate-pulse" />
                 <span className="text-xs font-bold text-emerald-300 group-hover:text-white whitespace-nowrap">
-                  {landmark.name}
+                  {lang === 'bn' ? landmark.name : (landmark.nameEn || landmark.name)}
                 </span>
                 <span className="px-2 py-0.5 rounded-lg bg-emerald-600 group-hover:bg-emerald-500 text-[10px] text-white font-extrabold tracking-wide">
-                  ℹ️ বিস্তারিত
+                  {lang === 'bn' ? 'ℹ️ বিস্তারিত' : 'ℹ️ Details'}
                 </span>
               </button>
 
@@ -498,36 +503,38 @@ export default function CampusScene({
 
       {/* On-Screen Road Navigation Controls (Touch and Click Friendly) */}
       <div className="absolute bottom-20 left-4 z-30 pointer-events-auto hidden sm:flex flex-col gap-1.5 glass-panel p-2 rounded-2xl border border-slate-700/70 shadow-2xl">
-        <span className="text-[9px] text-emerald-400 font-bold px-1 text-center">রোড মুভমেন্ট</span>
+        <span className="text-[9px] text-emerald-400 font-bold px-1 text-center">
+          {lang === 'bn' ? 'রোড মুভমেন্ট' : 'Road Navigation'}
+        </span>
         <button
           onClick={() => walk(8)}
           className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1 transition border border-slate-800"
-          title="রাস্তা ধরে সামনে এগিয়ে যান (Walk Forward)"
+          title={lang === 'bn' ? 'রাস্তা ধরে সামনে এগিয়ে যান' : 'Walk Forward'}
         >
-          ▲ সামনে যান
+          {lang === 'bn' ? '▲ সামনে যান' : '▲ Forward'}
         </button>
         <div className="flex gap-1.5">
           <button
             onClick={() => turn(Math.PI / 8)}
             className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition border border-slate-800 flex-1"
-            title="বামে ৩৬০° ঘুরুন"
+            title={lang === 'bn' ? 'বামে ৩৬০° ঘুরুন' : 'Look Left'}
           >
-            ◀ বামে
+            {lang === 'bn' ? '◀ বামে' : '◀ Left'}
           </button>
           <button
             onClick={() => turn(-Math.PI / 8)}
             className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition border border-slate-800 flex-1"
-            title="ডানে ৩৬০° ঘুরুন"
+            title={lang === 'bn' ? 'ডানে ৩৬০° ঘুরুন' : 'Look Right'}
           >
-            ডানে ▶
+            {lang === 'bn' ? 'ডানে ▶' : 'Right ▶'}
           </button>
         </div>
         <button
           onClick={() => walk(-8)}
           className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold flex items-center justify-center gap-1 transition border border-slate-800"
-          title="পেছনে যান (Step Back)"
+          title={lang === 'bn' ? 'পেছনে যান' : 'Step Back'}
         >
-          ▼ পেছনে যান
+          {lang === 'bn' ? '▼ পেছনে যান' : '▼ Back'}
         </button>
       </div>
 

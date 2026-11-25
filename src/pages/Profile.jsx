@@ -1,52 +1,88 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import {
-  User,
   ShieldCheck,
-  Briefcase,
-  GraduationCap,
-  Mail,
   MapPin,
-  Calendar,
-  HeartHandshake,
   Edit3,
   CheckCircle2,
   Ticket,
   Clock,
-  AlertCircle,
-  XCircle
+  XCircle,
+  ArrowRight
 } from 'lucide-react';
 import UserAvatar from '../components/UserAvatar.jsx';
 
 export default function Profile() {
-  const { user, setUser, studentSubmissions = [], mySubmission: appMySubmission, mySubmissionId, lang } = useApp();
+  const {
+    user,
+    students = [],
+    studentSubmissions = [],
+    mySubmission: appMySubmission,
+    mySubmissionId,
+    registeredEvents = [],
+    events = [],
+    updateOwnProfile,
+    lang
+  } = useApp();
+
   const mySubmission = appMySubmission || studentSubmissions.find(
     (s) => (user?.email && s.email?.toLowerCase().trim() === user.email?.toLowerCase().trim()) ||
            (mySubmissionId && s.id === mySubmissionId)
   );
-  const [activeTab, setActiveTab] = useState('info'); // 'info' | 'events' | 'donations'
+
+  const matchedStudent = useMemo(() => {
+    const cleanEmail = (user?.email || '').toLowerCase().trim();
+    if (!cleanEmail) return null;
+    return students.find(st => st.email && st.email.toLowerCase().trim() === cleanEmail) || null;
+  }, [students, user?.email]);
+
+  const [activeTab, setActiveTab] = useState('info'); // 'info' | 'events'
   const [isEditing, setIsEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Form State
+  // Synced Form State
   const [name, setName] = useState(user?.name || '');
   const [role, setRole] = useState(user?.company || '');
   const [phone, setPhone] = useState(user?.phone || '');
-  const [location, setLocation] = useState(user?.location || '');
-  const [bio, setBio] = useState(user?.bio || '');
+  const [address, setAddress] = useState(
+    user?.address || user?.location || mySubmission?.address || mySubmission?.currentLocation || matchedStudent?.address || matchedStudent?.currentLocation || ''
+  );
+  const [bio, setBio] = useState(user?.bio || mySubmission?.bio || matchedStudent?.activities || '');
+
+  useEffect(() => {
+    setName(user?.name || '');
+    setRole(user?.company || '');
+    setPhone(user?.phone || mySubmission?.phone || matchedStudent?.phone || '');
+    setAddress(
+      user?.address || user?.location || mySubmission?.address || mySubmission?.currentLocation || matchedStudent?.address || matchedStudent?.currentLocation || ''
+    );
+    setBio(user?.bio || mySubmission?.bio || matchedStudent?.activities || '');
+  }, [user, mySubmission, matchedStudent]);
+
+  // Only show genuine registrations belonging to this user for existing events
+  const myRegisteredEvents = useMemo(() => {
+    const cleanEmail = (user?.email || '').toLowerCase().trim();
+    return (registeredEvents || []).filter(reg => {
+      const belongsToUser = !reg.attendeeEmail || (cleanEmail && reg.attendeeEmail === cleanEmail);
+      const eventStillExists = (events || []).some(e => e.id === reg.eventId);
+      return belongsToUser && eventStillExists;
+    });
+  }, [registeredEvents, events, user?.email]);
 
   const handleSave = (e) => {
     e.preventDefault();
-    setUser({
-      ...user,
+    updateOwnProfile({
       name,
-      company: role
+      company: role,
+      phone,
+      address,
+      bio
     });
     setSaveSuccess(true);
     setIsEditing(false);
-    setTimeout(() => setSaveSuccess(false), 2000);
+    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
   return (
@@ -58,7 +94,7 @@ export default function Profile() {
       className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        
+
         {/* Profile Card Banner */}
         <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative mb-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -71,7 +107,10 @@ export default function Profile() {
                 iconClassName="w-12 h-12"
               />
               {user?.isVerified && (
-                <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-emerald-500 text-slate-950" title="Verified Member">
+                <span
+                  className="absolute -bottom-1 -right-1 p-1 rounded-full bg-emerald-500 text-slate-950"
+                  title={lang === 'bn' ? 'ভেরিফায়েড সদস্য' : 'Verified Member'}
+                >
                   <ShieldCheck className="w-5 h-5" />
                 </span>
               )}
@@ -81,15 +120,19 @@ export default function Profile() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-white">{user?.name}</h1>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  {user?.isVerified ? '✓ Verified Member' : 'Pending Verification'}
+                  {user?.isVerified
+                    ? (lang === 'bn' ? '✓ ভেরিফায়েড সদস্য' : '✓ Verified Member')
+                    : (lang === 'bn' ? 'যাচাইকরণ অপেক্ষমাণ' : 'Pending Verification')}
                 </span>
               </div>
 
               <p className="text-xs sm:text-sm text-[#374151] dark:text-slate-300 font-mono font-medium">
-                {user?.batch || 'RTEC Member'} • {user?.department || 'Textile Engineering'}
+                {user?.batch || (lang === 'bn' ? 'আরটেক সদস্য' : 'RTEC Member')} • {user?.department || 'Textile Engineering'}
               </p>
               <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
-                {user?.company || (user?.role === 'admin' ? 'RTEC Administration' : 'RTEC Student / Alumni')}
+                {user?.company || (user?.role === 'admin'
+                  ? (lang === 'bn' ? 'আরটেক প্রশাসন' : 'RTEC Administration')
+                  : (lang === 'bn' ? 'আরটেক শিক্ষার্থী / অ্যালামনাই' : 'RTEC Student / Alumni'))}
               </p>
               <p className="text-xs text-slate-400">
                 {user?.email}
@@ -98,18 +141,34 @@ export default function Profile() {
 
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition"
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{isEditing ? 'বাতিল করুন' : 'প্রোফাইল এডিট'}</span>
+              <span>
+                {isEditing
+                  ? (lang === 'bn' ? 'বাতিল করুন' : 'Cancel')
+                  : (lang === 'bn' ? 'প্রোফাইল এডিট' : 'Edit Profile')}
+              </span>
             </button>
           </div>
 
-          {saveSuccess && (
-            <div className="mt-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-xs font-bold text-emerald-400 text-center">
-              ✓ প্রোফাইল তথ্য সফলভাবে সংরক্ষণ করা হয়েছে!
-            </div>
-          )}
+          <AnimatePresence>
+            {saveSuccess && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 p-3 rounded-xl bg-emerald-950/90 border border-emerald-500/60 text-xs font-bold text-white text-center shadow-md">
+                  {lang === 'bn'
+                    ? '✓ প্রোফাইল তথ্য ও ঠিকানা সফলভাবে সংরক্ষণ করা হয়েছে!'
+                    : '✓ Profile information & address saved successfully!'}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Student Self-Submission Status Card */}
@@ -136,15 +195,17 @@ export default function Profile() {
                   {mySubmission.status === 'approved'
                     ? (lang === 'bn' ? 'স্টুডেন্ট আইডি রেজিস্ট্রি: অনুমোদিত (Approved)' : 'Student Registry: Approved')
                     : mySubmission.status === 'declined'
-                    ? (lang === 'bn' ? 'স্টুডেন্ট আইডি রেজিস্ট্রি: পর্যালোচনায় রয়েছে (Declined)' : 'Student Registry: Declined')
+                    ? (lang === 'bn' ? 'স্টুডেন্ট আইডি রেজিস্ট্রি: প্রত্যাখ্যাত (Declined)' : 'Student Registry: Declined')
                     : (lang === 'bn' ? 'স্টুডেন্ট আইডি রেজিস্ট্রি: অ্যাডমিন অনুমোদনের অপেক্ষমাণ (Pending)' : 'Student Registry: Pending Approval')}
                 </p>
                 <p className="text-[11px] text-[#DCD3C1] mt-0.5 font-sans">
                   {mySubmission.status === 'approved'
-                    ? (lang === 'bn' ? 'আপনার জমা দেওয়া তথ্য অ্যাডমিন কর্তৃক অনুমোদিত হয়েছে এবং ডিরেক্টরিতে প্রকাশিত।' : 'Your submission has been verified and published.')
+                    ? (lang === 'bn' ? 'আপনার জমা দেওয়া তথ্য অ্যাডমিন কর্তৃক অনুমোদিত হয়েছে এবং প্রকাশিত রয়েছে।' : 'Your submission has been verified and published.')
                     : mySubmission.status === 'declined'
-                    ? (lang === 'bn' ? `মন্তব্য: ${mySubmission.reviewNotes || 'তথ্য অসম্পূর্ণ'}। অনুগ্রহ করে স্টুডেন্ট পোর্টালে গিয়ে হালনাগাদ করুন।` : `Note: ${mySubmission.reviewNotes}`)
-                    : (lang === 'bn' ? 'আপনার আবেদনটি সংরক্ষিত হয়েছে। অ্যাডমিন প্যানেল থেকে অনুমোদন দেওয়া হলে ডিরেক্টরিতে আসবে।' : 'Your profile is awaiting review by RTEC Admin.')}
+                    ? (lang === 'bn'
+                        ? `মন্তব্য: ${mySubmission.reviewNotes || 'তথ্য অসম্পূর্ণ'}। অনুগ্রহ করে স্টুডেন্ট পোর্টালে গিয়ে হালনাগাদ করুন।`
+                        : `Note: ${mySubmission.reviewNotes || 'Incomplete information'}. Please update in the Student Portal.`)
+                    : (lang === 'bn' ? 'আপনার আবেদনটি সংরক্ষিত হয়েছে। অ্যাডমিন প্যানেল থেকে অনুমোদন দেওয়া হলে প্রকাশিত হবে।' : 'Your profile is awaiting review by RTEC Admin.')}
                 </p>
               </div>
             </div>
@@ -171,66 +232,83 @@ export default function Profile() {
               className="overflow-hidden mb-8"
             >
               <div className="glass-panel p-6 rounded-3xl border border-emerald-500/30 space-y-4">
-            <h3 className="text-base font-bold text-white mb-2">প্রোফাইল তথ্য আপডেট করুন</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">পূর্ণ নাম</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">প্রতিষ্ঠান ও পদবি</label>
-                <input
-                  type="text"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-            </div>
+                <h3 className="text-base font-bold text-white mb-2">
+                  {lang === 'bn' ? 'প্রোফাইল তথ্য আপডেট করুন' : 'Update Profile Information'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {lang === 'bn' ? 'পূর্ণ নাম' : 'Full Name'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={lang === 'bn' ? 'আপনার পূর্ণ নাম লিখুন' : 'Enter your full name'}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {lang === 'bn' ? 'প্রতিষ্ঠান ও পদবি' : 'Organization & Designation'}
+                    </label>
+                    <input
+                      type="text"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      placeholder={lang === 'bn' ? 'যেমন: শিক্ষার্থী, আরটেক / প্রকৌশলী' : 'e.g. Student at RTEC / Textile Engineer'}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">ফোন নম্বর</label>
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">বর্তমান ঠিকানা</label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {lang === 'bn' ? 'ফোন নম্বর' : 'Phone Number'}
+                    </label>
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+880 17XX-XXXXXX"
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {lang === 'bn' ? 'ঠিকানা' : 'Address'}
+                    </label>
+                    <input
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder={lang === 'bn' ? 'যেমন: পীরগঞ্জ, রংপুর / ঢাকা' : 'e.g. Pirganj, Rangpur / Dhaka'}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">সংক্ষিপ্ত পরিচিতি (Bio)</label>
-              <textarea
-                rows="3"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-              />
-            </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {lang === 'bn' ? 'সংক্ষিপ্ত পরিচিতি (Bio)' : 'Short Bio'}
+                  </label>
+                  <textarea
+                    rows="3"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder={lang === 'bn' ? 'আপনার সম্পর্কে সংক্ষেপে লিখুন...' : 'Write a short bio about yourself...'}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
 
-            <button
-              type="submit"
-              className="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer"
-            >
-              পরিবর্তন সংরক্ষণ করুন
-            </button>
+                <button
+                  type="submit"
+                  className="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer"
+                >
+                  {lang === 'bn' ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
+                </button>
               </div>
             </motion.form>
           )}
@@ -246,7 +324,7 @@ export default function Profile() {
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
-            অ্যাকাউন্ট ওভারভিউ
+            {lang === 'bn' ? 'অ্যাকাউন্ট ওভারভিউ' : 'Account Overview'}
           </button>
           <button
             onClick={() => setActiveTab('events')}
@@ -257,6 +335,11 @@ export default function Profile() {
             }`}
           >
             {lang === 'bn' ? 'আমার নিবন্ধিত ইভেন্ট' : 'My Registered Events'}
+            {myRegisteredEvents.length > 0 && (
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
+                {myRegisteredEvents.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -274,20 +357,27 @@ export default function Profile() {
                 <h3 className="font-bold text-white text-base">
                   {lang === 'bn' ? 'পরিচিতি ও বিবরণ' : 'About & Bio'}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{bio}</p>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {bio || (lang === 'bn' ? 'এখনও কোনো পরিচিতি যুক্ত করা হয়নি।' : 'No bio added yet.')}
+                </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-xs">
                   <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-slate-400">
+                    <span className="text-slate-400 block">
                       {lang === 'bn' ? 'যোগাযোগ ফোন:' : 'Phone:'}
                     </span>
-                    <p className="text-white font-semibold mt-0.5">{phone}</p>
+                    <p className="text-white font-semibold mt-0.5">
+                      {phone || (lang === 'bn' ? 'দেওয়া হয়নি' : 'Not provided')}
+                    </p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-slate-400">
-                      {lang === 'bn' ? 'বর্তমান অবস্থান:' : 'Current Location:'}
+                    <span className="text-slate-400 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{lang === 'bn' ? 'ঠিকানা:' : 'Address:'}</span>
                     </span>
-                    <p className="text-white font-semibold mt-0.5">{location}</p>
+                    <p className="text-white font-semibold mt-0.5">
+                      {address || (lang === 'bn' ? 'দেওয়া হয়নি' : 'Not provided')}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -299,25 +389,54 @@ export default function Profile() {
                   <Ticket className="w-5 h-5 text-emerald-400" />
                   <span>{lang === 'bn' ? 'নিবন্ধিত ইভেন্ট ও টিকিট' : 'Registered Events & Passes'}</span>
                 </h3>
-                <div className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 font-bold">
-                      Confirmed Ticket
-                    </span>
-                    <h4 className="font-bold text-white text-sm mt-1">
-                      {lang === 'bn' ? 'গ্র্যান্ড আরটেক অ্যালামনাই পুনর্মিলনী ২০২৬' : 'Grand RTEC Alumni Reunion 2026'}
-                    </h4>
-                    <p className="text-xs text-slate-400">
-                      {lang === 'bn' ? '২৫ ডিসেম্বর ২০২৬ • আরটেক সেন্ট্রাল ক্যাম্পাস' : '25 December 2026 • RTEC Central Campus'}
-                    </p>
-                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold mt-1">
-                      Token: RTEC-EVT-984210
-                    </p>
+
+                {myRegisteredEvents.length > 0 ? (
+                  <div className="space-y-3">
+                    {myRegisteredEvents.map((reg) => (
+                      <div
+                        key={reg.id}
+                        className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 flex items-center justify-between gap-4"
+                      >
+                        <div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 font-bold">
+                            {lang === 'bn' ? 'নিশ্চিতকৃত টিকিট' : 'Confirmed Ticket'}
+                          </span>
+                          <h4 className="font-bold text-white text-sm mt-1">
+                            {lang === 'bn' ? reg.eventTitleBn : reg.eventTitle}
+                          </h4>
+                          <p className="text-xs text-slate-400">
+                            {reg.date} • {lang === 'bn' ? reg.venueBn : reg.venue}
+                          </p>
+                          <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold mt-1">
+                            Token: {reg.token}
+                          </p>
+                        </div>
+                        <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 font-mono bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-500/30 shrink-0">
+                          {lang === 'bn' ? 'অ্যাক্টিভ পাস' : 'Active Pass'}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 font-mono bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-500/30">
-                    Active Pass
-                  </span>
-                </div>
+                ) : (
+                  <div className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-3">
+                    <Ticket className="w-8 h-8 text-slate-500 mx-auto" />
+                    <h4 className="text-sm font-bold text-white">
+                      {lang === 'bn' ? 'এখনও কোনো ইভেন্টে নিবন্ধন করা হয়নি' : 'No Registered Events Yet'}
+                    </h4>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto">
+                      {lang === 'bn'
+                        ? 'আপনি কোনো ইভেন্ট বা প্রোগ্রামে নিবন্ধন করলে আপনার কনফার্মড টিকিট ও পাস এখানে দেখাবে।'
+                        : 'When you register for an upcoming reunion, seminar, or campus event, your active pass will appear here.'}
+                    </p>
+                    <Link
+                      to="/events"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow"
+                    >
+                      <span>{lang === 'bn' ? 'ইভেন্ট ও প্রোগ্রাম দেখুন' : 'Browse Events'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

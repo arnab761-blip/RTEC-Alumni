@@ -110,8 +110,8 @@ export function AppProvider({ children }) {
     };
   });
 
-  // 2. Language State (bn = Bengali, en = English)
-  const [lang, setLangState] = useState(() => localStorage.getItem('rtec_lang') || 'bn');
+  // 2. Language State (Defaults to English 'en' on first visit; persists user's choice)
+  const [lang, setLangState] = useState(() => localStorage.getItem('rtec_lang') || 'en');
 
   const setLang = (newLang) => {
     localStorage.setItem('rtec_lang', newLang);
@@ -916,7 +916,7 @@ export function AppProvider({ children }) {
 
   const bulkImportStudents = async (newStudents) => {
     if (!Array.isArray(newStudents) || newStudents.length === 0) {
-      return { success: false, error: 'কোনো শিক্ষার্থীর ডেটা পাওয়া যায়নি।' };
+      return { success: false, error: lang === 'bn' ? 'কোনো শিক্ষার্থীর ডেটা পাওয়া যায়নি।' : 'No student records found.' };
     }
 
     let updatedCount = 0;
@@ -1098,7 +1098,24 @@ export function AppProvider({ children }) {
     syncEntityToMongo(`/api/events/${id}`, 'DELETE');
   };
 
-  const registerForEvent = (eventId, attendeeInfo) => {
+  // 6.1 User Event Registrations (Persisted cleanly; starts completely empty until user registers)
+  const [registeredEvents, setRegisteredEvents] = useState(() => {
+    const saved = localStorage.getItem('rtec_registered_events');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rtec_registered_events', JSON.stringify(registeredEvents));
+  }, [registeredEvents]);
+
+  const registerForEvent = (eventId, attendeeInfo = {}) => {
+    const targetEvent = events.find(evt => evt.id === eventId);
     setEvents(prev =>
       prev.map(evt => {
         if (evt.id === eventId) {
@@ -1112,6 +1129,30 @@ export function AppProvider({ children }) {
         return evt;
       })
     );
+
+    const attendeeEmail = (attendeeInfo?.email || (user?.role !== 'guest' ? user?.email : '') || '').trim().toLowerCase();
+    const registrationRecord = {
+      id: `reg-${Date.now()}`,
+      eventId,
+      eventTitle: targetEvent?.title || 'RTEC Event',
+      eventTitleBn: targetEvent?.titleBn || targetEvent?.title || 'আরটেক ইভেন্ট',
+      date: targetEvent?.date || '',
+      venue: targetEvent?.venue || targetEvent?.location || 'RTEC Campus',
+      venueBn: targetEvent?.venueBn || targetEvent?.venue || 'আরটেক ক্যাম্পাস',
+      token: `RTEC-EVT-${String(Date.now()).slice(-6)}`,
+      attendeeEmail,
+      attendeeName: attendeeInfo?.name || user?.name || '',
+      registeredAt: new Date().toISOString()
+    };
+
+    setRegisteredEvents(prev => {
+      const exists = prev.some(
+        r => r.eventId === eventId && (!attendeeEmail || r.attendeeEmail === attendeeEmail)
+      );
+      if (exists) return prev;
+      return [registrationRecord, ...prev];
+    });
+
     confetti({
       particleCount: 100,
       spread: 70,
@@ -1249,7 +1290,8 @@ export function AppProvider({ children }) {
   // ============================================
   // FORUM & MEMORIES
   // ============================================
-  const addForumPost = (title, body, category = 'Career Advice', tags = ['RTEC'], type = 'question') => {
+  const addForumPost = (title, body, category = 'Career Advice', tags = ['RTEC'], type = 'question', meta = {}) => {
+    const nowLabel = lang === 'bn' ? 'এইমাত্র' : 'Just now';
     const newPost = {
       id: `frm-${Date.now()}`,
       title,
@@ -1263,12 +1305,15 @@ export function AppProvider({ children }) {
       type: type || 'question',
       category,
       categoryBn: category,
-      date: 'এইমাত্র',
+      date: nowLabel,
       upvotes: 1,
       repliesCount: 0,
       tags,
       body,
       content: body,
+      targetAudience: meta.targetAudience || '',
+      roleAndCompany: meta.roleAndCompany || '',
+      keyTakeaways: meta.keyTakeaways || '',
       isEdited: false,
       replies: []
     };
@@ -1278,6 +1323,7 @@ export function AppProvider({ children }) {
   };
 
   const updateForumPost = (postId, updatedData) => {
+    const editedLabel = lang === 'bn' ? 'আপডেটেড' : 'Updated';
     setForumPosts(prev =>
       prev.map(post => {
         if (post.id === postId) {
@@ -1291,7 +1337,7 @@ export function AppProvider({ children }) {
             content: body,
             description: body,
             isEdited: true,
-            updatedAt: 'আপডেটেড'
+            updatedAt: editedLabel
           };
         }
         return post;
@@ -1304,6 +1350,7 @@ export function AppProvider({ children }) {
   };
 
   const addForumReply = (postId, replyText) => {
+    const nowLabel = lang === 'bn' ? 'এইমাত্র' : 'Just now';
     const newReply = {
       id: `rpl-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       author: user?.name || 'RTEC Member',
@@ -1311,7 +1358,7 @@ export function AppProvider({ children }) {
       authorEmail: user?.email || '',
       role: user?.role === 'alumni' ? 'Alumni' : (user?.role === 'admin' ? 'Administrator' : 'Student'),
       avatar: sanitizeAvatar(user?.avatar) || '',
-      date: 'এইমাত্র',
+      date: nowLabel,
       content: replyText,
       isDeleted: false,
       isEdited: false
@@ -1333,6 +1380,7 @@ export function AppProvider({ children }) {
   };
 
   const updateForumReply = (postId, replyId, newContent) => {
+    const editedLabel = lang === 'bn' ? 'আপডেটেড' : 'Updated';
     setForumPosts(prev =>
       prev.map(post => {
         if (post.id === postId) {
@@ -1342,7 +1390,7 @@ export function AppProvider({ children }) {
                 ...reply,
                 content: newContent,
                 isEdited: true,
-                updatedAt: 'আপডেটেড'
+                updatedAt: editedLabel
               };
             }
             return reply;
@@ -1358,6 +1406,7 @@ export function AppProvider({ children }) {
   };
 
   const deleteForumReply = (postId, replyId) => {
+    const nowLabel = lang === 'bn' ? 'এইমাত্র' : 'Just now';
     setForumPosts(prev =>
       prev.map(post => {
         if (post.id === postId) {
@@ -1367,7 +1416,7 @@ export function AppProvider({ children }) {
                 ...reply,
                 isDeleted: true,
                 content: lang === 'bn' ? 'এই মন্তব্যটি মুছে ফেলা হয়েছে।' : 'This comment is deleted.',
-                deletedAt: 'এইমাত্র'
+                deletedAt: nowLabel
               };
             }
             return reply;
@@ -1463,7 +1512,7 @@ export function AppProvider({ children }) {
         regNo: cleanReg || existing.regNo || '',
         id: existing.id,
         status: 'pending', // Re-enter pending verification on update
-        submittedAt: `${formattedDate} ${formattedTime} (আপডেটেড)`,
+        submittedAt: `${formattedDate} ${formattedTime} ${lang === 'bn' ? '(আপডেটেড)' : '(Updated)'}`,
         reviewedAt: null,
         reviewNotes: ''
       };
@@ -1526,20 +1575,20 @@ export function AppProvider({ children }) {
     const target = studentSubmissions.find(s => s.id === id);
     if (!target) return false;
 
-    // 1. Mark status as approved
+    const defaultApproveNote = lang === 'bn' ? 'অ্যাডমিন কর্তৃক অনুমোদিত' : 'Approved by Admin';
     setStudentSubmissions(prev =>
       prev.map(s =>
         s.id === id
           ? {
               ...s,
               status: 'approved',
-              reviewedAt: new Date().toLocaleDateString('bn-BD'),
-              reviewNotes: reviewNotes || 'অ্যাডমিন কর্তৃক অনুমোদিত'
+              reviewedAt: new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US'),
+              reviewNotes: reviewNotes || defaultApproveNote
             }
           : s
       )
     );
-    syncEntityToMongo('/api/submissions', 'POST', { id, status: 'approved', reviewNotes: reviewNotes || 'অ্যাডমিন কর্তৃক অনুমোদিত' });
+    syncEntityToMongo('/api/submissions', 'POST', { id, status: 'approved', reviewNotes: reviewNotes || defaultApproveNote });
 
     // 2. Automatically promote/integrate into public directory
     const isAlumni =
@@ -1578,6 +1627,7 @@ export function AppProvider({ children }) {
             email: target.email || s.email,
             bloodGroup: target.bloodGroup || s.bloodGroup,
             avatar: target.avatar || s.avatar,
+            address: target.address || s.address || target.currentLocation || '',
             currentJob: target.currentJob !== undefined ? target.currentJob : (s.currentJob || ''),
             currentLocation: target.currentLocation !== undefined ? target.currentLocation : (s.currentLocation || '')
           };
@@ -1599,6 +1649,7 @@ export function AppProvider({ children }) {
           avatar: target.avatar || existingStd.avatar,
           role: 'Verified Student Member',
           activities: target.bio || existingStd.activities || 'RTEC Student',
+          address: target.address || existingStd.address || target.currentLocation || '',
           currentJob: target.currentJob !== undefined ? target.currentJob : (existingStd.currentJob || ''),
           currentLocation: target.currentLocation !== undefined ? target.currentLocation : (existingStd.currentLocation || '')
         };
@@ -1628,6 +1679,7 @@ export function AppProvider({ children }) {
           role: 'Verified Student Member',
           activities: target.bio || 'RTEC Student',
           status: 'Regular',
+          address: target.address || target.currentLocation || '',
           currentJob: target.currentJob,
           currentLocation: target.currentLocation
         };
@@ -1641,19 +1693,20 @@ export function AppProvider({ children }) {
   };
 
   const declineSubmission = (id, reviewNotes = '') => {
+    const defaultDeclineNote = lang === 'bn' ? 'তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে' : 'Incomplete information or verification mismatch';
     setStudentSubmissions(prev =>
       prev.map(s =>
         s.id === id
           ? {
               ...s,
               status: 'declined',
-              reviewedAt: new Date().toLocaleDateString('bn-BD'),
-              reviewNotes: reviewNotes || 'তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে'
+              reviewedAt: new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US'),
+              reviewNotes: reviewNotes || defaultDeclineNote
             }
           : s
       )
     );
-    syncEntityToMongo('/api/submissions', 'POST', { id, status: 'declined', reviewNotes: reviewNotes || 'তথ্য অসম্পূর্ণ বা যাচাইয়ে অমিল রয়েছে' });
+    syncEntityToMongo('/api/submissions', 'POST', { id, status: 'declined', reviewNotes: reviewNotes || defaultDeclineNote });
     return true;
   };
 
@@ -1736,6 +1789,79 @@ export function AppProvider({ children }) {
     return newUser;
   };
 
+  // Update authenticated user's own profile (name, organization/role, phone, address, bio) across session & directory
+  const updateOwnProfile = ({ name, company, phone, address, location, bio }) => {
+    const cleanAddress = (address !== undefined ? address : location) || '';
+    const cleanEmail = (user?.email || '').trim().toLowerCase();
+    const cleanReg = (user?.regNo || mySubmission?.regNo || '').trim().toLowerCase();
+
+    const updatedUser = {
+      ...user,
+      name: name !== undefined ? name : user?.name,
+      company: company !== undefined ? company : user?.company,
+      phone: phone !== undefined ? phone : user?.phone,
+      address: cleanAddress,
+      location: cleanAddress,
+      bio: bio !== undefined ? bio : user?.bio
+    };
+    setUser(updatedUser);
+    syncUserToMongo(updatedUser);
+
+    if (cleanEmail) {
+      setStudentSubmissions(prev => prev.map(s => {
+        if (s.email && s.email.trim().toLowerCase() === cleanEmail) {
+          const nextSub = {
+            ...s,
+            name: name || s.name,
+            nameEn: name || s.nameEn,
+            phone: phone !== undefined ? phone : s.phone,
+            address: cleanAddress,
+            currentLocation: cleanAddress || s.currentLocation,
+            currentJob: company !== undefined ? company : s.currentJob,
+            bio: bio !== undefined ? bio : s.bio
+          };
+          syncEntityToMongo('/api/submissions', 'POST', nextSub);
+          return nextSub;
+        }
+        return s;
+      }));
+
+      setStudents(prev => prev.map(st => {
+        const ownsByEmail = st.email && st.email.trim().toLowerCase() === cleanEmail;
+        const ownsByReg = cleanReg && st.regNo && st.regNo.trim().toLowerCase() === cleanReg && (!st.email || st.email.trim().toLowerCase() === cleanEmail);
+        if (ownsByEmail || ownsByReg) {
+          const nextStd = {
+            ...st,
+            phone: phone !== undefined ? phone : st.phone,
+            address: cleanAddress,
+            currentLocation: cleanAddress || st.currentLocation,
+            activities: bio !== undefined ? bio : st.activities
+          };
+          syncEntityToMongo('/api/students', 'POST', nextStd);
+          return nextStd;
+        }
+        return st;
+      }));
+
+      setAlumni(prev => prev.map(al => {
+        if (al.email && al.email.trim().toLowerCase() === cleanEmail) {
+          const nextAl = {
+            ...al,
+            name: name || al.name,
+            company: company !== undefined ? company : al.company,
+            phone: phone !== undefined ? phone : al.phone,
+            location: cleanAddress || al.location,
+            address: cleanAddress,
+            bio: bio !== undefined ? bio : al.bio
+          };
+          syncEntityToMongo('/api/alumni', 'POST', nextAl);
+          return nextAl;
+        }
+        return al;
+      }));
+    }
+  };
+
   // ============================================
   // ADMIN EMAILS AUTHORIZATION MANAGEMENT
   // ============================================
@@ -1795,18 +1921,20 @@ export function AppProvider({ children }) {
     return newDispute;
   };
 
-  const resolveDispute = (disputeId, actionNote = 'অভিযোগ পর্যালোচনা করে সমাধান করা হয়েছে') => {
+  const resolveDispute = (disputeId, actionNote = '') => {
+    const defaultNote = lang === 'bn' ? 'অভিযোগ পর্যালোচনা করে সমাধান করা হয়েছে' : 'Reviewed and resolved by Administrator';
+    const noteToUse = actionNote || defaultNote;
     setDisputes(prev =>
       prev.map(d =>
         d.id === disputeId
-          ? { ...d, status: 'resolved', actionTaken: actionNote, resolvedAt: new Date().toISOString() }
+          ? { ...d, status: 'resolved', actionTaken: noteToUse, resolvedAt: new Date().toISOString() }
           : d
       )
     );
     syncEntityToMongo('/api/disputes', 'POST', {
       id: disputeId,
       status: 'resolved',
-      actionTaken: actionNote,
+      actionTaken: noteToUse,
       resolvedAt: new Date()
     });
   };
@@ -1834,6 +1962,7 @@ export function AppProvider({ children }) {
             phone: '',
             email: '',
             avatar: '',
+            address: '',
             activities: ''
           };
         }
@@ -1843,7 +1972,12 @@ export function AppProvider({ children }) {
 
     // 3. Mark dispute resolved if disputeId given
     if (disputeId) {
-      resolveDispute(disputeId, `রেজিস্ট্রেশন ${cleanReg}-এর ভুয়া ক্লেইম ও সাবমিশন সম্পূর্ণ মুছে দেওয়া হয়েছে`);
+      resolveDispute(
+        disputeId,
+        lang === 'bn'
+          ? `রেজিস্ট্রেশন ${cleanReg}-এর ভুয়া ক্লেইম ও সাবমিশন সম্পূর্ণ মুছে দেওয়া হয়েছে`
+          : `Disputed claim & submissions for Registration ${cleanReg} cleared and reset`
+      );
     }
 
     // 4. Send request to server reset-reg endpoint
@@ -1940,6 +2074,8 @@ export function AppProvider({ children }) {
         updateEvent,
         deleteEvent,
         registerForEvent,
+        registeredEvents,
+        updateOwnProfile,
         // Jobs
         jobs,
         setJobs,

@@ -111,7 +111,7 @@ export default function Home() {
             >
               <motion.div variants={fadeInUp} custom={0}>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-rose-50 border border-rose-300 text-rose-900 dark:bg-[#BD452F]/20 dark:border-[#BD452F]/40 dark:text-[#DE644E] text-[11px] font-mono-tech tracking-wider uppercase font-bold shadow-sm">
-                  <span>বস্ত্র ও পাট মন্ত্রণালয় • বুটেক্স অধিভুক্ত</span>
+                  <span>{lang === 'bn' ? 'বস্ত্র ও পাট মন্ত্রণালয় • বুটেক্স অধিভুক্ত' : 'Ministry of Textiles & Jute • BUTEX Affiliated'}</span>
                   <span>[ ESTD. 2018 ]</span>
                 </div>
               </motion.div>
@@ -707,7 +707,7 @@ export default function Home() {
             {[
               {
                 code: 'YE-01',
-                seats: '৩০টি আসন • 30 Seats',
+                seats: lang === 'bn' ? '৩০টি আসন' : '30 Seats',
                 titleBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
                 titleEn: 'Yarn Engineering',
                 descBn: 'তুলা ও ম্যান-মেড ফাইবারের স্পিনিং প্রযুক্তি, রিং, রোটর ও কমপ্যাক্ট সুতা উৎপাদন এবং টেক্সটাইল ফাইবার টেস্টিং ল্যাব।',
@@ -717,7 +717,7 @@ export default function Home() {
               },
               {
                 code: 'FE-02',
-                seats: '৩০টি আসন • 30 Seats',
+                seats: lang === 'bn' ? '৩০টি আসন' : '30 Seats',
                 titleBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
                 titleEn: 'Fabric Engineering',
                 descBn: 'আধুনিক শাটললেস উইভিং লুম, সার্কুলার ও ফ্ল্যাট নিটিং টেকনোলজি এবং ৩ডি ফ্যাব্রিক স্ট্রাকচারাল ডিজাইন।',
@@ -727,7 +727,7 @@ export default function Home() {
               },
               {
                 code: 'WPE-03',
-                seats: '৩০টি আসন • 30 Seats',
+                seats: lang === 'bn' ? '৩০টি আসন' : '30 Seats',
                 titleBn: 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং',
                 titleEn: 'Wet Process Engineering',
                 descBn: 'টেক্সটাইল কালারেশন, ডাইং, রোটারি প্রিন্টিং, ওয়াটার-রেপেলেন্ট ন্যানো ফিনিশিং ও গ্রিন ইটিপি (ETP) প্রযুক্তি।',
@@ -737,7 +737,7 @@ export default function Home() {
               },
               {
                 code: 'AME-04',
-                seats: '৩০টি আসন • 30 Seats',
+                seats: lang === 'bn' ? '৩০টি আসন' : '30 Seats',
                 titleBn: 'অ্যাপারেল ম্যানুফ্যাকচারিং',
                 titleEn: 'Apparel Manufacturing',
                 descBn: 'কম্পিউটারাইজড ক্যাড/ক্যাম প্যাটার্ন স্টুডিও, শিল্পমানের সুইং প্রোডাকশন লাইন ও গ্লোবাল মার্চেন্ডাইজিং।',

@@ -39,22 +39,23 @@ class ErrorBoundary extends React.Component {
   }
   render() {
     if (this.state.hasError) {
+      const savedLang = typeof window !== 'undefined' ? (localStorage.getItem('rtec_lang') || 'en') : 'en';
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center border border-amber-500/20">
             <GraduationCap className="w-7 h-7" />
           </div>
           <h2 className="text-xl font-bold font-serif-regal text-stone-900 dark:text-[#FDFBF7]">
-            পেজটি লোড হতে কিছুটা বিলম্ব হচ্ছে
+            {savedLang === 'bn' ? 'পেজটি লোড হতে কিছুটা বিলম্ব হচ্ছে' : 'Taking longer than expected to load'}
           </h2>
           <p className="text-xs text-stone-600 dark:text-[#A89884] max-w-md">
-            অনুগ্রহ করে পেজটি রিফ্রেশ করুন অথবা পুনরায় চেষ্টা করুন।
+            {savedLang === 'bn' ? 'অনুগ্রহ করে পেজটি রিফ্রেশ করুন অথবা পুনরায় চেষ্টা করুন।' : 'Please refresh the page or try again shortly.'}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:scale-105"
           >
-            পেজ রিফ্রেশ করুন (Reload)
+            {savedLang === 'bn' ? 'পেজ রিফ্রেশ করুন' : 'Reload Page'}
           </button>
         </div>
       );
@@ -64,6 +65,7 @@ class ErrorBoundary extends React.Component {
 }
 
 function PageLoader() {
+  const { lang } = useApp();
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-center p-6">
       <div className="relative w-12 h-12 flex items-center justify-center">
@@ -71,7 +73,7 @@ function PageLoader() {
         <GraduationCap className="w-5 h-5 text-[#DFCA9E]" />
       </div>
       <p className="text-[11px] text-[#A89884] font-mono-tech tracking-widest uppercase">
-        রেজিস্ট্রার সংযোগ হচ্ছে • LOADING...
+        {lang === 'bn' ? 'রেজিস্ট্রার সংযোগ হচ্ছে • LOADING...' : 'CONNECTING TO REGISTER • LOADING...'}
       </p>
     </div>
   );

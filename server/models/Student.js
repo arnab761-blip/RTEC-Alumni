@@ -22,6 +22,7 @@ const studentSchema = new mongoose.Schema({
   studentType: { type: String, default: 'Graduate' },
   currentJob: { type: String, default: '' },
   currentLocation: { type: String, default: '' },
+  address: { type: String, default: '' },
   remarks: { type: String, default: '' }
 }, {
   timestamps: true
