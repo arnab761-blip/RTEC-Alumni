@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
@@ -64,10 +64,16 @@ const staggerContainer = {
 export default function Home() {
   const { teachers, students, alumni, events, jobs, campaigns, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
-  const recentNotices = [...news].reverse().slice(0, 3);
+  const recentNotices = useMemo(() => [...news].reverse().slice(0, 3), [news]);
 
   return (
-    <div className="min-h-screen text-[#EDE8DF] flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#EDE8DF] flex flex-col"
+    >
       
       {/* 1. TOP PREMIER CAMPUS BANNER SLIDESHOW (Prominent & Clear) */}
       <HeroSlider />
@@ -343,7 +349,7 @@ export default function Home() {
               {recentNotices.map((notice, idx) => (
                 <div
                   key={notice.id || idx}
-                  className="plaque-espresso rounded-xl p-5 sm:p-6 border border-[#C5A880]/25 hover:border-[#C5A880]/50 transition-all duration-300 flex flex-col justify-between group shadow-lg"
+                  className="plaque-espresso rounded-xl p-5 sm:p-6 border border-[#C5A880]/25 hover:border-[#C5A880]/50 transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between group shadow-lg"
                 >
                   <div>
                     {/* Category & Date */}
@@ -507,7 +513,7 @@ export default function Home() {
             {forumPosts.slice(0, 3).map((post) => (
               <div
                 key={post.id}
-                className="plaque-elevated rounded-xl p-6 border border-[#C5A880]/25 flex flex-col justify-between hover:border-[#C5A880]/60 transition group"
+                className="plaque-elevated rounded-xl p-6 border border-[#C5A880]/25 flex flex-col justify-between hover:border-[#C5A880]/60 transition-all duration-200 hover:-translate-y-1 group"
               >
                 <div>
                   {/* Category and Type Badges */}
@@ -742,7 +748,7 @@ export default function Home() {
             ].map((dept, idx) => (
               <div
                 key={idx}
-                className={`plaque-elevated rounded-xl p-6 border ${dept.accent} flex flex-col justify-between hover:border-[#DFCA9E] transition group`}
+                className={`plaque-elevated rounded-xl p-6 border ${dept.accent} flex flex-col justify-between hover:border-[#DFCA9E] transition-all duration-200 hover:-translate-y-1 group`}
               >
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-[#C5A880]/15 mb-4">
@@ -1037,6 +1043,6 @@ export default function Home() {
         </div>
       </section>
 
-    </div>
+    </motion.div>
   );
 }

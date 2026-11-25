@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import {
   User,
@@ -49,7 +50,13 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Profile Card Banner */}
@@ -152,8 +159,18 @@ export default function Profile() {
         )}
 
         {/* Edit Form Drawer */}
-        {isEditing && (
-          <form onSubmit={handleSave} className="glass-panel p-6 rounded-3xl border border-emerald-500/30 mb-8 space-y-4 animate-in fade-in">
+        <AnimatePresence>
+          {isEditing && (
+            <motion.form
+              key="profile-edit-form"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onSubmit={handleSave}
+              className="overflow-hidden mb-8"
+            >
+              <div className="glass-panel p-6 rounded-3xl border border-emerald-500/30 space-y-4">
             <h3 className="text-base font-bold text-white mb-2">প্রোফাইল তথ্য আপডেট করুন</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -210,20 +227,22 @@ export default function Profile() {
 
             <button
               type="submit"
-              className="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition"
+              className="py-2.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer"
             >
               পরিবর্তন সংরক্ষণ করুন
             </button>
-          </form>
-        )}
+              </div>
+            </motion.form>
+          )}
+        </AnimatePresence>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-800 mb-6 gap-2">
+        <div className="flex border-b border-slate-800 mb-6 gap-4">
           <button
             onClick={() => setActiveTab('info')}
-            className={`pb-3 px-4 text-xs font-bold transition border-b-2 ${
+            className={`pb-3 px-4 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 border-b-2 cursor-pointer ${
               activeTab === 'info'
-                ? 'border-emerald-400 text-emerald-400'
+                ? 'border-emerald-400 text-emerald-400 scale-110'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -231,9 +250,9 @@ export default function Profile() {
           </button>
           <button
             onClick={() => setActiveTab('events')}
-            className={`pb-3 px-4 text-xs font-bold transition border-b-2 ${
+            className={`pb-3 px-4 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 border-b-2 cursor-pointer ${
               activeTab === 'events'
-                ? 'border-emerald-400 text-emerald-400'
+                ? 'border-emerald-400 text-emerald-400 scale-110'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -242,59 +261,69 @@ export default function Profile() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'info' && (
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-            <h3 className="font-bold text-white text-base">
-              {lang === 'bn' ? 'পরিচিতি ও বিবরণ' : 'About & Bio'}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{bio}</p>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'info' && (
+              <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
+                <h3 className="font-bold text-white text-base">
+                  {lang === 'bn' ? 'পরিচিতি ও বিবরণ' : 'About & Bio'}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{bio}</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-xs">
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-400">
-                  {lang === 'bn' ? 'যোগাযোগ ফোন:' : 'Phone:'}
-                </span>
-                <p className="text-white font-semibold mt-0.5">{phone}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <span className="text-slate-400">
+                      {lang === 'bn' ? 'যোগাযোগ ফোন:' : 'Phone:'}
+                    </span>
+                    <p className="text-white font-semibold mt-0.5">{phone}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <span className="text-slate-400">
+                      {lang === 'bn' ? 'বর্তমান অবস্থান:' : 'Current Location:'}
+                    </span>
+                    <p className="text-white font-semibold mt-0.5">{location}</p>
+                  </div>
+                </div>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-400">
-                  {lang === 'bn' ? 'বর্তমান অবস্থান:' : 'Current Location:'}
-                </span>
-                <p className="text-white font-semibold mt-0.5">{location}</p>
-              </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {activeTab === 'events' && (
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-            <h3 className="font-bold text-white text-base flex items-center gap-2">
-              <Ticket className="w-5 h-5 text-emerald-400" />
-              <span>{lang === 'bn' ? 'নিবন্ধিত ইভেন্ট ও টিকিট' : 'Registered Events & Passes'}</span>
-            </h3>
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 font-bold">
-                  Confirmed Ticket
-                </span>
-                <h4 className="font-bold text-white text-sm mt-1">
-                  {lang === 'bn' ? 'গ্র্যান্ড আরটেক অ্যালামনাই পুনর্মিলনী ২০২৬' : 'Grand RTEC Alumni Reunion 2026'}
-                </h4>
-                <p className="text-xs text-slate-400">
-                  {lang === 'bn' ? '২৫ ডিসেম্বর ২০২৬ • আরটেক সেন্ট্রাল ক্যাম্পাস' : '25 December 2026 • RTEC Central Campus'}
-                </p>
-                <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold mt-1">
-                  Token: RTEC-EVT-984210
-                </p>
+            {activeTab === 'events' && (
+              <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
+                <h3 className="font-bold text-white text-base flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-emerald-400" />
+                  <span>{lang === 'bn' ? 'নিবন্ধিত ইভেন্ট ও টিকিট' : 'Registered Events & Passes'}</span>
+                </h3>
+                <div className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 font-bold">
+                      Confirmed Ticket
+                    </span>
+                    <h4 className="font-bold text-white text-sm mt-1">
+                      {lang === 'bn' ? 'গ্র্যান্ড আরটেক অ্যালামনাই পুনর্মিলনী ২০২৬' : 'Grand RTEC Alumni Reunion 2026'}
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      {lang === 'bn' ? '২৫ ডিসেম্বর ২০২৬ • আরটেক সেন্ট্রাল ক্যাম্পাস' : '25 December 2026 • RTEC Central Campus'}
+                    </p>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold mt-1">
+                      Token: RTEC-EVT-984210
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 font-mono bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-500/30">
+                    Active Pass
+                  </span>
+                </div>
               </div>
-              <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 font-mono bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-500/30">
-                Active Pass
-              </span>
-            </div>
-          </div>
-        )}
+            )}
+          </motion.div>
+        </AnimatePresence>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

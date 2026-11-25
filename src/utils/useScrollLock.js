@@ -8,55 +8,28 @@ export function forceUnlockScroll() {
     document.body.classList.remove('modal-scroll-locked');
     document.documentElement.classList.remove('modal-scroll-locked');
   }
-  if (window.__lenis) {
-    try {
-      window.__lenis.start();
-    } catch (e) {
-      // ignore
-    }
-  }
 }
 
 /**
- * useScrollLock hook locks background page scrolling (including Lenis smooth scroll)
- * when a modal, drawer, or dialog is active, and guarantees 100% immediate release
- * when closed.
+ * useScrollLock locks native background page scrolling while a modal or drawer is active
+ * and releases it cleanly on unmount or close.
  *
- * @param {boolean} isLocked Whether the modal/drawer is currently open
+ * @param {boolean} isLocked Whether a modal or drawer is currently open
  */
 export function useScrollLock(isLocked) {
   useEffect(() => {
-    if (typeof document === 'undefined') return;
+    if (typeof document === 'undefined' || !isLocked) return;
 
-    if (isLocked) {
-      lockCount++;
-      document.body.classList.add('modal-scroll-locked');
-      document.documentElement.classList.add('modal-scroll-locked');
-      if (window.__lenis) {
-        try {
-          window.__lenis.stop();
-        } catch (e) {
-          // ignore
-        }
-      }
-    }
+    lockCount++;
+    document.body.classList.add('modal-scroll-locked');
+    document.documentElement.classList.add('modal-scroll-locked');
 
     return () => {
-      if (isLocked) {
-        lockCount = Math.max(0, lockCount - 1);
-        if (lockCount === 0) {
-          document.body.classList.remove('modal-scroll-locked');
-          document.documentElement.classList.remove('modal-scroll-locked');
-          if (window.__lenis) {
-            try {
-              window.__lenis.start();
-            } catch (e) {
-              // ignore
-            }
-          }
-        }
+      lockCount = Math.max(0, lockCount - 1);
+      if (lockCount === 0) {
+        document.body.classList.remove('modal-scroll-locked');
+        document.documentElement.classList.remove('modal-scroll-locked');
       }
     };
   }, [isLocked]);
 }
-

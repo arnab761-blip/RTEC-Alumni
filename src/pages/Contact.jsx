@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import {
   MapPin,
@@ -33,7 +34,13 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Archival Header */}
@@ -59,7 +66,7 @@ export default function Contact() {
           
           {/* Contact Details Cards */}
           <div className="space-y-4">
-            <div className="plaque-elevated p-6 rounded-xl border border-[#C5A880]/25 space-y-3">
+            <div className="plaque-elevated p-6 rounded-xl border border-[#C5A880]/25 space-y-3 transition-all duration-200 hover:-translate-y-1">
               <div className="w-10 h-10 rounded-lg bg-[#141311] border border-[#C5A880]/25 text-[#DFCA9E] flex items-center justify-center">
                 <MapPin className="w-5 h-5 text-[#DE644E]" />
               </div>
@@ -218,6 +225,6 @@ export default function Contact() {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

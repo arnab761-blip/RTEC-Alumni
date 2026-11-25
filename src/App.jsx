@@ -1,12 +1,11 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
-import SmoothScroll from './components/SmoothScroll.jsx';
-import PageTransition from './components/PageTransition.jsx';
 import BackgroundWatermark from './components/BackgroundWatermark.jsx';
+import { forceUnlockScroll } from './utils/useScrollLock.js';
 import { GraduationCap } from 'lucide-react';
 
 // Lazy-loaded pages for high-speed performance
@@ -53,7 +52,7 @@ class ErrorBoundary extends React.Component {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-md transition"
+            className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:scale-105"
           >
             পেজ রিফ্রেশ করুন (Reload)
           </button>
@@ -78,36 +77,51 @@ function PageLoader() {
   );
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    forceUnlockScroll();
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
+const LazyPage = ({ component: Component }) => (
+  <Suspense fallback={<PageLoader />}>
+    <Component />
+  </Suspense>
+);
+
 function AnimatedRoutes() {
   const location = useLocation();
 
   return (
     <ErrorBoundary>
-      <AnimatePresence mode="wait">
-        <Suspense fallback={<PageLoader />}>
-          <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-          <Route path="/teachers" element={<PageTransition><Teachers /></PageTransition>} />
-          <Route path="/students" element={<PageTransition><Students /></PageTransition>} />
-          <Route path="/student-portal" element={<PageTransition><StudentPortal /></PageTransition>} />
-          <Route path="/student-id" element={<PageTransition><StudentPortal /></PageTransition>} />
-          <Route path="/directory" element={<PageTransition><AlumniDirectory /></PageTransition>} />
-          <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
-          <Route path="/jobs" element={<PageTransition><Jobs /></PageTransition>} />
-          <Route path="/mentorship" element={<PageTransition><Mentorship /></PageTransition>} />
-          <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-          <Route path="/forum" element={<PageTransition><Forum /></PageTransition>} />
-          <Route path="/news" element={<PageTransition><News /></PageTransition>} />
-          <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-          <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
-          <Route path="/admin" element={<PageTransition><Admin /></PageTransition>} />
-          <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-          <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
-          <Route path="*" element={<PageTransition><Home /></PageTransition>} />
+      <AnimatePresence mode="wait" onExitComplete={() => window.scrollTo(0, 0)}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Home />} />
+          <Route path="/teachers" element={<LazyPage component={Teachers} />} />
+          <Route path="/students" element={<LazyPage component={Students} />} />
+          <Route path="/student-portal" element={<LazyPage component={StudentPortal} />} />
+          <Route path="/student-id" element={<LazyPage component={StudentPortal} />} />
+          <Route path="/directory" element={<LazyPage component={AlumniDirectory} />} />
+          <Route path="/events" element={<LazyPage component={Events} />} />
+          <Route path="/jobs" element={<LazyPage component={Jobs} />} />
+          <Route path="/mentorship" element={<LazyPage component={Mentorship} />} />
+          <Route path="/gallery" element={<LazyPage component={Gallery} />} />
+          <Route path="/forum" element={<LazyPage component={Forum} />} />
+          <Route path="/news" element={<LazyPage component={News} />} />
+          <Route path="/auth" element={<LazyPage component={Auth} />} />
+          <Route path="/profile" element={<LazyPage component={Profile} />} />
+          <Route path="/admin" element={<LazyPage component={Admin} />} />
+          <Route path="/about" element={<LazyPage component={About} />} />
+          <Route path="/contact" element={<LazyPage component={Contact} />} />
+          <Route path="*" element={<Home />} />
         </Routes>
-      </Suspense>
-    </AnimatePresence>
-  </ErrorBoundary>
+      </AnimatePresence>
+    </ErrorBoundary>
   );
 }
 
@@ -117,18 +131,18 @@ function AppLayout() {
 
   return (
     <div
-      className={`min-h-screen ${
+      className={`min-h-screen transition-colors duration-300 ${
         isDark ? 'bg-[#121110] text-[#EDE8DF]' : 'bg-[#FAF8F5] text-[#29241E]'
-      } flex flex-col font-sans selection:bg-[#C5A880] selection:text-[#121110] relative w-full max-w-full overflow-x-hidden`}
+      } flex flex-col font-sans selection:bg-[#C5A880] selection:text-[#121110] relative w-full max-w-full overflow-x-clip`}
     >
       {/* Fixed Ambient College Seal Watermark */}
       <BackgroundWatermark />
 
       <Navbar />
-      <main className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden pt-[92px] sm:pt-[100px] pb-24 sm:pb-28 relative z-10 bg-transparent">
+      <main className="flex-1 flex flex-col w-full max-w-full overflow-x-clip pb-24 sm:pb-28 relative z-10 bg-transparent">
         <AnimatedRoutes />
       </main>
-      <div className="relative z-20 w-full max-w-full overflow-x-hidden">
+      <div className="relative z-20 w-full max-w-full overflow-x-clip">
         <Footer />
       </div>
     </div>
@@ -139,10 +153,9 @@ export default function App() {
   return (
     <AppProvider>
       <Router>
+        <ScrollToTop />
         <ErrorBoundary>
-          <SmoothScroll>
-            <AppLayout />
-          </SmoothScroll>
+          <AppLayout />
         </ErrorBoundary>
       </Router>
     </AppProvider>

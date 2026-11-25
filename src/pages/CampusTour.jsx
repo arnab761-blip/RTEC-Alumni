@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import CampusScene from '../three/CampusScene.jsx';
 import { CAMPUS_LANDMARKS } from '../three/CampusData.js';
 import MiniMap from '../components/MiniMap.jsx';
@@ -97,7 +98,13 @@ export default function CampusTour() {
   }, [autoTour]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] overflow-hidden bg-slate-950 select-none on-dark-media">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="relative w-full h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] overflow-hidden bg-slate-950 select-none on-dark-media"
+    >
       
       {/* 3D WebGL Canvas Scene with Google Earth Style 360-Degree Controls */}
       <CampusScene
@@ -243,9 +250,17 @@ export default function CampusTour() {
         </div>
       </div>
 
-      {/* Main Gate Welcome Overlay (ONLY SHOWN ONCE! Once entered/dismissed, NEVER appears again!) */}
-      {!gateBannerDismissed && currentStep === 0 && (
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-auto z-20 w-11/12 max-w-xl animate-in fade-in zoom-in-95 duration-500">
+      {/* Main Gate Welcome Overlay */}
+      <AnimatePresence>
+        {!gateBannerDismissed && currentStep === 0 && (
+          <motion.div
+            key="gate-welcome-overlay"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-auto z-20 w-11/12 max-w-xl"
+          >
           <div className="glass-panel p-5 sm:p-7 rounded-3xl border border-emerald-500/40 shadow-2xl backdrop-blur-2xl relative">
             <button
               onClick={handleDismissBanner}
@@ -278,13 +293,33 @@ export default function CampusTour() {
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Help Modal Popup */}
-      {showHelp && (
-        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700 shadow-2xl relative">
+      <AnimatePresence>
+        {showHelp && (
+          <motion.div
+            key="campus-help-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setShowHelp(false);
+            }}
+          >
+            <motion.div
+              key="campus-help-card"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="glass-panel p-6 rounded-3xl max-w-md w-full border border-slate-700 shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
             <button
               onClick={() => setShowHelp(false)}
               className="absolute top-4 right-4 p-1.5 rounded-xl bg-slate-900 text-slate-400 hover:text-white"
@@ -316,43 +351,50 @@ export default function CampusTour() {
             >
               বুঝেছি (Got It)
             </button>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Building Details Modal: ONLY opens when user explicitly clicks "ℹ️ বিস্তারিত" button */}
-      {activeModalLandmark && typeof document !== 'undefined' && createPortal(
-        <div
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in overscroll-contain"
-          onClick={() => setActiveModalLandmark(null)}
-        >
-          <div
-            data-lenis-prevent="true"
-            className="w-full max-w-lg pointer-events-auto overscroll-contain"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <BuildingInfoModal
-              landmark={activeModalLandmark}
-              onClose={() => setActiveModalLandmark(null)}
-              onNext={() => {
-                const nextIdx = (activeModalLandmark.step) % CAMPUS_LANDMARKS.length;
-                setActiveModalLandmark(CAMPUS_LANDMARKS[nextIdx]);
-                setCurrentStep(nextIdx);
-              }}
-              onPrev={() => {
-                const prevIdx = (activeModalLandmark.step - 2 + CAMPUS_LANDMARKS.length) % CAMPUS_LANDMARKS.length;
-                setActiveModalLandmark(CAMPUS_LANDMARKS[prevIdx]);
-                setCurrentStep(prevIdx);
-              }}
-              isFirst={activeModalLandmark.step === 1}
-              isLast={activeModalLandmark.step === CAMPUS_LANDMARKS.length}
-              onSpeak={handleSpeak}
-              isSpeaking={isSpeaking}
-            />
-          </div>
-        </div>,
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeModalLandmark && (
+            <motion.div
+              key="campus-building-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+              onClick={() => setActiveModalLandmark(null)}
+            >
+              <div
+                className="w-full max-w-lg pointer-events-auto overscroll-contain"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <BuildingInfoModal
+                  landmark={activeModalLandmark}
+                  onClose={() => setActiveModalLandmark(null)}
+                  onNext={() => {
+                    const nextIdx = (activeModalLandmark.step) % CAMPUS_LANDMARKS.length;
+                    setActiveModalLandmark(CAMPUS_LANDMARKS[nextIdx]);
+                    setCurrentStep(nextIdx);
+                  }}
+                  onPrev={() => {
+                    const prevIdx = (activeModalLandmark.step - 2 + CAMPUS_LANDMARKS.length) % CAMPUS_LANDMARKS.length;
+                    setActiveModalLandmark(CAMPUS_LANDMARKS[prevIdx]);
+                    setCurrentStep(prevIdx);
+                  }}
+                  isFirst={activeModalLandmark.step === 1}
+                  isLast={activeModalLandmark.step === CAMPUS_LANDMARKS.length}
+                  onSpeak={handleSpeak}
+                  isSpeaking={isSpeaking}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
@@ -408,6 +450,6 @@ export default function CampusTour() {
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

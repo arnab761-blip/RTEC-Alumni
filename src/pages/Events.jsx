@@ -73,7 +73,13 @@ export default function Events() {
   };
 
   return (
-    <div className="min-h-screen text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Archival Header */}
@@ -169,7 +175,7 @@ export default function Events() {
           {events.map((evt, idx) => (
             <div
               key={evt.id}
-              className="ticket-pass rounded-2xl overflow-hidden plaque-espresso border border-[#C5A880]/25 hover:border-[#C5A880]/60 transition-all shadow-xl relative"
+              className="ticket-pass rounded-2xl overflow-hidden plaque-espresso border border-[#C5A880]/25 hover:border-[#C5A880]/60 transition-all duration-200 hover:-translate-y-1 shadow-xl relative"
             >
               
               {/* Notches on Desktop */}
@@ -300,19 +306,16 @@ export default function Events() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
+              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setRegisterModalOpen(false);
               }}
             >
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                data-lenis-prevent="true"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="plaque-elevated w-full max-w-lg rounded-2xl p-6 sm:p-8 border border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -437,6 +440,6 @@ export default function Events() {
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

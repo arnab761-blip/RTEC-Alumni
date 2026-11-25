@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
 import DriveImageInput from '../components/DriveImageInput.jsx';
@@ -80,7 +81,7 @@ export default function StudentPortal() {
   // 2. Matching mySubmissionId
   // 3. Matching logged-in user email or submissionId
   // 4. Fallback from localStorage
-  const activeSubmission = mySubmission || studentSubmissions.find((s) => {
+  const activeSubmission = useMemo(() => mySubmission || studentSubmissions.find((s) => {
     if (mySubmissionId && s.id === mySubmissionId) return true;
     if (user?.submissionId && s.id === user.submissionId) return true;
     const savedReg = typeof localStorage !== 'undefined' ? localStorage.getItem('rtec_my_submission_reg') : null;
@@ -90,7 +91,7 @@ export default function StudentPortal() {
     if (user?.email && s.email && s.email.toLowerCase().trim() === user.email.toLowerCase().trim()) return true;
     if (user?.regNo && s.regNo && s.regNo.trim() === user.regNo.trim()) return true;
     return false;
-  }) || null;
+  }) || null, [mySubmission, studentSubmissions, mySubmissionId, user]);
 
   // Toggle for Edit Mode
   const [isEditingDetails, setIsEditingDetails] = useState(false);
@@ -106,7 +107,7 @@ export default function StudentPortal() {
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
 
-  // Lock background scrolling and pause Lenis smooth scroll while any modal is open!
+  // Lock native background scrolling while any modal is open
   useScrollLock(Boolean(isDisputeModalOpen || isGoogleModalOpen));
 
   // ID Dispute Form State
@@ -293,9 +294,9 @@ export default function StudentPortal() {
     return inStudents;
   };
 
-  const matchedStudentFromList = students.find(
+  const matchedStudentFromList = useMemo(() => students.find(
     st => st.regNo && formData.regNo && st.regNo.trim().toLowerCase() === formData.regNo.trim().toLowerCase()
-  );
+  ), [students, formData.regNo]);
 
   const isRegNoTaken = (regNo) => {
     if (!regNo || !regNo.trim()) return false;
@@ -377,16 +378,31 @@ export default function StudentPortal() {
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 transition-colors">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen py-8 sm:py-12 transition-colors duration-300"
+    >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
         {/* Global Toast Notification */}
-        {toastMessage && (
-          <div className="system-toast fixed top-20 right-4 z-50 px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-4 duration-300">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              key="portal-toast"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="system-toast fixed top-20 right-4 z-50 px-4 py-3 rounded-2xl text-xs font-bold shadow-2xl flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Masthead Header */}
         <div className="pb-6 border-b border-[#C5A880]/20 text-center sm:text-left">
@@ -525,8 +541,16 @@ export default function StudentPortal() {
             CASE A: USER HAS AN ACTIVE SUBMISSION (PENDING / APPROVED / DECLINED)
             Permanent Profile & Status Dashboard View
             ======================================================== */}
-        {activeSubmission && !isEditingDetails && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+        <AnimatePresence mode="wait">
+        {activeSubmission && !isEditingDetails ? (
+          <motion.div
+            key="portal-case-a"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.22 }}
+            className="space-y-6"
+          >
 
             {/* Main Dynamic Status Banner */}
             <div
@@ -795,14 +819,17 @@ export default function StudentPortal() {
 
             </div>
 
-          </div>
-        )}
-
-        {/* ========================================================
-            CASE B: SUBMISSION FORM (NEW PROFILE OR EDITING DETAILS)
-            ======================================================== */}
-        {(!activeSubmission || isEditingDetails) && (
-          <div className="space-y-6">
+            {/* Profile Overview Card */}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="portal-case-b"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.22 }}
+            className="space-y-6"
+          >
 
             {/* Editing Notice Banner */}
             {isEditingDetails && activeSubmission && (
@@ -953,12 +980,22 @@ export default function StudentPortal() {
                           }`}
                         />
                       </div>
-                      {emailIsDuplicate && (
-                        <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1.5 animate-in fade-in">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span>{lang === 'bn' ? 'এই ইমেইলটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This email already exists'}</span>
-                        </p>
-                      )}
+                      <AnimatePresence>
+                        {emailIsDuplicate && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1.5">
+                              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{lang === 'bn' ? 'এই ইমেইলটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This email already exists'}</span>
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {/* Mobile Number */}
@@ -1005,12 +1042,20 @@ export default function StudentPortal() {
                           }`}
                         />
                       </div>
-                      {regNoIsDuplicate && (
-                        <div className="space-y-1.5 mt-1.5">
-                          <p className="text-xs text-rose-500 font-bold flex items-center gap-1.5 animate-in fade-in">
-                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span>{lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists'}</span>
-                          </p>
+                      <AnimatePresence>
+                        {regNoIsDuplicate && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="space-y-1.5 mt-1.5">
+                              <p className="text-xs text-rose-500 font-bold flex items-center gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                <span>{lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists'}</span>
+                              </p>
                           <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
                             <div className="flex items-center gap-1.5 font-bold mb-1">
                               <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -1050,11 +1095,21 @@ export default function StudentPortal() {
                               )}
                             </span>
                           </div>
-                        </div>
-                      )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
-                      {matchedStudentFromList && !regNoIsDuplicate && (
-                        <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 text-xs text-emerald-900 dark:text-emerald-200 flex flex-wrap items-center justify-between gap-2 animate-in fade-in">
+                      <AnimatePresence>
+                        {matchedStudentFromList && !regNoIsDuplicate && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 text-xs text-emerald-900 dark:text-emerald-200 flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 font-bold">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>{matchedStudentFromList.name} ({matchedStudentFromList.batch})</span>
@@ -1078,8 +1133,10 @@ export default function StudentPortal() {
                           >
                             {lang === 'bn' ? 'তথ্য অটো-ফিল করুন' : 'Auto-fill Details'}
                           </button>
-                        </div>
-                      )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     {/* Batch */}
@@ -1261,8 +1318,9 @@ export default function StudentPortal() {
               </form>
             </div>
 
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
 
         {/* ========================================================
             COMPACT MINIMIZED ID DISPUTE TOGGLE BAR AT BOTTOM
@@ -1298,23 +1356,30 @@ export default function StudentPortal() {
 
         {/* ========================================================
             ID DISPUTE & COMPLAINT FLOATING MODAL WINDOW
-            Portaled directly to document.body with z-[99999]
-            Guaranteed to stay above bottom dock, footer, and locks scroll
             ======================================================== */}
-        {typeof document !== 'undefined' && isDisputeModalOpen && createPortal(
-          <div
-            data-lenis-prevent="true"
-            data-modal-open="true"
-            className="fixed inset-0 z-[99999] overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overscroll-contain animate-in fade-in duration-200"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsDisputeModalOpen(false);
-            }}
-          >
-            <div
-              data-lenis-prevent="true"
-              className="relative w-full max-w-2xl bg-white dark:bg-[#1A1815] rounded-3xl border border-amber-500/30 shadow-2xl p-6 sm:p-8 my-auto text-left max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {isDisputeModalOpen && (
+              <motion.div
+                key="portal-dispute-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[99999] overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overscroll-contain"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setIsDisputeModalOpen(false);
+                }}
+              >
+                <motion.div
+                  key="portal-dispute-card"
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative w-full max-w-2xl bg-white dark:bg-[#1A1815] rounded-3xl border border-amber-500/30 shadow-2xl p-6 sm:p-8 my-auto text-left max-h-[90vh] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
               {/* Close Button */}
               <button
                 type="button"
@@ -1350,7 +1415,7 @@ export default function StudentPortal() {
               </div>
 
               {disputeSubmitted ? (
-                <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-600/50 text-center space-y-3 animate-in fade-in">
+                <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-600/50 text-center space-y-3">
                   <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-md">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
@@ -1499,8 +1564,10 @@ export default function StudentPortal() {
                   </div>
                 </form>
               )}
-            </div>
-          </div>,
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>,
           document.body
         )}
 
@@ -1520,6 +1587,6 @@ export default function StudentPortal() {
         />
 
       </div>
-    </div>
+    </motion.div>
   );
 }

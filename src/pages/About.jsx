@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import {
   Building2,
@@ -108,7 +109,13 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Banner */}
@@ -200,7 +207,7 @@ export default function About() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {departments.map((dept, idx) => (
-              <div key={idx} className="plaque-elevated p-6 rounded-xl border border-[#C5A880]/20 space-y-3">
+              <div key={idx} className="plaque-elevated p-6 rounded-xl border border-[#C5A880]/20 space-y-3 transition-all duration-200 hover:-translate-y-1">
                 <div className="flex items-center justify-between">
                   <span className="w-8 h-8 rounded bg-[#141311] border border-[#C5A880]/25 text-[#DFCA9E] flex items-center justify-center font-bold text-xs font-mono-tech">
                     0{idx + 1}
@@ -237,6 +244,6 @@ export default function About() {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

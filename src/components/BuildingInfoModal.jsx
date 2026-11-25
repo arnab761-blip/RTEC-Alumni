@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Volume2,
   VolumeX,
@@ -28,7 +29,13 @@ export default function BuildingInfoModal({
   if (!landmark) return null;
 
   return (
-    <div className="w-full max-w-md sm:max-w-lg glass-panel rounded-3xl p-4 sm:p-5 shadow-2xl border border-emerald-500/30 text-slate-100 transition-all duration-300 animate-in fade-in slide-in-from-bottom-6">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: 20 }}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full max-w-md sm:max-w-lg glass-panel rounded-3xl p-4 sm:p-5 shadow-2xl border border-emerald-500/30 text-slate-100"
+    >
       {/* Top Header Badge & Close */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
@@ -143,34 +150,44 @@ export default function BuildingInfoModal({
 
       {/* Tab Content */}
       <div className="min-h-[75px] max-h-36 overflow-y-auto pr-1 text-slate-300 text-xs sm:text-sm leading-relaxed mb-4">
-        {activeTab === 'overview' && (
-          <div>
-            <p className="text-slate-200 mb-2">{landmark.descriptionBn}</p>
-            <p className="text-slate-400 text-[11px] italic font-sans">{landmark.descriptionEn}</p>
-          </div>
-        )}
-
-        {activeTab === 'facts' && (
-          <ul className="space-y-1.5">
-            {landmark.facts.map((fact, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-slate-200">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>{fact}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {activeTab === 'stats' && (
-          <div className="grid grid-cols-3 gap-2">
-            {Object.entries(landmark.stats).map(([key, val]) => (
-              <div key={key} className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
-                <span className="block text-[10px] text-slate-400 capitalize">{key}</span>
-                <span className="text-xs sm:text-sm font-bold text-emerald-300">{val}</span>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.16 }}
+          >
+            {activeTab === 'overview' && (
+              <div>
+                <p className="text-slate-200 mb-2">{landmark.descriptionBn}</p>
+                <p className="text-slate-400 text-[11px] italic font-sans">{landmark.descriptionEn}</p>
               </div>
-            ))}
-          </div>
-        )}
+            )}
+
+            {activeTab === 'facts' && (
+              <ul className="space-y-1.5">
+                {landmark.facts.map((fact, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-slate-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{fact}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {activeTab === 'stats' && (
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(landmark.stats).map(([key, val]) => (
+                  <div key={key} className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 text-center">
+                    <span className="block text-[10px] text-slate-400 capitalize">{key}</span>
+                    <span className="text-xs sm:text-sm font-bold text-emerald-300">{val}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Navigation Buttons */}
@@ -178,7 +195,7 @@ export default function BuildingInfoModal({
         <button
           onClick={onPrev}
           disabled={isFirst}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition text-slate-200"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 text-slate-200 cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           পূর্ববর্তী
@@ -191,12 +208,12 @@ export default function BuildingInfoModal({
         <button
           onClick={onNext}
           disabled={isLast}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-xs font-semibold transition text-white shadow-lg shadow-emerald-900/30"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 text-white shadow-lg shadow-emerald-900/30 cursor-pointer"
         >
           পরবর্তী
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }

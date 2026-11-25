@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
 import { X, ShieldCheck } from 'lucide-react';
@@ -141,7 +141,7 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
     };
   }, [isOpen, activeClientId, theme, lang]);
 
-  if (!isOpen || typeof document === 'undefined') return null;
+  if (typeof document === 'undefined') return null;
 
   const handleSubmit = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -167,28 +167,28 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
   };
 
   return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      data-lenis-prevent="true"
-      data-modal-open="true"
-      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overscroll-contain"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.94, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300, mass: 0.8 }}
-        data-lenis-prevent="true"
-        className="w-full max-w-md bg-white dark:bg-[#181715] border border-slate-300 dark:border-[#C5A880]/35 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-[#0C0A09] dark:text-[#FDFBF7] max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-        style={{ willChange: 'transform, opacity' }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="google-signin-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          <motion.div
+            key="google-signin-card"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-md bg-white dark:bg-[#181715] border border-slate-300 dark:border-[#C5A880]/35 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-[#0C0A09] dark:text-[#FDFBF7] max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -290,8 +290,10 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
             <span>{lang === 'bn' ? 'নিরাপদ গুগল অ্যাকাউন্ট প্রমাণীকরণ' : 'Secure Google Account Authentication'}</span>
           </p>
         </div>
-      </motion.div>
-    </motion.div>,
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }

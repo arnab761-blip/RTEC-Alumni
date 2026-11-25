@@ -123,24 +123,9 @@ export function AppProvider({ children }) {
     return localStorage.getItem('rtec_college_logo') || '/images/rtec-logo.png';
   });
 
-  // 2.2 Instant 0ms Theme Switching Engine
+  // 2.2 Eye-soothing Theme Switching
   const applyThemeToDOM = (nextTheme) => {
     const root = document.documentElement;
-    // Suppress CSS transitions temporarily for 0ms instantaneous switch
-    const css = document.createElement('style');
-    css.appendChild(
-      document.createTextNode(
-        `*, *::before, *::after {
-          -webkit-transition: none !important;
-          -moz-transition: none !important;
-          -o-transition: none !important;
-          -ms-transition: none !important;
-          transition: none !important;
-        }`
-      )
-    );
-    document.head.appendChild(css);
-
     if (nextTheme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
@@ -151,16 +136,6 @@ export function AppProvider({ children }) {
       root.setAttribute('data-theme', 'light');
     }
     localStorage.setItem('rtec_theme', nextTheme);
-
-    // Force flush and cleanup
-    window.getComputedStyle(css).opacity;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (css.parentNode) {
-          css.parentNode.removeChild(css);
-        }
-      });
-    });
   };
 
   // Theme State ('light' by default, switchable to 'dark')

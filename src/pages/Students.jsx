@@ -98,7 +98,13 @@ export default function Students() {
   }, [filteredStudents, currentPage, pageSize]);
 
   return (
-    <div className="min-h-screen text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Archival Header */}
@@ -260,7 +266,7 @@ export default function Students() {
               {paginatedStudents.map((std, idx) => (
                 <div
                   key={std.id || std.regNo}
-                  className="plaque-elevated rounded-xl p-5 border border-[#C5A880]/25 hover:border-[#C5A880]/60 transition-all flex flex-col justify-between group shadow-lg"
+                  className="plaque-elevated rounded-xl p-5 border border-[#C5A880]/25 hover:border-[#C5A880]/60 transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between group shadow-lg"
                 >
                   <div>
                     <div className="flex items-start gap-3.5 mb-3">
@@ -366,9 +372,9 @@ export default function Students() {
                             setCurrentPage(page);
                             window.scrollTo({ top: 380, behavior: 'smooth' });
                           }}
-                          className={`w-8 h-8 rounded-lg font-bold flex items-center justify-center transition cursor-pointer ${
+                          className={`w-8 h-8 rounded-lg font-bold flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
                             currentPage === page
-                              ? 'bg-amber-600 text-white dark:bg-[#C5A880] dark:text-[#121110] shadow-sm'
+                              ? 'bg-amber-600 text-white dark:bg-[#C5A880] dark:text-[#121110] shadow-sm scale-110'
                               : 'border border-stone-300 dark:border-[#C5A880]/30 hover:bg-stone-200 dark:hover:bg-[#1E1C18] text-stone-800 dark:text-[#EDE8DF]'
                           }`}
                         >
@@ -428,20 +434,17 @@ export default function Students() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setSelectedStudent(null);
               }}
             >
               <motion.div 
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                data-lenis-prevent="true"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-md rounded-2xl p-6 sm:p-8 bg-white dark:bg-[#181715] border border-stone-200 dark:border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-stone-900 dark:text-[#EDE8DF]"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -596,6 +599,6 @@ export default function Students() {
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

@@ -114,6 +114,12 @@ export default function Navbar() {
       labelBn: 'শিক্ষার্থী',
       labelEn: 'Students',
       icon: Users
+    },
+    {
+      to: '/forum',
+      labelBn: 'অভিজ্ঞতা শেয়ার',
+      labelEn: 'Experience Share',
+      icon: MessageSquareQuote
     }
   ];
 
@@ -131,8 +137,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* 1. ARCHITECTURAL TOP MASTHEAD (Two-Tier Institutional Header - Fixed at viewport top) */}
-      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-[#FAF9F6]/95 dark:bg-[#141311]/98 backdrop-blur-md border-b border-[#C5A880]/30 dark:border-[#C5A880]/25 shadow-md">
+      {/* 1. ARCHITECTURAL TOP MASTHEAD (Sticky at viewport top with light backdrop-blur-md) */}
+      <header className="sticky top-0 z-50 w-full bg-[#FAF9F6]/95 dark:bg-[#141311]/95 backdrop-blur-md border-b border-[#C5A880]/30 dark:border-[#C5A880]/25 shadow-md transition-colors duration-300">
         
         {/* TIER 1: OFFICIAL COLLEGE CREST & FULL INSTITUTIONAL TITLE */}
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
@@ -180,16 +186,15 @@ export default function Navbar() {
             
             {/* Left Controls: Bilingual Switcher & Theme Switcher */}
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Bilingual Switcher (0ms instant tap with touchAction: manipulation) */}
+              {/* Bilingual Switcher */}
               <div className="flex items-center bg-white dark:bg-[#1E1C18] border border-[#C5A880]/50 dark:border-[#C5A880]/30 rounded-lg p-0.5 text-[10px] sm:text-[11px] font-mono-tech shadow-inner">
                 <button
                   type="button"
                   onClick={() => setLang('bn')}
-                  style={{ touchAction: 'manipulation' }}
-                  className={`px-2 py-0.5 rounded font-bold transition-colors duration-75 select-none cursor-pointer ${
+                  className={`px-2 py-0.5 rounded font-bold transition-all duration-200 select-none cursor-pointer ${
                     lang === 'bn'
-                      ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] shadow font-black'
-                      : 'text-[#57534E] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF]'
+                      ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] shadow font-black scale-105'
+                      : 'text-[#57534E] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] hover:scale-105'
                   }`}
                   title="বাংলা"
                 >
@@ -198,11 +203,10 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setLang('en')}
-                  style={{ touchAction: 'manipulation' }}
-                  className={`px-2 py-0.5 rounded font-bold transition-colors duration-75 select-none cursor-pointer ${
+                  className={`px-2 py-0.5 rounded font-bold transition-all duration-200 select-none cursor-pointer ${
                     lang === 'en'
-                      ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] shadow font-black'
-                      : 'text-[#57534E] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF]'
+                      ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] shadow font-black scale-105'
+                      : 'text-[#57534E] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] hover:scale-105'
                   }`}
                   title="English"
                 >
@@ -210,12 +214,11 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Theme Toggle Button (Light / Dark - 0ms instant tap) */}
+              {/* Theme Toggle Button */}
               <button
                 type="button"
                 onClick={toggleTheme}
-                style={{ touchAction: 'manipulation' }}
-                className="px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg border border-[#C5A880]/50 dark:border-[#C5A880]/30 hover:border-[#854D0E] dark:hover:border-[#C5A880] bg-white dark:bg-[#1E1C18] text-[#854D0E] dark:text-[#DFCA9E] transition-colors duration-75 select-none shadow-sm text-xs font-mono-tech cursor-pointer shrink-0 flex items-center gap-1.5 active:scale-95 font-bold"
+                className="px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg border border-[#C5A880]/50 dark:border-[#C5A880]/30 hover:border-[#854D0E] dark:hover:border-[#C5A880] bg-white dark:bg-[#1E1C18] text-[#854D0E] dark:text-[#DFCA9E] transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 select-none shadow-sm text-xs font-mono-tech cursor-pointer shrink-0 flex items-center gap-1.5 font-bold"
                 title={
                   theme === 'dark'
                     ? (lang === 'bn' ? 'লাইট মোডে পরিবর্তন' : 'Switch to Light Mode')
@@ -243,9 +246,9 @@ export default function Navbar() {
               {/* Desktop-only quick link to Student Portal */}
               <Link
                 to="/student-portal"
-                className={`hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono-tech font-bold uppercase tracking-wider transition border shrink-0 ${
+                className={`hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono-tech font-bold uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 border shrink-0 ${
                   location.pathname === '/student-portal'
-                    ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] border-[#854D0E]'
+                    ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] border-[#854D0E] scale-105'
                     : 'bg-white dark:bg-[#1E1C18] text-[#854D0E] dark:text-[#DFCA9E] border-[#C5A880]/40 dark:border-[#C5A880]/30 hover:border-[#854D0E] dark:hover:border-[#C5A880]'
                 }`}
                 title={lang === 'bn' ? 'শিক্ষার্থী আইডি ও তথ্য জমা' : 'Student Portal'}
@@ -297,12 +300,18 @@ export default function Navbar() {
                     <ChevronDown className="w-3 h-3 text-[#854D0E] dark:text-[#A89884]" />
                   </button>
 
-                  {/* Dropdown Menu */}
-                  {userDropdownOpen && (
-                    <div
-                      className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#181715] p-3 shadow-2xl border border-slate-200 dark:border-[#C5A880]/30 animate-in fade-in z-50 text-slate-900 dark:text-[#EDE8DF]"
-                      onMouseLeave={() => setUserDropdownOpen(false)}
-                    >
+                  {/* Dropdown Menu with Framer Motion */}
+                  <AnimatePresence>
+                    {userDropdownOpen && (
+                      <motion.div
+                        key="profile-dropdown-menu"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#181715] p-3 shadow-2xl border border-slate-200 dark:border-[#C5A880]/30 z-50 text-slate-900 dark:text-[#EDE8DF]"
+                        onMouseLeave={() => setUserDropdownOpen(false)}
+                      >
                       <div className="px-2 py-1.5 border-b border-slate-100 dark:border-[#C5A880]/15 mb-2">
                         <p className="text-xs font-serif-regal font-black text-slate-900 dark:text-[#FDFBF7] truncate">
                           {lang === 'bn' ? user.nameBn || user.name : user.name}
@@ -370,8 +379,9 @@ export default function Navbar() {
                           <span>{lang === 'bn' ? 'লগআউট' : 'Sign Out'}</span>
                         </button>
                       </div>
-                    </div>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ) : (
                 <div className="relative shrink-0">
@@ -392,7 +402,7 @@ export default function Navbar() {
               {/* 3-line Index Archive Drawer Button */}
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#C5A880]/20 hover:bg-[#F3EFE7] dark:hover:bg-[#C5A880]/30 border-2 border-[#854D0E] dark:border-[#DFCA9E] text-[#854D0E] dark:text-[#DFCA9E] transition flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer shadow-sm font-black"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#C5A880]/20 hover:bg-[#F3EFE7] dark:hover:bg-[#C5A880]/30 border-2 border-[#854D0E] dark:border-[#DFCA9E] text-[#854D0E] dark:text-[#DFCA9E] transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 flex items-center gap-1.5 shrink-0 cursor-pointer shadow-sm font-black"
                 aria-label="Open College Archive"
                 title={lang === 'bn' ? 'আর্কাইভ ও ইনডেক্স মেন্যু' : 'College Index & Menu'}
               >
@@ -414,7 +424,7 @@ export default function Navbar() {
           className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF9F6]/95 dark:bg-[#141311]/95 border-t border-[#C5A880]/40 dark:border-[#C5A880]/30 backdrop-blur-xl shadow-[0_-4px_25px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_25px_rgba(0,0,0,0.6)] md:hidden pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-1 px-1.5 transition-colors"
           aria-label="Mobile Navigation Bar"
         >
-          <div className="flex items-center justify-between w-full max-w-md mx-auto">
+          <div className="flex items-start justify-between w-full max-w-md mx-auto">
             {mobileDockItems.map((item) => {
               const isActive = location.pathname === item.to;
               const IconComponent = item.icon;
@@ -422,39 +432,25 @@ export default function Navbar() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-all min-w-0 ${
+                  className={`flex-1 flex flex-col items-center justify-start py-1 px-0.5 rounded-lg transition-all duration-200 hover:scale-105 min-w-0 ${
                     isActive
-                      ? 'text-[#854D0E] dark:text-[#DFCA9E] font-bold'
+                      ? 'text-[#854D0E] dark:text-[#DFCA9E] font-bold scale-105'
                       : 'text-[#78716C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF]'
                   }`}
                 >
-                  <div className={`p-1 rounded-md transition-all ${
-                    isActive ? 'bg-[#C5A880]/25 dark:bg-[#C5A880]/20 text-[#854D0E] dark:text-[#DFCA9E] shadow-sm' : ''
+                  <div className={`p-1 rounded-md transition-all duration-200 ${
+                    isActive ? 'bg-[#C5A880]/25 dark:bg-[#C5A880]/20 text-[#854D0E] dark:text-[#DFCA9E] shadow-sm scale-110' : ''
                   }`}>
                     <IconComponent className={`w-4.5 h-4.5 shrink-0 ${
                       isActive ? 'text-[#854D0E] dark:text-[#DFCA9E]' : 'text-[#78716C] dark:text-[#A89884]'
                     }`} />
                   </div>
-                  <span className="text-[10px] font-sans font-semibold tracking-tight mt-0.5 truncate text-center w-full leading-none">
+                  <span className="text-[9.5px] font-sans font-semibold tracking-tighter mt-0.5 line-clamp-2 text-center w-full leading-[1.15]">
                     {lang === 'bn' ? item.labelBn : item.labelEn}
                   </span>
                 </Link>
               );
             })}
-
-            {/* Quick Drawer trigger inside Mobile Bottom Nav */}
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-lg text-[#78716C] dark:text-[#A89884] hover:text-[#854D0E] dark:hover:text-[#DFCA9E] transition-all min-w-0"
-              title={lang === 'bn' ? 'সকল সেকশন ও ইনডেক্স' : 'More & Index'}
-            >
-              <div className="p-1 rounded-md">
-                <Compass className="w-4.5 h-4.5 shrink-0" />
-              </div>
-              <span className="text-[10px] font-sans font-semibold tracking-tight mt-0.5 truncate text-center w-full leading-none">
-                {lang === 'bn' ? 'ইনডেক্স' : 'Menu'}
-              </span>
-            </button>
           </div>
         </nav>
       )}
@@ -465,7 +461,7 @@ export default function Navbar() {
           className="hidden md:block fixed bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-2xl w-auto"
           aria-label="Floating Navigation Dock"
         >
-          <div className="bg-[#FAF9F6]/95 dark:bg-[#181715]/95 rounded-2xl px-3 py-2 border border-[#C5A880]/40 dark:border-[#C5A880]/35 shadow-2xl flex items-center justify-center gap-2 backdrop-blur-xl transition-colors">
+          <div className="bg-[#FAF9F6]/95 dark:bg-[#181715]/95 rounded-2xl px-3.5 py-2 border border-[#C5A880]/40 dark:border-[#C5A880]/35 shadow-2xl flex items-center justify-center gap-3 backdrop-blur-md transition-colors duration-200">
             {primaryDockItems.map((item) => {
               const isActive = location.pathname === item.to;
               const IconComponent = item.icon;
@@ -473,13 +469,13 @@ export default function Navbar() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`relative group flex flex-col items-center justify-center px-3.5 py-1.5 rounded-lg transition-all duration-300 ${
+                  className={`relative group flex flex-col items-center justify-center px-3.5 py-1.5 rounded-lg transition-all duration-200 hover:-translate-y-1 hover:scale-105 ${
                     isActive
-                      ? 'bg-[#C5A880]/25 dark:bg-[#C5A880]/15 text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/50 dark:border-[#C5A880]/40 font-bold'
+                      ? 'bg-[#C5A880]/25 dark:bg-[#C5A880]/15 text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/50 dark:border-[#C5A880]/40 font-bold scale-110'
                       : 'text-[#78716C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] hover:bg-[#F3EFE7] dark:hover:bg-[#1E1C18]'
                   }`}
                 >
-                  <IconComponent className={`w-4.5 h-4.5 transition-transform group-hover:scale-110 ${
+                  <IconComponent className={`w-4.5 h-4.5 transition-transform duration-200 group-hover:scale-110 ${
                     isActive ? 'text-[#854D0E] dark:text-[#DFCA9E]' : 'text-[#78716C] dark:text-[#A89884]'
                   }`} />
                   <span className="text-[11px] font-sans font-semibold tracking-tight mt-0.5 leading-none">
@@ -497,7 +493,7 @@ export default function Navbar() {
             {/* Quick Drawer trigger inside Dock */}
             <button
               onClick={() => setDrawerOpen(true)}
-              className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg text-[#78716C] dark:text-[#A89884] hover:text-[#854D0E] dark:hover:text-[#DFCA9E] hover:bg-[#F3EFE7] dark:hover:bg-[#1E1C18] transition-all cursor-pointer font-bold"
+              className="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg text-[#78716C] dark:text-[#A89884] hover:text-[#854D0E] dark:hover:text-[#DFCA9E] hover:bg-[#F3EFE7] dark:hover:bg-[#1E1C18] transition-all duration-200 hover:-translate-y-1 hover:scale-105 cursor-pointer font-bold"
               title={lang === 'bn' ? 'সকল সেকশন' : 'More'}
             >
               <Compass className="w-4.5 h-4.5" />
@@ -509,7 +505,7 @@ export default function Navbar() {
         </nav>
       )}
 
-      {/* 3. ARCHITECTURAL REGISTER DRAWER (Smooth 60fps slide sheet) */}
+      {/* 3. ARCHITECTURAL REGISTER DRAWER (Smooth 60fps Framer Motion menu/drawer) */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {drawerOpen && (
@@ -518,9 +514,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
+              transition={{ duration: 0.2 }}
               className="fixed inset-0 z-[9999] flex justify-end bg-black/75 backdrop-blur-sm overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setDrawerOpen(false);
@@ -528,12 +522,11 @@ export default function Navbar() {
             >
               <motion.div 
                 key="rtec-drawer-panel"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 260, mass: 0.8 }}
-                data-lenis-prevent="true"
-                className="w-full max-w-md bg-[#FAF9F6] dark:bg-[#161513] border-l border-[#C5A880]/30 dark:border-[#C5A880]/25 h-full overflow-y-auto flex flex-col p-6 shadow-2xl relative overscroll-contain transition-colors"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-md bg-[#FAF9F6] dark:bg-[#161513] border-l border-[#C5A880]/30 dark:border-[#C5A880]/25 h-full overflow-y-auto flex flex-col p-6 shadow-2xl relative overscroll-contain transition-colors duration-300"
                 style={{
                   backgroundImage: 'radial-gradient(rgba(197, 168, 128, 0.08) 1px, transparent 1px)',
                   backgroundSize: '24px 24px'

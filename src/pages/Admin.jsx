@@ -391,25 +391,27 @@ export default function Admin() {
     setDeleteConfirm(null);
   };
 
-  // Filtered queries
-  const filteredTeachers = (teachers || []).filter(t => {
-    if (!t) return false;
+  // Filtered queries (Memoized for 60 FPS scrolling & input responsiveness)
+  const filteredTeachers = useMemo(() => {
     const q = (teacherSearch || '').toLowerCase().trim();
-    return (
-      !q ||
-      t.name?.toLowerCase().includes(q) ||
-      t.nameBn?.toLowerCase().includes(q) ||
-      t.department?.toLowerCase().includes(q) ||
-      t.deptBn?.includes(q) ||
-      t.designation?.toLowerCase().includes(q)
-    );
-  });
+    return (teachers || []).filter(t => {
+      if (!t) return false;
+      return (
+        !q ||
+        t.name?.toLowerCase().includes(q) ||
+        t.nameBn?.toLowerCase().includes(q) ||
+        t.department?.toLowerCase().includes(q) ||
+        t.deptBn?.includes(q) ||
+        t.designation?.toLowerCase().includes(q)
+      );
+    });
+  }, [teachers, teacherSearch]);
 
   const filteredStudents = useMemo(() => {
     if (!Array.isArray(students)) return [];
+    const q = (studentSearch || '').toLowerCase().trim();
     return students.filter(s => {
       if (!s) return false;
-      const q = (studentSearch || '').toLowerCase().trim();
       const matchesSearch =
         !q ||
         s.name?.toLowerCase().includes(q) ||
@@ -441,97 +443,122 @@ export default function Admin() {
     return filteredStudents.slice(start, start + size);
   }, [filteredStudents, studentPage, studentsPerPage]);
 
-  const filteredAlumni = (alumni || []).filter(a => {
-    if (!a) return false;
+  const filteredAlumni = useMemo(() => {
     const q = (alumniSearch || '').toLowerCase().trim();
-    return (
-      !q ||
-      a.name?.toLowerCase().includes(q) ||
-      a.nameBn?.toLowerCase().includes(q) ||
-      a.batch?.toLowerCase().includes(q) ||
-      a.company?.toLowerCase().includes(q) ||
-      a.department?.toLowerCase().includes(q)
-    );
-  });
+    return (alumni || []).filter(a => {
+      if (!a) return false;
+      return (
+        !q ||
+        a.name?.toLowerCase().includes(q) ||
+        a.nameBn?.toLowerCase().includes(q) ||
+        a.batch?.toLowerCase().includes(q) ||
+        a.company?.toLowerCase().includes(q) ||
+        a.department?.toLowerCase().includes(q)
+      );
+    });
+  }, [alumni, alumniSearch]);
 
-  const pendingSubmissionsCount = (studentSubmissions || []).filter(s => s?.status === 'pending').length;
+  const pendingSubmissionsCount = useMemo(
+    () => (studentSubmissions || []).filter(s => s?.status === 'pending').length,
+    [studentSubmissions]
+  );
 
-  const filteredSubmissions = (studentSubmissions || []).filter(s => {
-    if (!s) return false;
-    const matchesFilter = submissionFilter === 'all' || s.status === submissionFilter;
+  const filteredSubmissions = useMemo(() => {
     const q = (submissionSearch || '').toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      s.name?.toLowerCase().includes(q) ||
-      s.nameEn?.toLowerCase().includes(q) ||
-      s.email?.toLowerCase().includes(q) ||
-      s.phone?.toLowerCase().includes(q) ||
-      s.regNo?.toLowerCase().includes(q) ||
-      s.batch?.toLowerCase().includes(q) ||
-      s.department?.toLowerCase().includes(q) ||
-      s.currentJob?.toLowerCase().includes(q) ||
-      s.currentLocation?.toLowerCase().includes(q);
-    return matchesFilter && matchesSearch;
-  });
+    return (studentSubmissions || []).filter(s => {
+      if (!s) return false;
+      const matchesFilter = submissionFilter === 'all' || s.status === submissionFilter;
+      const matchesSearch =
+        !q ||
+        s.name?.toLowerCase().includes(q) ||
+        s.nameEn?.toLowerCase().includes(q) ||
+        s.email?.toLowerCase().includes(q) ||
+        s.phone?.toLowerCase().includes(q) ||
+        s.regNo?.toLowerCase().includes(q) ||
+        s.batch?.toLowerCase().includes(q) ||
+        s.department?.toLowerCase().includes(q) ||
+        s.currentJob?.toLowerCase().includes(q) ||
+        s.currentLocation?.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+  }, [studentSubmissions, submissionFilter, submissionSearch]);
 
-  const pendingJobsCount = (jobs || []).filter(j => j?.status === 'pending').length;
+  const pendingJobsCount = useMemo(
+    () => (jobs || []).filter(j => j?.status === 'pending').length,
+    [jobs]
+  );
 
-  const filteredJobs = (jobs || []).filter(j => {
-    if (!j) return false;
-    const jobStatus = j.status || 'approved';
-    const matchesFilter = jobFilter === 'all' || jobStatus === jobFilter;
+  const filteredJobs = useMemo(() => {
     const q = (jobSearch || '').toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      j.title?.toLowerCase().includes(q) ||
-      j.titleBn?.toLowerCase().includes(q) ||
-      j.company?.toLowerCase().includes(q) ||
-      j.location?.toLowerCase().includes(q) ||
-      j.department?.toLowerCase().includes(q) ||
-      j.postedBy?.toLowerCase().includes(q);
-    return matchesFilter && matchesSearch;
-  });
+    return (jobs || []).filter(j => {
+      if (!j) return false;
+      const jobStatus = j.status || 'approved';
+      const matchesFilter = jobFilter === 'all' || jobStatus === jobFilter;
+      const matchesSearch =
+        !q ||
+        j.title?.toLowerCase().includes(q) ||
+        j.titleBn?.toLowerCase().includes(q) ||
+        j.company?.toLowerCase().includes(q) ||
+        j.location?.toLowerCase().includes(q) ||
+        j.department?.toLowerCase().includes(q) ||
+        j.postedBy?.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+  }, [jobs, jobFilter, jobSearch]);
 
-  const pendingDisputesCount = (disputes || []).filter(d => d?.status === 'pending').length;
+  const pendingDisputesCount = useMemo(
+    () => (disputes || []).filter(d => d?.status === 'pending').length,
+    [disputes]
+  );
 
-  const filteredDisputes = (disputes || []).filter(d => {
-    if (!d) return false;
-    const matchesFilter = disputeFilter === 'all' || d.status === disputeFilter;
+  const filteredDisputes = useMemo(() => {
     const q = (disputeSearch || '').toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      d.regNo?.toLowerCase().includes(q) ||
-      d.name?.toLowerCase().includes(q) ||
-      d.email?.toLowerCase().includes(q) ||
-      d.phone?.toLowerCase().includes(q) ||
-      d.description?.toLowerCase().includes(q);
-    return matchesFilter && matchesSearch;
-  });
+    return (disputes || []).filter(d => {
+      if (!d) return false;
+      const matchesFilter = disputeFilter === 'all' || d.status === disputeFilter;
+      const matchesSearch =
+        !q ||
+        d.regNo?.toLowerCase().includes(q) ||
+        d.name?.toLowerCase().includes(q) ||
+        d.email?.toLowerCase().includes(q) ||
+        d.phone?.toLowerCase().includes(q) ||
+        d.description?.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+  }, [disputes, disputeFilter, disputeSearch]);
 
-  const filteredForumPosts = (forumPosts || []).filter((post) => {
-    if (!post) return false;
-    const matchesType =
-      forumTypeFilter === 'all' ||
-      (forumTypeFilter === 'question' && post.type === 'question') ||
-      (forumTypeFilter === 'experience' && (post.type === 'experience' || post.type === 'tip'));
+  const filteredForumPosts = useMemo(() => {
     const q = (forumSearch || '').toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      post.title?.toLowerCase().includes(q) ||
-      post.titleBn?.toLowerCase().includes(q) ||
-      post.body?.toLowerCase().includes(q) ||
-      post.content?.toLowerCase().includes(q) ||
-      post.description?.toLowerCase().includes(q) ||
-      post.author?.toLowerCase().includes(q) ||
-      post.category?.toLowerCase().includes(q) ||
-      (post.tags && post.tags.some(t => t.toLowerCase().includes(q)));
-    return matchesType && matchesSearch;
-  });
+    return (forumPosts || []).filter((post) => {
+      if (!post) return false;
+      const matchesType =
+        forumTypeFilter === 'all' ||
+        (forumTypeFilter === 'question' && post.type === 'question') ||
+        (forumTypeFilter === 'experience' && (post.type === 'experience' || post.type === 'tip'));
+      const matchesSearch =
+        !q ||
+        post.title?.toLowerCase().includes(q) ||
+        post.titleBn?.toLowerCase().includes(q) ||
+        post.body?.toLowerCase().includes(q) ||
+        post.content?.toLowerCase().includes(q) ||
+        post.description?.toLowerCase().includes(q) ||
+        post.author?.toLowerCase().includes(q) ||
+        post.category?.toLowerCase().includes(q) ||
+        (post.tags && post.tags.some(t => t.toLowerCase().includes(q)));
+      return matchesType && matchesSearch;
+    });
+  }, [forumPosts, forumTypeFilter, forumSearch]);
 
   // Strict Admin Authorization Guard
   if (!user || user.role !== 'admin' || !isAdminEmail?.(user.email)) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+        className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+      >
         <div className="max-w-md w-full plaque-elevated p-8 rounded-3xl border border-red-500/30 text-center space-y-6 shadow-2xl bg-white dark:bg-[#181715]">
           <div className="w-16 h-16 rounded-3xl bg-red-500/15 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto shadow-lg shadow-red-950/20">
             <ShieldAlert className="w-8 h-8" />
@@ -586,12 +613,19 @@ export default function Admin() {
             }}
           />
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div data-admin-panel="true" className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      data-admin-panel="true"
+      className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Top Notification Toast */}
@@ -636,7 +670,7 @@ export default function Admin() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap items-center gap-2 pb-4 mb-8 border-b border-[#C5A880]/20">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pb-4 mb-8 border-b border-[#C5A880]/20">
           {[
             { id: 'overview', labelBn: 'ড্যাশবোর্ড', labelEn: 'Overview', icon: ShieldCheck, count: null },
             {
@@ -676,10 +710,10 @@ export default function Admin() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                   isActive
-                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white font-bold shadow-md shadow-emerald-950/40 scale-[1.02] border border-emerald-500'
-                    : 'bg-white dark:bg-[#181715] text-[#292524] dark:text-[#DCD3C1] hover:bg-[#F8F4EC] dark:hover:bg-[#201E1A] hover:text-black dark:hover:text-[#FDFBF7] border border-[#C5A880]/30 shadow-sm hover:border-[#C5A880]/50'
+                    ? 'bg-emerald-700 dark:bg-emerald-600 text-white font-bold shadow-md shadow-emerald-950/40 scale-110 border border-emerald-500 z-10'
+                    : 'bg-white dark:bg-[#181715] text-[#292524] dark:text-[#DCD3C1] hover:bg-[#F8F4EC] dark:hover:bg-[#201E1A] hover:text-black dark:hover:text-[#FDFBF7] hover:-translate-y-0.5 hover:scale-105 border border-[#C5A880]/30 shadow-sm hover:border-[#C5A880]/50'
                 }`}
               >
                 <tab.icon className={`w-3.5 h-3.5 ${tab.isPending ? 'text-amber-400 animate-pulse' : ''}`} />
@@ -698,9 +732,17 @@ export default function Admin() {
           })}
         </div>
 
-        {/* TAB 1: OVERVIEW */}
-        {activeTab === 'overview' && (
-          <div className="space-y-8 animate-in fade-in duration-300">
+        <AnimatePresence mode="wait">
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === 'overview' && (
+            <motion.div
+              key="tab-overview"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8"
+            >
             {/* Quick Metrics */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Pending Submissions Card */}
@@ -1104,12 +1146,19 @@ export default function Admin() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 1.5: STUDENT & ALUMNI SUBMISSIONS & APPROVALS */}
-        {activeTab === 'submissions' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 1.5: STUDENT & ALUMNI SUBMISSIONS & APPROVALS */}
+          {activeTab === 'submissions' && (
+            <motion.div
+              key="tab-submissions"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -1354,12 +1403,19 @@ export default function Admin() {
                 </p>
               </div>
             )}
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 1.7: ID DISPUTE & FRAUD CLAIM MANAGEMENT */}
-        {activeTab === 'disputes' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 1.7: ID DISPUTE & FRAUD CLAIM MANAGEMENT */}
+          {activeTab === 'disputes' && (
+            <motion.div
+              key="tab-disputes"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -1569,12 +1625,19 @@ export default function Admin() {
                 </p>
               </div>
             )}
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 2: TEACHERS MANAGEMENT */}
-        {activeTab === 'teachers' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 2: TEACHERS MANAGEMENT */}
+          {activeTab === 'teachers' && (
+            <motion.div
+              key="tab-teachers"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'শিক্ষক মণ্ডলী তালিকা ও নিয়ন্ত্রণ' : 'Faculty Leadership Management'}</h3>
@@ -1695,12 +1758,19 @@ export default function Admin() {
                 </table>
               </div>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 3: STUDENTS MANAGEMENT (1st to 8th Batch, NO roll, NO cgpa, only regNo) */}
-        {activeTab === 'students' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 3: STUDENTS MANAGEMENT (1st to 8th Batch, NO roll, NO cgpa, only regNo) */}
+          {activeTab === 'students' && (
+            <motion.div
+              key="tab-students"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -2013,12 +2083,19 @@ export default function Admin() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 4: ALUMNI MANAGEMENT */}
-        {activeTab === 'alumni' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 4: ALUMNI MANAGEMENT */}
+          {activeTab === 'alumni' && (
+            <motion.div
+              key="tab-alumni"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold text-[#FDFBF7]">
@@ -2152,12 +2229,19 @@ export default function Admin() {
                 </table>
               </div>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 5: EVENTS MANAGEMENT */}
-        {activeTab === 'events' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 5: EVENTS MANAGEMENT */}
+          {activeTab === 'events' && (
+            <motion.div
+              key="tab-events"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'ইভেন্ট ও সম্মেলন ব্যবস্থাপনা' : 'Events & Reunions Management'}</h3>
@@ -2225,12 +2309,19 @@ export default function Admin() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 6: JOBS MANAGEMENT */}
-        {activeTab === 'jobs' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 6: JOBS MANAGEMENT */}
+          {activeTab === 'jobs' && (
+            <motion.div
+              key="tab-jobs"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'চাকরি ও ক্যারিয়ার সার্কুলার' : 'Job Board Management'}</h3>
@@ -2416,12 +2507,19 @@ export default function Admin() {
                 })
               )}
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 7: NEWS & NOTICES */}
-        {activeTab === 'news' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB 7: NEWS & NOTICES */}
+          {activeTab === 'news' && (
+            <motion.div
+              key="tab-news"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'খবর ও নোটিশ ব্যবস্থাপনা' : 'News & Notice Management'}</h3>
@@ -2494,12 +2592,19 @@ export default function Admin() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB: Q&A AND FORUM MODERATION */}
-        {activeTab === 'forum' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          {/* TAB: Q&A AND FORUM MODERATION */}
+          {activeTab === 'forum' && (
+            <motion.div
+              key="tab-forum"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -2728,105 +2833,122 @@ export default function Admin() {
                       </div>
 
                       {/* Collapsible Replies List */}
-                      {isExpanded && (
-                        <div className="pt-4 border-t border-[#C5A880]/20 space-y-2.5 animate-in fade-in duration-200">
-                          <h6 className="text-xs font-bold text-[#DFCA9E] font-mono-tech uppercase">
-                            {lang === 'bn' ? `এই পোস্টের মন্তব্যসমূহ (${replies.length}):` : `Comments on this post (${replies.length}):`}
-                          </h6>
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-4 border-t border-[#C5A880]/20 space-y-2.5">
+                              <h6 className="text-xs font-bold text-[#DFCA9E] font-mono-tech uppercase">
+                                {lang === 'bn' ? `এই পোস্টের মন্তব্যসমূহ (${replies.length}):` : `Comments on this post (${replies.length}):`}
+                              </h6>
 
-                          {replies.length === 0 ? (
-                            <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 text-xs text-[#A89884] italic text-center font-sans">
-                              {lang === 'bn' ? 'এই পোস্টে এখনও কোন মন্তব্য করা হয়নি।' : 'No comments on this post yet.'}
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              {replies.map((reply, rIdx) => {
-                                if (reply.isDeleted) {
-                                  return (
-                                    <div
-                                      key={reply.id || rIdx}
-                                      className="p-3 rounded-xl bg-[#141311] border border-rose-500/25 text-xs flex items-center justify-between gap-3 text-rose-300/80 italic font-sans"
-                                    >
-                                      <div className="flex items-center gap-2">
-                                        <Trash2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                                        <span>
-                                          {lang === 'bn' ? 'দিস কমেন্ট ইজ ডিলিটেড (এই মন্তব্যটি মুছে ফেলা হয়েছে)' : 'This comment is deleted.'}
-                                        </span>
-                                      </div>
-                                      <span className="text-[10px] text-[#A89884] font-mono-tech not-italic">
-                                        {reply.deletedAt || (lang === 'bn' ? 'মুছে ফেলা হয়েছে' : 'Deleted')}
-                                      </span>
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div
-                                    key={reply.id || rIdx}
-                                    className="p-3.5 rounded-xl bg-[#141311] border border-[#C5A880]/20 space-y-2 transition"
-                                  >
-                                    <div className="flex items-center justify-between gap-3">
-                                      <div className="flex items-center gap-2">
-                                        <UserAvatar
-                                          src={reply.avatar}
-                                          name={reply.author}
-                                          role={reply.role?.toLowerCase()?.includes('alumni') ? 'alumni' : (reply.role?.toLowerCase()?.includes('admin') ? 'faculty' : 'student')}
-                                          className="w-7 h-7 rounded-lg border border-[#C5A880]/30 shrink-0"
-                                        />
-                                        <div>
+                              {replies.length === 0 ? (
+                                <div className="p-3 rounded-xl bg-[#141311] border border-[#C5A880]/15 text-xs text-[#A89884] italic text-center font-sans">
+                                  {lang === 'bn' ? 'এই পোস্টে এখনও কোন মন্তব্য করা হয়নি।' : 'No comments on this post yet.'}
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  {replies.map((reply, rIdx) => {
+                                    if (reply.isDeleted) {
+                                      return (
+                                        <div
+                                          key={reply.id || rIdx}
+                                          className="p-3 rounded-xl bg-[#141311] border border-rose-500/25 text-xs flex items-center justify-between gap-3 text-rose-300/80 italic font-sans"
+                                        >
                                           <div className="flex items-center gap-2">
-                                            <h6 className="text-xs font-bold text-[#FDFBF7]">
-                                              {reply.author}
-                                            </h6>
-                                            {reply.isEdited && (
-                                              <span className="text-[9px] font-mono-tech text-amber-400">
-                                                ({lang === 'bn' ? 'সম্পাদিত' : 'Edited'})
-                                              </span>
-                                            )}
+                                            <Trash2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                            <span>
+                                              {lang === 'bn' ? 'দিস কমেন্ট ইজ ডিলিটেড (এই মন্তব্যটি মুছে ফেলা হয়েছে)' : 'This comment is deleted.'}
+                                            </span>
                                           </div>
-                                          <p className="text-[10px] text-[#A89884] font-mono-tech">
-                                            {reply.role || 'Member'} • {reply.date}
-                                          </p>
+                                          <span className="text-[10px] text-[#A89884] font-mono-tech not-italic">
+                                            {reply.deletedAt || (lang === 'bn' ? 'মুছে ফেলা হয়েছে' : 'Deleted')}
+                                          </span>
                                         </div>
-                                      </div>
+                                      );
+                                    }
 
-                                      {/* Admin Delete Comment Button */}
-                                      <button
-                                        onClick={() => setDeleteConfirm({
-                                          type: 'forumReply',
-                                          id: reply.id,
-                                          postId: post.id,
-                                          name: `${reply.author}-এর মন্তব্য`
-                                        })}
-                                        className="btn-action-delete px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer"
-                                        title={lang === 'bn' ? 'এই মন্তব্যটি মুছে ফেলুন' : 'Delete comment'}
+                                    return (
+                                      <div
+                                        key={reply.id || rIdx}
+                                        className="p-3.5 rounded-xl bg-[#141311] border border-[#C5A880]/20 space-y-2 transition-all duration-200"
                                       >
-                                        <Trash2 className="w-3 h-3" />
-                                        <span>{lang === 'bn' ? 'মন্তব্য মুছুন' : 'Delete'}</span>
-                                      </button>
-                                    </div>
+                                        <div className="flex items-center justify-between gap-3">
+                                          <div className="flex items-center gap-2">
+                                            <UserAvatar
+                                              src={reply.avatar}
+                                              name={reply.author}
+                                              role={reply.role?.toLowerCase()?.includes('alumni') ? 'alumni' : (reply.role?.toLowerCase()?.includes('admin') ? 'faculty' : 'student')}
+                                              className="w-7 h-7 rounded-lg border border-[#C5A880]/30 shrink-0"
+                                            />
+                                            <div>
+                                              <div className="flex items-center gap-2">
+                                                <h6 className="text-xs font-bold text-[#FDFBF7]">
+                                                  {reply.author}
+                                                </h6>
+                                                {reply.isEdited && (
+                                                  <span className="text-[9px] font-mono-tech text-amber-400">
+                                                    ({lang === 'bn' ? 'সম্পাদিত' : 'Edited'})
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <p className="text-[10px] text-[#A89884] font-mono-tech">
+                                                {reply.role || 'Member'} • {reply.date}
+                                              </p>
+                                            </div>
+                                          </div>
 
-                                    <p className="text-xs text-[#DCD3C1] leading-relaxed pl-9">
-                                      {reply.content}
-                                    </p>
-                                  </div>
-                                );
-                              })}
+                                          {/* Admin Delete Comment Button */}
+                                          <button
+                                            onClick={() => setDeleteConfirm({
+                                              type: 'forumReply',
+                                              id: reply.id,
+                                              postId: post.id,
+                                              name: `${reply.author}-এর মন্তব্য`
+                                            })}
+                                            className="btn-action-delete px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all duration-200 cursor-pointer"
+                                            title={lang === 'bn' ? 'এই মন্তব্যটি মুছে ফেলুন' : 'Delete comment'}
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                            <span>{lang === 'bn' ? 'মন্তব্য মুছুন' : 'Delete'}</span>
+                                          </button>
+                                        </div>
+
+                                        <p className="text-xs text-[#DCD3C1] leading-relaxed pl-9">
+                                          {reply.content}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })
               )}
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {/* TAB 8: SYSTEM SETTINGS & BACKUP */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6 max-w-2xl animate-in fade-in duration-300">
+          {/* TAB 8: SYSTEM SETTINGS & BACKUP */}
+          {activeTab === 'settings' && (
+            <motion.div
+              key="tab-settings"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6 max-w-2xl"
+            >
             <div>
               <h3 className="text-xl font-bold text-[#FDFBF7]">{lang === 'bn' ? 'সিস্টেম কনফিগারেশন ও ডাটা ব্যাকআপ' : 'System Backup & Reset'}</h3>
               <p className="text-xs text-[#A89884] mt-0.5">{lang === 'bn' ? 'সব ডাটা রিসেট বা লোকাল ব্যাকআপ এক্সপোর্ট করার সুবিধা।' : 'Export database backup or restore initial defaults.'}</p>
@@ -3208,12 +3330,13 @@ export default function Admin() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
 
-      {/* CREATE & EDIT MODAL (Smooth 60fps spring animation) */}
+      {/* CREATE & EDIT MODAL */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {modalType && (
@@ -3222,11 +3345,9 @@ export default function Admin() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.2 }}
               data-admin-modal="true"
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   setModalType(null);
@@ -3236,11 +3357,10 @@ export default function Admin() {
             >
               <motion.div
                 key="admin-crud-modal-card"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                data-lenis-prevent="true"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="relative w-full max-w-2xl bg-[#181715] border border-[#C5A880]/30 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain"
               >
               <button
@@ -4160,7 +4280,7 @@ export default function Admin() {
       document.body
     )}
 
-      {/* DELETE CONFIRMATION MODAL (Smooth 60fps spring animation) */}
+      {/* DELETE CONFIRMATION MODAL */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {deleteConfirm && (
@@ -4169,11 +4289,9 @@ export default function Admin() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.2 }}
               data-admin-modal="true"
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) {
                   setDeleteConfirm(null);
@@ -4182,11 +4300,10 @@ export default function Admin() {
             >
               <motion.div
                 key="admin-delete-modal-card"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                data-lenis-prevent="true"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-sm bg-[#181715] border border-rose-500/40 rounded-3xl p-6 text-center space-y-4 overscroll-contain shadow-2xl"
               >
                 <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -4220,7 +4337,7 @@ export default function Admin() {
         document.body
       )}
 
-      {/* VIEW SUBMISSION DETAILS MODAL (Smooth 60fps spring animation) */}
+      {/* VIEW SUBMISSION DETAILS MODAL */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {viewSubmission && (
@@ -4229,22 +4346,19 @@ export default function Admin() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.2 }}
               data-admin-modal="true"
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setViewSubmission(null);
               }}
             >
               <motion.div
                 key="admin-viewsub-modal-card"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                data-lenis-prevent="true"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="relative w-full max-w-2xl bg-[#181715] border border-[#C5A880]/30 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain"
               >
             <button
@@ -4404,7 +4518,7 @@ export default function Admin() {
     document.body
   )}
 
-      {/* DECLINE PROMPT MODAL (Smooth 60fps spring animation) */}
+      {/* DECLINE PROMPT MODAL */}
       {typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {declinePrompt && (
@@ -4413,22 +4527,19 @@ export default function Admin() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: 0.2 }}
               data-admin-modal="true"
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 overscroll-contain"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setDeclinePrompt(null);
               }}
             >
               <motion.div
                 key="admin-decline-modal-card"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                data-lenis-prevent="true"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-md bg-[#181715] border border-rose-500/40 rounded-3xl p-6 text-center space-y-4 overscroll-contain shadow-2xl"
               >
                 <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -4488,6 +4599,6 @@ export default function Admin() {
         onClose={() => setIsExcelImportOpen(false)}
       />
 
-    </div>
+    </motion.div>
   );
 }

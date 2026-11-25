@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
 import {
@@ -54,8 +55,8 @@ export default function Mentorship() {
     }
   ];
 
-  // Mentors filter
-  const mentors = alumni.filter(a => a.isMentor);
+  // Mentors filter (Memoized)
+  const mentors = useMemo(() => alumni.filter(a => a.isMentor), [alumni]);
 
   const handleBookingSubmit = (e) => {
     e.preventDefault();
@@ -67,7 +68,13 @@ export default function Mentorship() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Banner */}
@@ -119,7 +126,7 @@ export default function Mentorship() {
           {mentors.map((mentor) => (
             <div
               key={mentor.id}
-              className="plaque-elevated rounded-2xl p-6 border border-[#C5A880]/25 flex flex-col justify-between shadow-md"
+              className="plaque-elevated rounded-2xl p-6 border border-[#C5A880]/25 flex flex-col justify-between shadow-md transition-all duration-200 hover:-translate-y-1"
             >
               <div>
                 <div className="flex items-center gap-4 mb-4">
@@ -176,20 +183,29 @@ export default function Mentorship() {
       </div>
 
       {/* Booking Modal */}
-      {bookingModalOpen && selectedMentor && typeof document !== 'undefined' && createPortal(
-        <div
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setBookingModalOpen(false);
-          }}
-        >
-          <div
-            data-lenis-prevent="true"
-            className="glass-panel w-full max-w-md rounded-3xl p-6 border border-[#C5A880]/30 relative overscroll-contain"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {bookingModalOpen && selectedMentor && (
+            <motion.div
+              key="mentorship-booking-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setBookingModalOpen(false);
+              }}
+            >
+              <motion.div
+                key="mentorship-booking-card"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-panel w-full max-w-md rounded-3xl p-6 border border-[#C5A880]/30 relative overscroll-contain shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
             <button
               onClick={() => setBookingModalOpen(false)}
               className="absolute top-4 right-4 text-stone-500 hover:text-stone-900 dark:text-slate-400 dark:hover:text-white"
@@ -268,11 +284,13 @@ export default function Mentorship() {
                 </button>
               </form>
             )}
-          </div>
-        </div>,
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

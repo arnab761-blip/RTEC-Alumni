@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { formatDriveImageUrl } from '../utils/driveImage.js';
 import { useScrollLock } from '../utils/useScrollLock.js';
@@ -41,9 +42,9 @@ export default function Gallery() {
     'Convocation'
   ];
 
-  const filteredMemories = (memories || []).filter(
+  const filteredMemories = useMemo(() => (memories || []).filter(
     m => selectedCategory === 'All' || m.category === selectedCategory
-  );
+  ), [memories, selectedCategory]);
 
   const handleUploadSubmit = (e) => {
     e.preventDefault();
@@ -64,7 +65,13 @@ export default function Gallery() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-[#0C0A09] dark:text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-transparent text-[#0C0A09] dark:text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
@@ -94,14 +101,14 @@ export default function Gallery() {
         </div>
 
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
+        <div className="flex items-center gap-2.5 overflow-x-auto py-2 px-1 mb-6 no-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30 font-bold'
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30 font-bold scale-110'
                   : 'bg-white dark:bg-[#1E1C18] text-[#1C1917] dark:text-[#DCD3C1] hover:bg-[#F3EFE7] dark:hover:bg-[#25221E] border border-[#C5A880]/30'
               }`}
             >
@@ -116,7 +123,7 @@ export default function Gallery() {
             {filteredMemories.map((mem) => (
               <div
                 key={mem.id}
-                className="plaque-elevated rounded-2xl overflow-hidden group border border-[#C5A880]/30 hover:border-emerald-500/50 transition-all flex flex-col justify-between"
+                className="plaque-elevated rounded-2xl overflow-hidden group border border-[#C5A880]/30 hover:border-emerald-500/50 transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between"
               >
                 <div
                   className="relative h-60 w-full overflow-hidden cursor-pointer on-dark-media"
@@ -186,18 +193,27 @@ export default function Gallery() {
       </div>
 
       {/* Lightbox Modal */}
-      {lightboxImage && typeof document !== 'undefined' && createPortal(
-        <div
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain"
-          onClick={() => setLightboxImage(null)}
-        >
-          <div
-            data-lenis-prevent="true"
-            className="max-w-4xl w-full bg-white dark:bg-[#181715] rounded-3xl overflow-hidden border border-[#C5A880]/35 p-2 relative overscroll-contain shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {lightboxImage && (
+            <motion.div
+              key="gallery-lightbox-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+              onClick={() => setLightboxImage(null)}
+            >
+              <motion.div
+                key="gallery-lightbox-card"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="max-w-4xl w-full bg-white dark:bg-[#181715] rounded-3xl overflow-hidden border border-[#C5A880]/35 p-2 relative overscroll-contain shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
             <button
               onClick={() => setLightboxImage(null)}
               className="absolute top-4 right-4 z-10 p-2 rounded-xl bg-black/80 text-white hover:bg-black cursor-pointer"
@@ -229,26 +245,37 @@ export default function Gallery() {
                 <span>{lightboxImage.likes} Likes</span>
               </button>
             </div>
-          </div>
-        </div>,
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
       {/* Upload Memory Modal */}
-      {uploadModalOpen && typeof document !== 'undefined' && createPortal(
-        <div
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setUploadModalOpen(false);
-          }}
-        >
-          <div
-            data-lenis-prevent="true"
-            className="bg-white dark:bg-[#181715] w-full max-w-md rounded-3xl p-6 border border-[#C5A880]/35 relative overscroll-contain shadow-2xl text-[#0C0A09] dark:text-[#FDFBF7]"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {uploadModalOpen && (
+            <motion.div
+              key="gallery-upload-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setUploadModalOpen(false);
+              }}
+            >
+              <motion.div
+                key="gallery-upload-card"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="bg-white dark:bg-[#181715] w-full max-w-md rounded-3xl p-6 border border-[#C5A880]/35 relative overscroll-contain shadow-2xl text-[#0C0A09] dark:text-[#FDFBF7]"
+                onClick={(e) => e.stopPropagation()}
+              >
             <button
               onClick={() => setUploadModalOpen(false)}
               className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 dark:bg-[#25221E] text-[#1C1917] dark:text-[#FDFBF7] hover:bg-slate-200 dark:hover:bg-[#332E28] cursor-pointer"
@@ -343,11 +370,13 @@ export default function Gallery() {
                 </button>
               </form>
             )}
-          </div>
-        </div>,
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

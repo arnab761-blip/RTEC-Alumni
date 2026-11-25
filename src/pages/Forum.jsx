@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
 import {
@@ -244,7 +245,7 @@ export default function Forum() {
     setExpandedReplies(prev => ({ ...prev, [postId]: !prev[postId] }));
   };
 
-  const filteredPosts = forumPosts.filter(p => {
+  const filteredPosts = useMemo(() => forumPosts.filter(p => {
     const matchCat = activeCategory === 'All' || p.category === activeCategory || p.categoryBn === activeCategory;
     const matchSearch =
       (p.title && p.title.toLowerCase().includes(search.toLowerCase())) ||
@@ -253,10 +254,16 @@ export default function Forum() {
       (p.author && p.author.toLowerCase().includes(search.toLowerCase())) ||
       (p.tags && p.tags.some(t => t.toLowerCase().includes(search.toLowerCase())));
     return matchCat && matchSearch;
-  });
+  }), [forumPosts, activeCategory, search]);
 
   return (
-    <div className="min-h-screen text-[#1C1917] dark:text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#1C1917] dark:text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Archival Header */}
@@ -316,14 +323,14 @@ export default function Forum() {
           </div>
 
           {/* Topic Pills */}
-          <div className="flex flex-wrap gap-2 pt-2 border-t border-[#C5A880]/15">
+          <div className="flex flex-wrap gap-2.5 pt-2 border-t border-[#C5A880]/15">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
                   activeCategory === cat.id
-                    ? 'bg-[#C5A880] text-[#121110] font-bold shadow'
+                    ? 'bg-[#C5A880] text-[#121110] font-bold shadow scale-110'
                     : 'bg-[#F4EFE6] dark:bg-[#141311] text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] border border-[#C5A880]/20'
                 }`}
               >
@@ -342,7 +349,7 @@ export default function Forum() {
             return (
               <div
                 key={post.id}
-                className="plaque-elevated rounded-2xl p-6 sm:p-8 border border-[#C5A880]/30 hover:border-[#C5A880]/60 transition shadow-md space-y-4"
+                className="plaque-elevated rounded-2xl p-6 sm:p-8 border border-[#C5A880]/30 hover:border-[#C5A880]/60 transition-all duration-200 hover:-translate-y-1 shadow-md space-y-4"
               >
                 {/* Author Metadata Header */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#C5A880]/15 text-xs">
@@ -480,9 +487,18 @@ export default function Forum() {
                   </button>
                 </div>
 
-                {/* Expanded Senior Answers Thread */}
-                {isRepliesOpen && (
-                  <div className="pt-4 border-t border-[#C5A880]/20 space-y-4">
+                {/* Expanded Senior Answers Thread (Smooth 60fps Accordion) */}
+                <AnimatePresence>
+                  {isRepliesOpen && (
+                    <motion.div
+                      key={`replies-${post.id}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-4 border-t border-[#C5A880]/20 space-y-4">
                     <h5 className="text-[11px] font-mono-tech uppercase text-[#854D0E] dark:text-[#DFCA9E] tracking-wider font-bold">
                       {lang === 'bn' ? '— সিনিয়র প্রকৌশলীদের মূল্যবান পরামর্শ ও মন্তব্য' : '— SENIOR ALUMNI ADVICE & COMMENTS'}
                     </h5>
@@ -650,8 +666,10 @@ export default function Forum() {
                         <span>{lang === 'bn' ? 'পাঠান' : 'Reply'}</span>
                       </button>
                     </form>
-                  </div>
-                )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
               </div>
             );
@@ -695,20 +713,29 @@ export default function Forum() {
       {/* ========================================================
           APPROVAL GATE MODAL (When student clicks "অভিজ্ঞতা শেয়ার করুন" but is unapproved)
           ======================================================== */}
-      {approvalGateModalOpen && typeof document !== 'undefined' && createPortal(
-        <div
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setApprovalGateModalOpen(false);
-          }}
-        >
-          <div
-            data-lenis-prevent="true"
-            className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#1a1916] border border-[#C5A880]/40 relative shadow-2xl my-auto animate-in fade-in overscroll-contain text-[#1C1917] dark:text-[#EDE8DF] space-y-5"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {approvalGateModalOpen && (
+            <motion.div
+              key="forum-approval-gate-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setApprovalGateModalOpen(false);
+              }}
+            >
+              <motion.div
+                key="forum-approval-gate-card"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#1a1916] border border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-[#1C1917] dark:text-[#EDE8DF] space-y-5"
+                onClick={(e) => e.stopPropagation()}
+              >
             <button
               onClick={() => setApprovalGateModalOpen(false)}
               className="absolute top-5 right-5 p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#141311] border border-[#C5A880]/30 text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] transition cursor-pointer"
@@ -834,26 +861,37 @@ export default function Forum() {
               </button>
             </div>
 
-          </div>
-        </div>,
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
       {/* New Question / Share Experience Modal (Only for approved members) */}
-      {newPostModalOpen && typeof document !== 'undefined' && createPortal(
-        <div 
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setNewPostModalOpen(false);
-          }}
-        >
-          <div 
-            data-lenis-prevent="true"
-            className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#1a1916] border border-[#C5A880]/40 relative shadow-2xl my-auto animate-in fade-in overscroll-contain text-[#1C1917] dark:text-[#EDE8DF]"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {newPostModalOpen && (
+            <motion.div
+              key="forum-newpost-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setNewPostModalOpen(false);
+              }}
+            >
+              <motion.div
+                key="forum-newpost-card"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#1a1916] border border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-[#1C1917] dark:text-[#EDE8DF]"
+                onClick={(e) => e.stopPropagation()}
+              >
             <button
               onClick={() => setNewPostModalOpen(false)}
               className="absolute top-5 right-5 p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#141311] border border-[#C5A880]/30 text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] transition cursor-pointer"
@@ -974,26 +1012,37 @@ export default function Forum() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>,
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
       {/* Edit Question / Experience Modal */}
-      {editPostModalOpen && typeof document !== 'undefined' && createPortal(
-        <div 
-          data-lenis-prevent="true"
-          data-modal-open="true"
-          className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setEditPostModalOpen(false);
-          }}
-        >
-          <div 
-            data-lenis-prevent="true"
-            className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#1a1916] border border-[#C5A880]/40 relative shadow-2xl my-auto animate-in fade-in overscroll-contain text-[#1C1917] dark:text-[#EDE8DF]"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {editPostModalOpen && (
+            <motion.div
+              key="forum-editpost-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto overscroll-contain"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setEditPostModalOpen(false);
+              }}
+            >
+              <motion.div
+                key="forum-editpost-card"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-lg rounded-3xl p-6 sm:p-8 bg-white dark:bg-[#1a1916] border border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-[#1C1917] dark:text-[#EDE8DF]"
+                onClick={(e) => e.stopPropagation()}
+              >
             <button
               onClick={() => setEditPostModalOpen(false)}
               className="absolute top-5 right-5 p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#141311] border border-[#C5A880]/30 text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] transition cursor-pointer"
@@ -1111,19 +1160,30 @@ export default function Forum() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>,
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
       {/* Floating Toast Feedback */}
-      {toast && (
-        <div className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-[10000] px-4 py-2.5 rounded-xl bg-[#0C0A09] text-white text-xs font-sans font-bold shadow-2xl border border-[#C5A880]/40 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>{toast}</span>
-        </div>
-      )}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key="forum-toast"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-[10000] px-4 py-2.5 rounded-xl bg-[#0C0A09] text-white text-xs font-sans font-bold shadow-2xl border border-[#C5A880]/40 flex items-center gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toast}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-    </div>
+    </motion.div>
   );
 }

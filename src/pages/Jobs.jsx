@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
@@ -77,7 +77,7 @@ export default function Jobs() {
     }, 2000);
   };
 
-  const filteredJobs = jobs.filter(j => {
+  const filteredJobs = useMemo(() => jobs.filter(j => {
     const isApproved = (j.status || 'approved') === 'approved';
     const matchSearch =
       (j.title || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -85,22 +85,39 @@ export default function Jobs() {
       (j.location || '').toLowerCase().includes(search.toLowerCase());
     const matchType = selectedType === 'All' || j.type === selectedType;
     return isApproved && matchSearch && matchType;
-  });
+  }), [jobs, search, selectedType]);
 
   return (
-    <div className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header with Post Job Button */}
-        {toastMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 text-xs sm:text-sm font-semibold flex items-center gap-3 shadow-lg animate-in fade-in slide-in-from-top-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-            <div className="flex-1">{toastMessage}</div>
-            <button onClick={() => setToastMessage('')} className="p-1 hover:text-white text-emerald-400 cursor-pointer">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div
+              key="jobs-toast"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="mb-6 p-4 rounded-2xl bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 text-xs sm:text-sm font-semibold flex items-center gap-3 shadow-lg">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div className="flex-1">{toastMessage}</div>
+                <button onClick={() => setToastMessage('')} className="p-1 hover:text-white text-emerald-400 cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -158,7 +175,7 @@ export default function Jobs() {
             {filteredJobs.map((job) => (
               <div
                 key={job.id}
-                className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-800 transition-all hover:border-emerald-500/40 flex flex-col md:flex-row md:items-center justify-between gap-5"
+                className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-800 transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/40 flex flex-col md:flex-row md:items-center justify-between gap-5"
               >
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -265,19 +282,16 @@ export default function Jobs() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain"
+              className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setPostJobModalOpen(false);
               }}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                data-lenis-prevent="true"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="glass-panel w-full max-w-lg rounded-3xl p-6 border border-slate-700 relative shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -428,19 +442,16 @@ export default function Jobs() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain"
+              className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setApplyModalOpen(false);
               }}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                data-lenis-prevent="true"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="glass-panel w-full max-w-md rounded-3xl p-6 border border-slate-700 relative overscroll-contain"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -516,6 +527,6 @@ export default function Jobs() {
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

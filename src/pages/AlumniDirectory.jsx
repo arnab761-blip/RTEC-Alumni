@@ -102,7 +102,13 @@ export default function AlumniDirectory() {
   };
 
   return (
-    <div className="min-h-screen text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Page Architectural Header */}
@@ -194,7 +200,7 @@ export default function AlumniDirectory() {
           {filteredAlumni.map((alm, idx) => (
             <div
               key={alm.id}
-              className="plaque-elevated rounded-xl overflow-hidden border border-[#C5A880]/25 hover:border-[#C5A880]/60 transition-all flex flex-col justify-between group shadow-lg hover:shadow-2xl relative"
+              className="plaque-elevated rounded-xl overflow-hidden border border-[#C5A880]/25 hover:border-[#C5A880]/60 transition-all duration-200 hover:-translate-y-1 flex flex-col justify-between group shadow-lg hover:shadow-2xl relative"
             >
               
               {/* ID Badge Metallic Header Strip */}
@@ -332,21 +338,18 @@ export default function AlumniDirectory() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setSelectedProfile(null);
               }}
             >
               <motion.div 
                 key="alumni-profile-modal-card"
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                data-lenis-prevent="true"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full max-w-lg rounded-2xl p-6 sm:p-8 bg-white dark:bg-[#181715] border border-stone-200 dark:border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-stone-900 dark:text-[#EDE8DF]"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -462,19 +465,16 @@ export default function AlumniDirectory() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setContactModalOpen(false);
               }}
             >
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                data-lenis-prevent="true"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="plaque-elevated w-full max-w-md rounded-2xl p-6 border border-[#C5A880]/40 relative my-auto overscroll-contain"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -546,6 +546,6 @@ export default function AlumniDirectory() {
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

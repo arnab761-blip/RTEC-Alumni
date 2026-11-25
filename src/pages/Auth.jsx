@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import GoogleSignInModal, { GoogleSignInButton } from '../components/GoogleSignInModal.jsx';
 import {
@@ -85,7 +86,13 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent text-[#EDE8DF] py-12 px-4 flex items-center justify-center relative overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-transparent text-[#EDE8DF] py-12 px-4 flex items-center justify-center relative overflow-hidden"
+    >
       {/* Background glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
 
@@ -120,9 +127,9 @@ export default function Auth() {
               key={item.id}
               type="button"
               onClick={() => setRole(item.id)}
-              className={`py-2 rounded-xl text-xs font-bold transition text-center cursor-pointer ${
+              className={`py-2 rounded-xl text-xs font-bold transition-all duration-200 hover:scale-105 text-center cursor-pointer ${
                 role === item.id
-                  ? 'bg-emerald-600 text-white shadow'
+                  ? 'bg-emerald-600 text-white shadow scale-105'
                   : 'text-[#374151] dark:text-slate-300 hover:text-[#0C0A09] dark:hover:text-white'
               }`}
             >
@@ -168,34 +175,54 @@ export default function Auth() {
                 />
               </div>
 
-              {matchedStudent && (
-                <div className="mt-2 p-2 rounded-xl bg-emerald-950/60 border border-emerald-600/60 text-xs text-emerald-300 flex items-center gap-2 animate-in fade-in">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>
-                    {lang === 'bn' ? 'কলেজ ডেটাবেজে ভেরিফাইড: ' : 'Verified in College Database: '}
-                    <b className="text-white">{matchedStudent.name}</b> ({matchedStudent.batch})
-                  </span>
-                </div>
-              )}
+              <AnimatePresence>
+                {matchedStudent && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-2 p-2 rounded-xl bg-emerald-950/60 border border-emerald-600/60 text-xs text-emerald-300 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>
+                        {lang === 'bn' ? 'কলেজ ডেটাবেজে ভেরিফাইড: ' : 'Verified in College Database: '}
+                        <b className="text-white">{matchedStudent.name}</b> ({matchedStudent.batch})
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
 
           {/* Full Name */}
-          {(mode === 'register' || role === 'admin') && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                {lang === 'bn' ? 'পূর্ণ নাম' : 'Full Name'}
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-          )}
+          <AnimatePresence>
+            {(mode === 'register' || role === 'admin') && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    {lang === 'bn' ? 'পূর্ণ নাম' : 'Full Name'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Mobile Phone Number */}
           {role !== 'admin' && (
@@ -252,8 +279,16 @@ export default function Auth() {
           </div>
 
           {/* Batch & Dept for registration */}
-          {mode === 'register' && role !== 'admin' && (
-            <div className="grid grid-cols-2 gap-3">
+          <AnimatePresence>
+            {mode === 'register' && role !== 'admin' && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   {lang === 'bn' ? 'ব্যাচ' : 'Cohort / Batch'}
@@ -283,8 +318,10 @@ export default function Auth() {
                   ))}
                 </select>
               </div>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button
             type="submit"
@@ -336,6 +373,6 @@ export default function Auth() {
         />
 
       </div>
-    </div>
+    </motion.div>
   );
 }

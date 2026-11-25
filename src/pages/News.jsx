@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
@@ -31,12 +31,18 @@ export default function News() {
     { id: 'Campus', labelBn: 'ক্যাম্পাস জীবন', labelEn: 'Campus News' }
   ];
 
-  const filteredNews = news.filter(
+  const filteredNews = useMemo(() => news.filter(
     n => activeCategory === 'All' || n.category === activeCategory
-  );
+  ), [news, activeCategory]);
 
   return (
-    <div className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+      className="min-h-screen bg-transparent text-[#EDE8DF] py-8 sm:py-12"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
@@ -58,14 +64,14 @@ export default function News() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+        <div className="flex items-center gap-2.5 overflow-x-auto py-2 px-1 mb-8 no-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
                 activeCategory === cat.id
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/40'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/40 scale-110'
                   : 'bg-white dark:bg-slate-900 text-stone-700 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 border border-[#C5A880]/20'
               }`}
             >
@@ -80,7 +86,7 @@ export default function News() {
             {filteredNews.map((item) => (
               <div
                 key={item.id}
-                className="plaque-elevated rounded-2xl overflow-hidden flex flex-col justify-between border border-[#C5A880]/25 group shadow-md"
+                className="plaque-elevated rounded-2xl overflow-hidden flex flex-col justify-between border border-[#C5A880]/25 group shadow-md transition-all duration-200 hover:-translate-y-1"
               >
                 <div>
                   {item.image ? (
@@ -162,20 +168,17 @@ export default function News() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              data-lenis-prevent="true"
-              data-modal-open="true"
-              className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overscroll-contain"
+              className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain"
               onClick={(e) => {
                 if (e.target === e.currentTarget) setSelectedArticle(null);
               }}
             >
               <motion.div
                 key="news-reader-card"
-                initial={{ opacity: 0, scale: 0.94, y: 14 }}
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                data-lenis-prevent="true"
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                 className="glass-panel w-full max-w-2xl rounded-3xl p-6 sm:p-8 border border-[#C5A880]/30 relative shadow-2xl max-h-[90vh] overflow-y-auto overscroll-contain"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -272,6 +275,6 @@ export default function News() {
         document.body
       )}
 
-    </div>
+    </motion.div>
   );
 }

@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileSpreadsheet, 
   Upload, 
@@ -28,7 +30,7 @@ export default function ExcelImportModal({ isOpen, onClose }) {
 
   const fileInputRef = useRef(null);
 
-  if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
   const handleFileSelect = async (selectedFile) => {
     if (!selectedFile) return;
@@ -103,19 +105,31 @@ export default function ExcelImportModal({ isOpen, onClose }) {
     setSubmitResult(null);
   };
 
-  return (
-    <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md overflow-y-auto"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isSubmitting) {
-          onClose();
-        }
-      }}
-    >
-      <div 
-        className="relative w-full max-w-2xl bg-white dark:bg-[#181715] border border-[#C5A880]/30 rounded-3xl p-5 sm:p-7 shadow-2xl my-auto text-[#1C1917] dark:text-[#EDE8DF]"
-        onClick={(e) => e.stopPropagation()}
-      >
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="excel-import-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-sm overflow-y-auto overscroll-contain"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSubmitting) {
+              onClose();
+            }
+          }}
+        >
+          <motion.div
+            key="excel-import-card"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-2xl bg-white dark:bg-[#181715] border border-[#C5A880]/30 rounded-3xl p-5 sm:p-7 shadow-2xl my-auto text-[#1C1917] dark:text-[#EDE8DF] max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -235,8 +249,17 @@ export default function ExcelImportModal({ isOpen, onClose }) {
             )}
 
             {/* Parse Result Summary & Preview Table */}
-            {parseResult && (
-              <div className="space-y-3.5 p-4 rounded-2xl bg-[#FAF8F5] dark:bg-[#121110] border border-[#C5A880]/30 animate-in fade-in duration-200">
+            <AnimatePresence>
+              {parseResult && (
+                <motion.div
+                  key="excel-parse-result"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-3.5 p-4 rounded-2xl bg-[#FAF8F5] dark:bg-[#121110] border border-[#C5A880]/30">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -308,14 +331,24 @@ export default function ExcelImportModal({ isOpen, onClose }) {
                     </>
                   )}
                 </button>
-              </div>
-            )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
         {/* Step 3: Success Screen */}
-        {submitResult && (
-          <div className="text-center py-6 space-y-4 animate-in zoom-in-95 duration-200">
+        <AnimatePresence>
+          {submitResult && (
+            <motion.div
+              key="excel-submit-result"
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="text-center py-6 space-y-4"
+            >
             <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border-2 border-emerald-400 shadow-lg">
               <CheckCircle2 className="w-8 h-8" />
             </div>
@@ -356,9 +389,13 @@ export default function ExcelImportModal({ isOpen, onClose }) {
                 {lang === 'bn' ? 'তালিকা দেখুন' : 'View Directory'}
               </button>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 }
