@@ -50,11 +50,33 @@ export default function Students() {
   const [selectedBatch, setSelectedBatch] = useState('all');
   const [selectedDept, setSelectedDept] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalScrollLocked, setModalScrollLocked] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(24);
 
-  // Lock background scroll when modal is open
-  useScrollLock(Boolean(selectedStudent));
+  const openStudentModal = (student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+    setModalScrollLocked(true);
+  };
+
+  const closeStudentModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Keep scroll locked through the entire modal exit animation
+  useScrollLock(modalScrollLocked);
+
+  // Close Student Details Modal on Escape key
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeStudentModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
 
   // Reset page to 1 when filters change
   useEffect(() => {
@@ -325,7 +347,7 @@ export default function Students() {
                       </span>
                     )}
                     <button
-                      onClick={() => setSelectedStudent(std)}
+                      onClick={() => openStudentModal(std)}
                       className="text-amber-800 dark:text-[#DFCA9E] font-bold hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <span>{lang === 'bn' ? 'ফাইল দেখুন →' : 'View File →'}</span>
@@ -425,36 +447,53 @@ export default function Students() {
 
       </div>
 
-      {/* Student Detail Modal mounted via Portal */}
+      {/* Student Detail Modal mounted via Portal (Synchronized GPU Backdrop + Card) */}
       {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {selectedStudent && (
-            <motion.div 
-              key="student-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setSelectedStudent(null);
-              }}
-            >
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-md rounded-2xl p-6 sm:p-8 bg-white dark:bg-[#181715] border border-stone-200 dark:border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-stone-900 dark:text-[#EDE8DF]"
-                onClick={(e) => e.stopPropagation()}
+        <AnimatePresence
+          onExitComplete={() => {
+            setSelectedStudent(null);
+            setModalScrollLocked(false);
+          }}
+        >
+          {isModalOpen && selectedStudent && (
+            <>
+              <motion.div
+                key="student-modal-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, pointerEvents: 'none' }}
+                transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+                style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
+                className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm"
+              />
+              <motion.div
+                key="student-modal-wrapper"
+                initial={false}
+                animate={{ pointerEvents: 'auto' }}
+                exit={{ pointerEvents: 'none' }}
+                transition={{ duration: 0.24 }}
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+                onClick={closeStudentModal}
               >
-                <button
-                  onClick={() => setSelectedStudent(null)}
-                  className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors cursor-pointer"
-                  aria-label="Close"
+                <motion.div
+                  key="student-modal-card"
+                  role="dialog"
+                  aria-modal="true"
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                  transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+                  style={{ willChange: 'transform, opacity' }}
+                  className="w-full max-w-md rounded-2xl p-6 sm:p-8 bg-white dark:bg-[#181715] border border-stone-200 dark:border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-stone-900 dark:text-[#EDE8DF]"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <X className="w-4 h-4" />
-                </button>
+                  <button
+                    onClick={closeStudentModal}
+                    className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors duration-150 cursor-pointer"
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
 
                 <div className="flex items-start gap-4 mb-6 pb-4 border-b border-stone-200 dark:border-[#C5A880]/20">
                   <UserAvatar
@@ -587,13 +626,14 @@ export default function Students() {
                 </div>
 
                 <button
-                  onClick={() => setSelectedStudent(null)}
-                  className="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white dark:bg-[#C5A880] dark:text-[#121110] dark:hover:bg-[#DFCA9E] font-bold text-xs uppercase tracking-wider transition cursor-pointer shadow-md"
+                  onClick={closeStudentModal}
+                  className="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-black text-white dark:bg-[#C5A880] dark:text-[#121110] dark:hover:bg-[#DFCA9E] font-bold text-xs uppercase tracking-wider transition-colors duration-150 cursor-pointer shadow-md"
                 >
                   <span>{lang === 'bn' ? 'ফাইল বন্ধ করুন' : 'Close File'}</span>
                 </button>
+                </motion.div>
               </motion.div>
-            </motion.div>
+            </>
           )}
         </AnimatePresence>,
         document.body

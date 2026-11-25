@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
@@ -40,10 +40,27 @@ export default function Navbar() {
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerScrollLocked, setDrawerScrollLocked] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
-  // Lock background scroll when the side drawer is open
-  useScrollLock(drawerOpen);
+  // Keep scroll locked through the full drawer open + exit transition; release in onExitComplete
+  useEffect(() => {
+    if (drawerOpen) {
+      setDrawerScrollLocked(true);
+    }
+  }, [drawerOpen]);
+
+  useScrollLock(drawerScrollLocked);
+
+  // Close Index Drawer on Escape key
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setDrawerOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drawerOpen]);
 
   // Core docked items for the floating dock (Desktop)
   const primaryDockItems = [
@@ -505,29 +522,34 @@ export default function Navbar() {
         </nav>
       )}
 
-      {/* 3. ARCHITECTURAL REGISTER DRAWER (Smooth 60fps Framer Motion menu/drawer) */}
+      {/* 3. ARCHITECTURAL REGISTER DRAWER (Synchronized GPU Backdrop Fade + Right Slide) */}
       {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
+        <AnimatePresence onExitComplete={() => setDrawerScrollLocked(false)}>
           {drawerOpen && (
-            <motion.div
-              key="rtec-drawer-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9999] flex justify-end bg-black/75 backdrop-blur-sm overscroll-contain"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setDrawerOpen(false);
-              }}
-            >
-              <motion.div 
+            <>
+              <motion.div
+                key="rtec-drawer-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, pointerEvents: 'none' }}
+                transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
+                className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm"
+                onClick={() => setDrawerOpen(false)}
+              />
+              <motion.div
                 key="rtec-drawer-panel"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-md bg-[#FAF9F6] dark:bg-[#161513] border-l border-[#C5A880]/30 dark:border-[#C5A880]/25 h-full overflow-y-auto flex flex-col p-6 shadow-2xl relative overscroll-contain transition-colors duration-300"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Campus and Academy Index"
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%', pointerEvents: 'none' }}
+                transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+                onClick={(e) => e.stopPropagation()}
+                className="fixed top-0 right-0 bottom-0 z-[9999] w-full max-w-md bg-[#FAF9F6] dark:bg-[#161513] border-l border-[#C5A880]/30 dark:border-[#C5A880]/25 h-full overflow-y-auto flex flex-col p-6 shadow-2xl overscroll-contain"
                 style={{
+                  willChange: 'transform',
                   backgroundImage: 'radial-gradient(rgba(197, 168, 128, 0.08) 1px, transparent 1px)',
                   backgroundSize: '24px 24px'
                 }}
@@ -657,7 +679,7 @@ export default function Navbar() {
                         key={item.to}
                         to={item.to}
                         onClick={() => setDrawerOpen(false)}
-                        className={`flex items-start gap-3.5 p-3.5 rounded-xl border transition-all ${
+                        className={`flex items-start gap-3.5 p-3.5 rounded-xl border transition-[transform,background-color,border-color] duration-200 ${
                           isActive
                             ? 'drawer-archive-card-active shadow-lg scale-[1.01]'
                             : 'drawer-archive-card bg-white dark:bg-[#1E1C18] border-[#C5A880]/30 dark:border-[#C5A880]/20 hover:border-[#854D0E]/60 dark:hover:border-[#C5A880]/45 hover:bg-[#F8F5EE] dark:hover:bg-[#25221E] shadow-sm'
@@ -718,7 +740,7 @@ export default function Navbar() {
                   </button>
                 </div>
               </motion.div>
-            </motion.div>
+            </>
           )}
         </AnimatePresence>,
         document.body

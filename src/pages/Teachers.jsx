@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext.jsx';
 import { formatDriveImageUrl } from '../utils/driveImage.js';
@@ -36,9 +36,31 @@ export default function Teachers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalScrollLocked, setModalScrollLocked] = useState(false);
 
-  // Lock background scroll when modal is open
-  useScrollLock(Boolean(selectedTeacher));
+  const openTeacherModal = (teacher) => {
+    setSelectedTeacher(teacher);
+    setIsModalOpen(true);
+    setModalScrollLocked(true);
+  };
+
+  const closeTeacherModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Keep scroll locked through the entire modal exit animation
+  useScrollLock(modalScrollLocked);
+
+  // Close Faculty Dossier Modal on Escape key
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeTeacherModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
 
   // Filter teachers (Memoized for 60fps smooth scrolling & filtering)
   const filteredTeachers = useMemo(() => (teachers || []).filter((teacher) => {
@@ -320,8 +342,8 @@ export default function Teachers() {
                     )}
 
                     <button
-                      onClick={() => setSelectedTeacher(teacher)}
-                      className="btn-agency px-3.5 py-1.5 rounded text-[11px] font-sans uppercase tracking-wider"
+                      onClick={() => openTeacherModal(teacher)}
+                      className="btn-agency px-3.5 py-1.5 rounded text-[11px] font-sans uppercase tracking-wider cursor-pointer"
                     >
                       <span>{lang === 'bn' ? 'বিস্তারিত প্রোফাইল' : 'Full Dossier'}</span>
                     </button>
@@ -343,37 +365,53 @@ export default function Teachers() {
 
       </div>
 
-      {/* Teacher Detail Dossier Modal mounted via Portal */}
+      {/* Teacher Detail Dossier Modal mounted via Portal (Synchronized GPU Backdrop + Card) */}
       {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {selectedTeacher && (
-            <motion.div 
-              key="teacher-modal-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setSelectedTeacher(null);
-              }}
-            >
-              <motion.div 
-                key="teacher-modal-card"
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full max-w-lg rounded-2xl p-6 sm:p-8 bg-white dark:bg-[#181715] border border-stone-200 dark:border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-stone-900 dark:text-[#EDE8DF]"
-                onClick={(e) => e.stopPropagation()}
+        <AnimatePresence
+          onExitComplete={() => {
+            setSelectedTeacher(null);
+            setModalScrollLocked(false);
+          }}
+        >
+          {isModalOpen && selectedTeacher && (
+            <>
+              <motion.div
+                key="teacher-modal-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, pointerEvents: 'none' }}
+                transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+                style={{ willChange: 'opacity', transform: 'translateZ(0)' }}
+                className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm"
+              />
+              <motion.div
+                key="teacher-modal-wrapper"
+                initial={false}
+                animate={{ pointerEvents: 'auto' }}
+                exit={{ pointerEvents: 'none' }}
+                transition={{ duration: 0.24 }}
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+                onClick={closeTeacherModal}
               >
-                <button
-                  onClick={() => setSelectedTeacher(null)}
-                  className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors cursor-pointer"
-                  aria-label="Close"
+                <motion.div
+                  key="teacher-modal-card"
+                  role="dialog"
+                  aria-modal="true"
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                  transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+                  style={{ willChange: 'transform, opacity' }}
+                  className="w-full max-w-lg rounded-2xl p-6 sm:p-8 bg-white dark:bg-[#181715] border border-stone-200 dark:border-[#C5A880]/40 relative shadow-2xl my-auto overscroll-contain text-stone-900 dark:text-[#EDE8DF]"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <X className="w-4 h-4" />
-                </button>
+                  <button
+                    onClick={closeTeacherModal}
+                    className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors duration-150 cursor-pointer"
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
 
                 <div className="flex items-start gap-4 mb-6 pb-4 border-b border-stone-200 dark:border-[#C5A880]/20">
                   <UserAvatar
@@ -466,8 +504,9 @@ export default function Teachers() {
                   )}
                 </div>
 
+                </motion.div>
               </motion.div>
-            </motion.div>
+            </>
           )}
         </AnimatePresence>,
         document.body
