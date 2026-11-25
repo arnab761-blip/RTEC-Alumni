@@ -617,9 +617,45 @@ app.get('/api/submissions', requireDb, async (req, res) => {
 
 app.post('/api/submissions', requireDb, async (req, res) => {
   try {
-    const data = req.body;
+    const data = req.body || {};
+    const subId = data.id || `sub-${Date.now()}`;
+    const cleanReg = data.regNo ? String(data.regNo).trim() : '';
+    const cleanEmail = data.email ? String(data.email).trim().toLowerCase() : '';
+
+    // Enforce "One Registration Number = One Verified Gmail" on submission creation/updates
+    if (cleanReg) {
+      const escapedReg = cleanReg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regRegex = new RegExp(`^${escapedReg}$`, 'i');
+
+      const claimedStudent = await Student.findOne({ regNo: regRegex }).lean();
+      if (claimedStudent && claimedStudent.email && claimedStudent.email.trim() !== '') {
+        const ownerEmail = claimedStudent.email.trim().toLowerCase();
+        if (!cleanEmail || ownerEmail !== cleanEmail) {
+          return res.status(409).json({
+            success: false,
+            error: 'Registration number is already claimed by another verified account.'
+          });
+        }
+      }
+
+      const existingSub = await Submission.findOne({
+        regNo: regRegex,
+        id: { $ne: subId },
+        status: { $ne: 'declined' }
+      }).lean();
+      if (existingSub && existingSub.email && existingSub.email.trim() !== '') {
+        const subOwner = existingSub.email.trim().toLowerCase();
+        if (!cleanEmail || subOwner !== cleanEmail) {
+          return res.status(409).json({
+            success: false,
+            error: 'Registration number already has an active submission under another email.'
+          });
+        }
+      }
+    }
+
     const sub = await Submission.findOneAndUpdate(
-      { id: data.id || `sub-${Date.now()}` },
+      { id: subId },
       { $set: data },
       { new: true, upsert: true }
     );

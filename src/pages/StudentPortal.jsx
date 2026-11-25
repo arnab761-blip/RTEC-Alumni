@@ -70,28 +70,28 @@ export default function StudentPortal() {
     trackSubmission,
     untrackSubmission,
     submitStudentProfile,
+    getRegNoClaimConflict,
     loginWithGmail,
     logout,
     submitDispute,
     isAdminEmail
   } = useApp();
 
-  // Active submission resolution:
-  // 1. AppContext mySubmission
-  // 2. Matching mySubmissionId
-  // 3. Matching logged-in user email or submissionId
-  // 4. Fallback from localStorage
-  const activeSubmission = useMemo(() => mySubmission || studentSubmissions.find((s) => {
-    if (mySubmissionId && s.id === mySubmissionId) return true;
-    if (user?.submissionId && s.id === user.submissionId) return true;
-    const savedReg = typeof localStorage !== 'undefined' ? localStorage.getItem('rtec_my_submission_reg') : null;
-    if (savedReg && s.regNo && s.regNo.trim() === savedReg.trim()) return true;
-    const savedEmail = typeof localStorage !== 'undefined' ? localStorage.getItem('rtec_my_submission_email') : null;
-    if (savedEmail && s.email && s.email.toLowerCase().trim() === savedEmail.toLowerCase().trim()) return true;
-    if (user?.email && s.email && s.email.toLowerCase().trim() === user.email.toLowerCase().trim()) return true;
-    if (user?.regNo && s.regNo && s.regNo.trim() === user.regNo.trim()) return true;
-    return false;
-  }) || null, [mySubmission, studentSubmissions, mySubmissionId, user]);
+  const maskEmail = (emailStr) => {
+    if (!emailStr || !emailStr.includes('@')) return '';
+    const [local, domain] = emailStr.trim().split('@');
+    if (local.length <= 2) return `${local[0] || '*'}***@${domain}`;
+    return `${local.slice(0, 2)}***@${domain}`;
+  };
+
+  // Active submission strictly bound to the current authenticated user's session
+  const activeSubmission = useMemo(() => {
+    const currentEmail = user && user.role !== 'guest' ? (user.email || '').toLowerCase().trim() : '';
+    if (currentEmail) {
+      return studentSubmissions.find(s => s.email && s.email.toLowerCase().trim() === currentEmail) || null;
+    }
+    return mySubmission || null;
+  }, [mySubmission, studentSubmissions, user]);
 
   // Toggle for Edit Mode
   const [isEditingDetails, setIsEditingDetails] = useState(false);
@@ -144,7 +144,21 @@ export default function StudentPortal() {
     setTimeout(() => setToastMessage(''), 4500);
   };
 
-  // Sync formData whenever activeSubmission or edit mode changes
+  // Reset edit/lookup transient UI states whenever authenticated account changes
+  useEffect(() => {
+    setIsEditingDetails(false);
+    setLookupMessage('');
+    if (!activeSubmission && (!user || user.role === 'guest')) {
+      setFormData(prev => ({
+        ...prev,
+        id: '',
+        email: '',
+        regNo: ''
+      }));
+    }
+  }, [user?.email, user?.role]);
+
+  // Sync formData whenever activeSubmission or authenticated user changes
   useEffect(() => {
     if (activeSubmission) {
       setFormData({
@@ -164,25 +178,28 @@ export default function StudentPortal() {
         bio: activeSubmission.bio || ''
       });
     } else if (user && user.role !== 'guest') {
+      const userEmailNorm = (user.email || '').toLowerCase().trim();
       const matchedStd = students.find(s =>
-        (s.email && s.email.toLowerCase() === user.email?.toLowerCase()) ||
-        (user.regNo && s.regNo === user.regNo)
+        s.email && userEmailNorm && s.email.toLowerCase().trim() === userEmailNorm
       );
-      setFormData((prev) => ({
-        ...prev,
-        email: user.email || prev.email,
-        name: user.nameBn || user.name || (matchedStd ? matchedStd.nameBn || matchedStd.name : prev.name),
-        nameEn: user.name || (matchedStd ? matchedStd.name : prev.nameEn),
-        regNo: user.regNo || (matchedStd ? matchedStd.regNo : prev.regNo),
-        batch: user.batch || (matchedStd ? matchedStd.batch : prev.batch),
-        department: user.department || (matchedStd ? matchedStd.department : prev.department),
-        phone: user.phone || (matchedStd ? matchedStd.phone : prev.phone),
-        bloodGroup: user.bloodGroup || (matchedStd ? matchedStd.bloodGroup : prev.bloodGroup),
-        currentJob: user.currentJob || (matchedStd ? matchedStd.currentJob : prev.currentJob),
-        currentLocation: user.currentLocation || (matchedStd ? matchedStd.currentLocation : prev.currentLocation)
-      }));
+      setFormData({
+        id: '',
+        email: user.email || '',
+        name: matchedStd?.nameBn || matchedStd?.name || user.nameBn || user.name || '',
+        nameEn: matchedStd?.name || user.name || '',
+        regNo: matchedStd?.regNo || '',
+        batch: matchedStd?.batch || user.batch || '8th Batch (2025-26)',
+        department: matchedStd?.department || user.department || 'Yarn Engineering',
+        deptBn: matchedStd?.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+        phone: matchedStd?.phone || user.phone || '',
+        bloodGroup: matchedStd?.bloodGroup || user.bloodGroup || 'B+',
+        avatar: matchedStd?.avatar || user.avatar || '',
+        bio: matchedStd?.activities || '',
+        currentJob: matchedStd?.currentJob || user.currentJob || '',
+        currentLocation: matchedStd?.currentLocation || user.currentLocation || ''
+      });
     }
-  }, [activeSubmission, user]);
+  }, [activeSubmission, user, students]);
 
   // Pre-fill dispute info from user or regNo
   useEffect(() => {
@@ -221,8 +238,32 @@ export default function StudentPortal() {
     if (!lookupQuery.trim()) return;
 
     const query = lookupQuery.trim().toLowerCase();
-    const foundSub = trackSubmission(query);
+    const currentEmail = (user && user.role !== 'guest' ? user.email : '')?.trim().toLowerCase() || '';
+    const foundSub = trackSubmission(query, currentEmail);
+
     if (foundSub) {
+      const subEmail = (foundSub.email || '').trim().toLowerCase();
+      // If submission belongs to a DIFFERENT email, show read-only status warning — never hijack or allow editing
+      if (subEmail && currentEmail && subEmail !== currentEmail) {
+        setLookupMessage(
+          lang === 'bn'
+            ? `🔒 এই রেজিস্ট্রেশন নম্বর (${foundSub.regNo}) ইতিমধ্যেই অন্য একটি অ্যাকাউন্ট (${maskEmail(subEmail)}) দ্বারা নিবন্ধিত (স্ট্যাটাস: ${foundSub.status?.toUpperCase()})। আপনার আইডি অন্য কেউ ব্যবহার করে থাকলে নিচে 'রিপোর্ট / কমপ্লেইন' করুন।`
+            : `🔒 Registration (${foundSub.regNo}) is already registered under ${maskEmail(subEmail)} (Status: ${foundSub.status?.toUpperCase()}). Submit a dispute report below if unauthorized.`
+        );
+        triggerToast(lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যেই অন্য জিমেইলে সংরক্ষিত।' : 'This registration number is claimed by another account.');
+        return;
+      }
+
+      if (subEmail && !currentEmail) {
+        setLookupMessage(
+          lang === 'bn'
+            ? `✓ আবেদন পাওয়া গেছে: ${foundSub.name || foundSub.regNo} • স্ট্যাটাস: ${foundSub.status?.toUpperCase()}। এডিট করতে ${maskEmail(subEmail)} দিয়ে গুগল সাইন-ইন করুন।`
+            : `✓ Application found: ${foundSub.name || foundSub.regNo} • Status: ${foundSub.status?.toUpperCase()}. Sign in with ${maskEmail(subEmail)} to edit.`
+        );
+        triggerToast(lang === 'bn' ? `স্ট্যাটাস: ${foundSub.status?.toUpperCase()}` : `Status: ${foundSub.status?.toUpperCase()}`);
+        return;
+      }
+
       setLookupMessage(lang === 'bn' ? `✓ আবেদন পাওয়া গেছে: ${foundSub.name || foundSub.regNo}` : `✓ Found submission for ${foundSub.name || foundSub.regNo}`);
       setIsEditingDetails(false);
       triggerToast(lang === 'bn' ? 'আবেদনের তথ্য সফলভাবে লোড হয়েছে।' : 'Submission loaded successfully.');
@@ -231,6 +272,17 @@ export default function StudentPortal() {
 
     const foundStd = students.find(s => s.regNo && s.regNo.toLowerCase() === query);
     if (foundStd) {
+      const stdConflict = getRegNoClaimConflict(foundStd.regNo, currentEmail, activeSubmissionId);
+      if (stdConflict) {
+        setLookupMessage(
+          lang === 'bn'
+            ? `🔒 রেজিস্ট্রেশন নম্বর ${foundStd.regNo} ইতিমধ্যেই একটি ভেরিফায়েড জিমেইল (${maskEmail(stdConflict.ownerEmail)}) দ্বারা সংরক্ষিত রয়েছে।`
+            : `🔒 Registration ${foundStd.regNo} is already verified and claimed by ${maskEmail(stdConflict.ownerEmail)}.`
+        );
+        triggerToast(lang === 'bn' ? 'এই আইডিটি ইতিমধ্যেই অন্য জিমেইল দ্বারা ক্লেইম করা হয়েছে।' : 'This student ID is already claimed.');
+        return;
+      }
+
       setFormData(prev => ({
         ...prev,
         regNo: foundStd.regNo,
@@ -241,11 +293,11 @@ export default function StudentPortal() {
         deptBn: foundStd.deptBn,
         bloodGroup: foundStd.bloodGroup || prev.bloodGroup,
         phone: foundStd.phone || prev.phone,
-        email: foundStd.email || (user?.email || prev.email),
+        email: currentEmail || prev.email,
         currentJob: foundStd.currentJob || prev.currentJob,
         currentLocation: foundStd.currentLocation || prev.currentLocation
       }));
-      setLookupMessage(lang === 'bn' ? `✓ শিক্ষার্থী পাওয়া গেছে: ${foundStd.name} (${foundStd.batch})। নিচের ফর্মে আপনার তথ্য পূরণ বা আপডেট করুন।` : `✓ Found student record for ${foundStd.name}. Complete or update your profile below.`);
+      setLookupMessage(lang === 'bn' ? `✓ অক্লেইমড রেকর্ড পাওয়া গেছে: ${foundStd.name} (${foundStd.batch})। নিচের ফর্মে আপনার তথ্য পূরণ করুন।` : `✓ Unclaimed student record found for ${foundStd.name}. Complete your profile below.`);
       setIsEditingDetails(true);
       triggerToast(lang === 'bn' ? 'শিক্ষার্থীর রেকর্ড পাওয়া গেছে! নিচের ফর্মে আপনার বিবরণ দিন।' : 'Student record loaded! Fill your details below.');
       return;
@@ -278,18 +330,26 @@ export default function StudentPortal() {
     triggerToast(lang === 'bn' ? `স্বাগতম! জিমেইল সংযুক্ত হয়েছে: ${email}` : `Gmail connected: ${email}`);
   };
 
-  // Duplicate checks against other submissions and enrolled students
+  // Duplicate & ownership checks against other submissions and enrolled directory
   const activeSubmissionId = activeSubmission?.id;
+  const effectiveFormEmail = (formData.email || (user && user.role !== 'guest' ? user.email : '') || '').trim();
 
   const isEmailTaken = (email) => {
     if (!email || !email.trim()) return false;
     const normalized = email.trim().toLowerCase();
+    const normReg = (formData.regNo || '').trim().toLowerCase();
+
     const inSubmissions = studentSubmissions.some(
-      s => s.id !== activeSubmissionId && s.email && s.email.trim().toLowerCase() === normalized
+      s => s.id !== activeSubmissionId &&
+           s.status !== 'declined' &&
+           s.email && s.email.trim().toLowerCase() === normalized &&
+           (!normReg || !s.regNo || s.regNo.trim().toLowerCase() !== normReg)
     );
     if (inSubmissions) return true;
+
     const inStudents = students.some(
-      st => st.id !== activeSubmissionId && st.email && st.email.trim().toLowerCase() === normalized
+      st => st.email && st.email.trim().toLowerCase() === normalized &&
+            (!normReg || !st.regNo || st.regNo.trim().toLowerCase() !== normReg)
     );
     return inStudents;
   };
@@ -298,49 +358,37 @@ export default function StudentPortal() {
     st => st.regNo && formData.regNo && st.regNo.trim().toLowerCase() === formData.regNo.trim().toLowerCase()
   ), [students, formData.regNo]);
 
-  const isRegNoTaken = (regNo) => {
-    if (!regNo || !regNo.trim()) return false;
-    const normalized = regNo.trim().toLowerCase();
-    
-    // Check in submissions from other users
-    const inSubmissions = studentSubmissions.some(
-      s => s.id !== activeSubmissionId && 
-           s.regNo && s.regNo.trim().toLowerCase() === normalized &&
-           s.email && formData.email && s.email.trim().toLowerCase() !== formData.email.trim().toLowerCase()
-    );
-    if (inSubmissions) return true;
+  const regNoConflict = useMemo(
+    () => getRegNoClaimConflict(formData.regNo, effectiveFormEmail, activeSubmissionId),
+    [getRegNoClaimConflict, formData.regNo, effectiveFormEmail, activeSubmissionId]
+  );
 
-    // Check in enrolled students:
-    const matched = students.find(
-      st => st.id !== activeSubmissionId && st.regNo && st.regNo.trim().toLowerCase() === normalized
-    );
-    if (matched) {
-      // If it's the admin pre-seeded record (unclaimed without email or same user's email), allow claim!
-      if (!matched.email || !matched.email.trim() || (formData.email && matched.email.trim().toLowerCase() === formData.email.trim().toLowerCase())) {
-        return false;
-      }
-      return true; // Already claimed by another student
-    }
-
-    return false;
-  };
-
-  const emailIsDuplicate = isEmailTaken(formData.email);
-  const regNoIsDuplicate = isRegNoTaken(formData.regNo);
+  const emailIsDuplicate = isEmailTaken(effectiveFormEmail);
+  const regNoIsDuplicate = Boolean(regNoConflict);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const finalEmail = formData.email?.trim() || user?.email || (gmailInput.trim() ? (gmailInput.includes('@') ? gmailInput.trim() : `${gmailInput.trim()}@gmail.com`) : '');
+    const finalEmail = effectiveFormEmail || (gmailInput.trim() ? (gmailInput.includes('@') ? gmailInput.trim() : `${gmailInput.trim()}@gmail.com`) : '');
     const finalRegNo = formData.regNo?.trim();
 
-    if (isRegNoTaken(finalRegNo)) {
-      triggerToast(lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists');
+    if (!finalEmail) {
+      triggerToast(lang === 'bn' ? 'প্রোফাইল ভেরিফাই ও সংরক্ষণ করতে অনুগ্রহ করে আপনার জিমেইল অ্যাকাউন্ট দিন' : 'Please connect or enter your Gmail address before submitting');
+      return;
+    }
+
+    const submitConflict = getRegNoClaimConflict(finalRegNo, finalEmail, activeSubmissionId);
+    if (submitConflict) {
+      triggerToast(
+        lang === 'bn'
+          ? `এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যেই অন্য একটি অ্যাকাউন্ট (${maskEmail(submitConflict.ownerEmail)}) দ্বারা সংরক্ষিত!`
+          : `This registration number is already claimed by ${maskEmail(submitConflict.ownerEmail)}!`
+      );
       return;
     }
 
     if (isEmailTaken(finalEmail)) {
-      triggerToast(lang === 'bn' ? 'এই ইমেইলটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This email already exists');
+      triggerToast(lang === 'bn' ? 'এই ইমেইলটি ইতিমধ্যেই অন্য একটি প্রোফাইলে ব্যবহৃত হয়েছে' : 'This email is already registered with another profile');
       return;
     }
 
@@ -349,8 +397,17 @@ export default function StudentPortal() {
       email: finalEmail
     });
 
+    if (saved?.error === 'REGNO_CLAIMED') {
+      triggerToast(lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যেই অন্য একটি অ্যাকাউন্ট দ্বারা সংরক্ষিত!' : 'This registration number is already claimed!');
+      return;
+    }
+    if (saved?.error === 'EMAIL_TAKEN') {
+      triggerToast(lang === 'bn' ? 'এই ইমেইলটি ইতিমধ্যেই ব্যবহৃত হয়েছে' : 'This email already exists');
+      return;
+    }
+
     setIsEditingDetails(false);
-    triggerToast(lang === 'bn' ? '✓ আপনার আবেদনটি সফলভাবে জমা হয়েছে এবং পেন্ডিং রয়েছে!' : '✓ Your profile has been submitted and is pending verification!');
+    triggerToast(lang === 'bn' ? '✓ আপনার আবেদনটি সফলভাবে জমা হয়েছে এবং অ্যাডমিন যাচাইয়ের জন্য অপেক্ষমাণ রয়েছে!' : '✓ Your profile has been submitted and is pending admin verification!');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1054,7 +1111,13 @@ export default function StudentPortal() {
                             <div className="space-y-1.5 mt-1.5">
                               <p className="text-xs text-rose-500 font-bold flex items-center gap-1.5">
                                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                <span>{lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists'}</span>
+                                <span>
+                                  {regNoConflict?.ownerEmail
+                                    ? (lang === 'bn'
+                                        ? `এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যেই ${maskEmail(regNoConflict.ownerEmail)} দ্বারা সংরক্ষিত`
+                                        : `Already claimed by ${maskEmail(regNoConflict.ownerEmail)}`)
+                                    : (lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists')}
+                                </span>
                               </p>
                           <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
                             <div className="flex items-center gap-1.5 font-bold mb-1">
@@ -1303,7 +1366,12 @@ export default function StudentPortal() {
 
                     <button
                       type="submit"
-                      className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-950/20 transition group cursor-pointer"
+                      disabled={regNoIsDuplicate || emailIsDuplicate}
+                      className={`w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-950/20 transition group ${
+                        regNoIsDuplicate || emailIsDuplicate
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:from-emerald-500 hover:to-teal-500 cursor-pointer'
+                      }`}
                     >
                       <Send className="w-4 h-4 text-emerald-200 group-hover:translate-x-1 transition-transform" />
                       <span>

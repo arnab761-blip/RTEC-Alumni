@@ -485,18 +485,72 @@ export function AppProvider({ children }) {
     }
   }, [mySubmissionId]);
 
-  // Reactive lookup for current student's submission
-  const mySubmission = studentSubmissions.find(s => {
-    if (mySubmissionId && s.id === mySubmissionId) return true;
-    if (user?.submissionId && s.id === user.submissionId) return true;
-    const savedReg = localStorage.getItem('rtec_my_submission_reg');
-    if (savedReg && s.regNo && s.regNo.trim() === savedReg.trim()) return true;
-    const savedEmail = localStorage.getItem('rtec_my_submission_email');
-    if (savedEmail && s.email && s.email.toLowerCase().trim() === savedEmail.toLowerCase().trim()) return true;
-    if (user?.email && s.email && s.email.toLowerCase().trim() === user.email.toLowerCase().trim()) return true;
-    if (user?.regNo && s.regNo && s.regNo.trim() === user.regNo.trim()) return true;
-    return false;
-  }) || null;
+  // Reactive lookup strictly scoped to the current authenticated user's email (prevents cross-account leaks)
+  const currentSessionEmail = user && user.role !== 'guest' ? (user.email || '').toLowerCase().trim() : '';
+  const mySubmission = currentSessionEmail
+    ? (studentSubmissions.find(s => s.email && s.email.toLowerCase().trim() === currentSessionEmail) || null)
+    : (mySubmissionId
+        ? (studentSubmissions.find(s => s.id === mySubmissionId && (!s.email || s.email.toLowerCase().trim() === (localStorage.getItem('rtec_my_submission_email') || '').toLowerCase().trim())) || null)
+        : null);
+
+  // Shared ownership & duplicate claim checker ("One Registration Number = One Verified Gmail")
+  const getRegNoClaimConflict = (regNo, requesterEmail = '', excludeSubmissionId = null) => {
+    const normReg = String(regNo || '').trim().toLowerCase();
+    if (!normReg) return null;
+    const normEmail = String(requesterEmail || '').trim().toLowerCase();
+
+    // 1. Active (pending or approved) submission owned by a different email
+    const subConflict = studentSubmissions.find(s => {
+      if (!s || (excludeSubmissionId && s.id === excludeSubmissionId)) return false;
+      if (s.status === 'declined') return false;
+      if (!s.regNo || s.regNo.trim().toLowerCase() !== normReg) return false;
+      const ownerEmail = (s.email || '').trim().toLowerCase();
+      if (!ownerEmail) return false;
+      return !normEmail || ownerEmail !== normEmail;
+    });
+    if (subConflict) {
+      return {
+        reason: 'submission',
+        ownerEmail: subConflict.email,
+        status: subConflict.status,
+        name: subConflict.name || subConflict.nameEn || ''
+      };
+    }
+
+    // 2. Claimed Student Directory record
+    const studentMatch = students.find(
+      st => st && st.regNo && st.regNo.trim().toLowerCase() === normReg
+    );
+    if (studentMatch && studentMatch.email && studentMatch.email.trim() !== '') {
+      const ownerEmail = studentMatch.email.trim().toLowerCase();
+      if (!normEmail || ownerEmail !== normEmail) {
+        return {
+          reason: 'directory',
+          ownerEmail: studentMatch.email,
+          status: 'approved',
+          name: studentMatch.name || studentMatch.nameBn || ''
+        };
+      }
+    }
+
+    // 3. Claimed Alumni Directory record
+    const alumniMatch = alumni.find(
+      al => al && al.regNo && al.regNo.trim().toLowerCase() === normReg && al.email && al.email.trim() !== ''
+    );
+    if (alumniMatch) {
+      const ownerEmail = alumniMatch.email.trim().toLowerCase();
+      if (!normEmail || ownerEmail !== normEmail) {
+        return {
+          reason: 'alumni',
+          ownerEmail: alumniMatch.email,
+          status: 'approved',
+          name: alumniMatch.name || alumniMatch.nameBn || ''
+        };
+      }
+    }
+
+    return null;
+  };
 
   // 11.2 ID Disputes & Prank Reports
   const [disputes, setDisputes] = useState(() => {
@@ -611,41 +665,44 @@ export function AppProvider({ children }) {
     const isAuthorizedAdmin = isAdminEmail(cleanEmail);
     let effectiveRole = isAuthorizedAdmin ? 'admin' : (role === 'admin' ? 'student' : role);
 
-    // If student/alumni logs in with a regNo, automatically bind phone and email to their student record in MongoDB & state!
-    if (regNo) {
-      setStudents(prev => prev.map(s => {
-        if (s.regNo && String(s.regNo).trim().toLowerCase() === regNo.toLowerCase()) {
-          const updated = {
-            ...s,
-            phone: phone || s.phone,
-            email: cleanEmail || s.email
-          };
-          syncEntityToMongo('/api/students', 'POST', updated);
-          return updated;
-        }
-        return s;
-      }));
+    // Clear previous session submission tracking before switching user
+    untrackSubmission();
+    const existingSub = cleanEmail
+      ? studentSubmissions.find(s => s.email && s.email.toLowerCase().trim() === cleanEmail)
+      : null;
+    if (existingSub) {
+      setMySubmissionId(existingSub.id);
+      localStorage.setItem('rtec_my_submission_id', existingSub.id);
+      localStorage.setItem('rtec_my_submission_email', cleanEmail);
+      if (existingSub.regNo) localStorage.setItem('rtec_my_submission_reg', existingSub.regNo);
     }
+
+    const verifiedStudent = cleanEmail
+      ? students.find(s => s.email && s.email.toLowerCase().trim() === cleanEmail)
+      : null;
 
     const newUser = {
       id: `usr-${Date.now()}`,
-      name: name || (effectiveRole === 'admin' ? 'Administrator' : 'Registered Member'),
-      nameBn: name || (effectiveRole === 'admin' ? 'এডমিনিস্ট্রেটর' : 'নিবন্ধিত সদস্য'),
+      name: name || existingSub?.name || verifiedStudent?.name || (effectiveRole === 'admin' ? 'Administrator' : 'Registered Member'),
+      nameBn: name || existingSub?.name || verifiedStudent?.nameBn || (effectiveRole === 'admin' ? 'এডমিনিস্ট্রেটর' : 'নিবন্ধিত সদস্য'),
       role: effectiveRole, // 'admin' | 'alumni' | 'student'
-      batch,
-      department: dept,
+      batch: existingSub?.batch || verifiedStudent?.batch || batch,
+      department: existingSub?.department || verifiedStudent?.department || dept,
       company: effectiveRole === 'alumni' ? 'Textile Industry' : (effectiveRole === 'admin' ? 'RTEC Administration' : 'Student at RTEC'),
       email: cleanEmail || 'user@rtec.edu.bd',
-      phone: phone,
-      regNo: regNo,
-      avatar: '',
-      isVerified: effectiveRole === 'admin' || effectiveRole === 'alumni'
+      phone: phone || existingSub?.phone || verifiedStudent?.phone || '',
+      regNo: existingSub?.regNo || verifiedStudent?.regNo || '',
+      avatar: sanitizeAvatar(existingSub?.avatar || verifiedStudent?.avatar) || '',
+      isVerified: effectiveRole === 'admin' || effectiveRole === 'alumni' || Boolean(verifiedStudent) || existingSub?.status === 'approved',
+      submissionStatus: existingSub?.status || 'none',
+      submissionId: existingSub?.id || null
     };
     setUser(newUser);
     syncUserToMongo(newUser);
   };
 
   const logout = () => {
+    untrackSubmission();
     setUser({
       id: 'guest',
       name: 'Guest Visitor',
@@ -1361,12 +1418,39 @@ export function AppProvider({ children }) {
       minute: '2-digit'
     });
 
-    // Check if updating an existing submission
+    const cleanEmail = (data.email || (user?.role !== 'guest' ? user?.email : '') || '').trim().toLowerCase();
+    const cleanReg = (data.regNo || '').trim();
+    const currentOwnerSubId = (data.id && (!user?.email || mySubmission?.id === data.id)) ? data.id : (mySubmission?.id || null);
+
+    // 1. Strict guard: Block submission if this Registration No is already claimed/pending under a DIFFERENT email
+    if (cleanReg) {
+      const claimConflict = getRegNoClaimConflict(cleanReg, cleanEmail, currentOwnerSubId);
+      if (claimConflict) {
+        return { error: 'REGNO_CLAIMED', conflict: claimConflict };
+      }
+    }
+
+    // 2. Strict guard: Block if email is already bound to a different Registration No
+    if (cleanEmail) {
+      const emailUsedInSub = studentSubmissions.some(
+        s => s.id !== currentOwnerSubId &&
+             s.status !== 'declined' &&
+             s.email && s.email.trim().toLowerCase() === cleanEmail &&
+             (!cleanReg || (s.regNo && s.regNo.trim().toLowerCase() !== cleanReg.toLowerCase()))
+      );
+      const emailUsedInDir = students.some(
+        st => st.email && st.email.trim().toLowerCase() === cleanEmail &&
+              (!cleanReg || !st.regNo || st.regNo.trim().toLowerCase() !== cleanReg.toLowerCase())
+      );
+      if (emailUsedInSub || emailUsedInDir) {
+        return { error: 'EMAIL_TAKEN' };
+      }
+    }
+
+    // 3. Only allow updating an existing submission if it belongs to THIS SAME email / user!
     const existingIndex = studentSubmissions.findIndex(
-      s => (data.id && s.id === data.id) ||
-           (mySubmissionId && s.id === mySubmissionId) ||
-           (data.regNo && s.regNo && s.regNo.trim() === data.regNo.trim()) ||
-           (data.email && s.email && s.email.toLowerCase().trim() === data.email.toLowerCase().trim())
+      s => (currentOwnerSubId && s.id === currentOwnerSubId && (!s.email || !cleanEmail || s.email.toLowerCase().trim() === cleanEmail)) ||
+           (cleanEmail && s.email && s.email.toLowerCase().trim() === cleanEmail)
     );
 
     let updatedOrNew;
@@ -1375,6 +1459,8 @@ export function AppProvider({ children }) {
       updatedOrNew = {
         ...existing,
         ...data,
+        email: cleanEmail || existing.email || '',
+        regNo: cleanReg || existing.regNo || '',
         id: existing.id,
         status: 'pending', // Re-enter pending verification on update
         submittedAt: `${formattedDate} ${formattedTime} (আপডেটেড)`,
@@ -1388,12 +1474,12 @@ export function AppProvider({ children }) {
       });
     } else {
       updatedOrNew = {
-        id: data.id || `sub-${Date.now()}`,
+        id: `sub-${Date.now()}`,
         name: data.name || '',
         nameEn: data.nameEn || data.name || '',
-        email: data.email || '',
+        email: cleanEmail,
         phone: data.phone || '',
-        regNo: data.regNo || '',
+        regNo: cleanReg,
         batch: data.batch || '8th Batch (2025-26)',
         department: data.department || 'Yarn Engineering',
         deptBn: data.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
@@ -1410,43 +1496,24 @@ export function AppProvider({ children }) {
       setStudentSubmissions(prev => [updatedOrNew, ...prev]);
     }
 
-    // Persist user's tracking keys
+    // Persist ONLY this user's own tracking keys
     setMySubmissionId(updatedOrNew.id);
     localStorage.setItem('rtec_my_submission_id', updatedOrNew.id);
     if (updatedOrNew.email) localStorage.setItem('rtec_my_submission_email', updatedOrNew.email);
     if (updatedOrNew.regNo) localStorage.setItem('rtec_my_submission_reg', updatedOrNew.regNo);
 
-    // If current user is not admin, update active user profile too
+    // If current user is not admin, update active user session metadata (NEVER overwrite public student directory until Admin approves!)
     if (user && user.role !== 'admin') {
       setUser(prev => ({
         ...prev,
         name: updatedOrNew.name || prev.name,
         nameBn: updatedOrNew.name || prev.nameBn,
         email: updatedOrNew.email || prev.email,
+        regNo: updatedOrNew.regNo || prev.regNo,
         batch: updatedOrNew.batch || prev.batch,
         department: updatedOrNew.department || prev.department,
         submissionId: updatedOrNew.id,
         submissionStatus: 'pending'
-      }));
-    }
-
-    // Automatically bind the phone and email to the pre-seeded student with this regNo in MongoDB & state
-    if (updatedOrNew.regNo) {
-      setStudents(prev => prev.map(s => {
-        if (s.regNo && String(s.regNo).trim().toLowerCase() === String(updatedOrNew.regNo).trim().toLowerCase()) {
-          const updated = {
-            ...s,
-            phone: updatedOrNew.phone || s.phone,
-            email: updatedOrNew.email || s.email,
-            bloodGroup: updatedOrNew.bloodGroup || s.bloodGroup,
-            avatar: updatedOrNew.avatar || s.avatar,
-            currentJob: updatedOrNew.currentJob !== undefined ? updatedOrNew.currentJob : (s.currentJob || ''),
-            currentLocation: updatedOrNew.currentLocation !== undefined ? updatedOrNew.currentLocation : (s.currentLocation || '')
-          };
-          syncEntityToMongo('/api/students', 'POST', updated);
-          return updated;
-        }
-        return s;
       }));
     }
 
@@ -1598,7 +1665,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  const trackSubmission = (idOrRegOrEmail) => {
+  const trackSubmission = (idOrRegOrEmail, requesterEmail = '') => {
     if (!idOrRegOrEmail) return null;
     const query = idOrRegOrEmail.trim().toLowerCase();
     const matched = studentSubmissions.find(s =>
@@ -1608,10 +1675,15 @@ export function AppProvider({ children }) {
       (s.phone && s.phone.trim() === query)
     );
     if (matched) {
-      setMySubmissionId(matched.id);
-      localStorage.setItem('rtec_my_submission_id', matched.id);
-      if (matched.email) localStorage.setItem('rtec_my_submission_email', matched.email);
-      if (matched.regNo) localStorage.setItem('rtec_my_submission_reg', matched.regNo);
+      const cleanReqEmail = (requesterEmail || (user?.role !== 'guest' ? user?.email : '') || '').trim().toLowerCase();
+      const matchedEmail = (matched.email || '').trim().toLowerCase();
+      // Only attach tracking to this browser session if it belongs to the caller (never hijack another user's session!)
+      if (!matchedEmail || (cleanReqEmail && matchedEmail === cleanReqEmail)) {
+        setMySubmissionId(matched.id);
+        localStorage.setItem('rtec_my_submission_id', matched.id);
+        if (matched.email) localStorage.setItem('rtec_my_submission_email', matched.email);
+        if (matched.regNo) localStorage.setItem('rtec_my_submission_reg', matched.regNo);
+      }
       return matched;
     }
     return null;
@@ -1626,25 +1698,37 @@ export function AppProvider({ children }) {
 
   const loginWithGmail = (email, name = '', additional = {}) => {
     const userEmail = email.toLowerCase().trim();
+    // Always wipe any prior user's local submission tracking before binding the new Gmail
+    untrackSubmission();
+
     const existingSub = studentSubmissions.find(s => s.email?.toLowerCase().trim() === userEmail);
+    const verifiedStudent = students.find(s => s.email?.toLowerCase().trim() === userEmail);
+    const verifiedAlumni = alumni.find(a => a.email?.toLowerCase().trim() === userEmail);
+    if (existingSub) {
+      setMySubmissionId(existingSub.id);
+      localStorage.setItem('rtec_my_submission_id', existingSub.id);
+      localStorage.setItem('rtec_my_submission_email', userEmail);
+      if (existingSub.regNo) localStorage.setItem('rtec_my_submission_reg', existingSub.regNo);
+    }
+
     const isMasterAdmin = isAdminEmail(userEmail);
-    const assignedRole = isMasterAdmin ? 'admin' : (additional.role || 'student');
+    const assignedRole = isMasterAdmin ? 'admin' : (verifiedAlumni ? 'alumni' : (additional.role || 'student'));
 
     const newUser = {
       id: `usr-${Date.now()}`,
-      name: isMasterAdmin ? (name || 'RTEC Administrator') : (name || existingSub?.name || 'RTEC Member'),
-      nameBn: isMasterAdmin ? (name || 'সিস্টেম অ্যাডমিনিস্ট্রেটর') : (existingSub?.name || name || 'আরটেক সদস্য'),
+      name: isMasterAdmin ? (name || 'RTEC Administrator') : (name || existingSub?.name || verifiedStudent?.name || verifiedAlumni?.name || 'RTEC Member'),
+      nameBn: isMasterAdmin ? (name || 'সিস্টেম অ্যাডমিনিস্ট্রেটর') : (existingSub?.name || verifiedStudent?.nameBn || verifiedAlumni?.nameBn || name || 'আরটেক সদস্য'),
       role: assignedRole,
       email: userEmail,
-      batch: existingSub?.batch || additional.batch || '8th Batch (2025-26)',
-      department: existingSub?.department || additional.department || 'Yarn Engineering',
-      company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || 'Student at RTEC'),
-      avatar: sanitizeAvatar(additional.avatar || existingSub?.avatar) || '',
-      isVerified: isMasterAdmin || Boolean(additional.googleVerified) || existingSub?.status === 'approved',
+      batch: existingSub?.batch || verifiedStudent?.batch || verifiedAlumni?.batch || additional.batch || '8th Batch (2025-26)',
+      department: existingSub?.department || verifiedStudent?.department || verifiedAlumni?.department || additional.department || 'Yarn Engineering',
+      company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || verifiedAlumni?.company || 'Student at RTEC'),
+      avatar: sanitizeAvatar(additional.avatar || existingSub?.avatar || verifiedStudent?.avatar || verifiedAlumni?.avatar) || '',
+      isVerified: isMasterAdmin || Boolean(additional.googleVerified) || existingSub?.status === 'approved' || Boolean(verifiedStudent || verifiedAlumni),
       googleVerified: Boolean(additional.googleVerified),
-      regNo: existingSub?.regNo || additional.regNo || '',
-      phone: existingSub?.phone || additional.phone || '',
-      submissionStatus: existingSub?.status || 'none',
+      regNo: existingSub?.regNo || verifiedStudent?.regNo || verifiedAlumni?.regNo || '',
+      phone: existingSub?.phone || verifiedStudent?.phone || verifiedAlumni?.phone || additional.phone || '',
+      submissionStatus: existingSub?.status || (verifiedStudent ? 'approved' : 'none'),
       submissionId: existingSub?.id || null
     };
     setUser(newUser);
@@ -1899,6 +1983,7 @@ export function AppProvider({ children }) {
         trackSubmission,
         untrackSubmission,
         submitStudentProfile,
+        getRegNoClaimConflict,
         approveSubmission,
         declineSubmission,
         deleteSubmission,
