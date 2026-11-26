@@ -848,14 +848,33 @@ app.post('/api/disputes/reset-reg', requireDb, async (req, res) => {
     }
 
     const cleanReg = String(regNo).trim();
+    const escapedReg = cleanReg.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regRegex = new RegExp(`^${escapedReg}$`, 'i');
 
-    // 1. Remove all imposter submissions for this regNo
-    const delSubResult = await Submission.deleteMany({ regNo: cleanReg });
+    // 1. Remove all imposter/erroneous submissions for this regNo
+    const delSubResult = await Submission.deleteMany({ regNo: regRegex });
 
-    // 2. Clear phone, email, avatar from Student record so the real student can claim it cleanly
+    // 2. Clear all user-claimed/edited fields from Student record so it resets to Empty/Unclaimed/Unset
     await Student.updateMany(
-      { regNo: cleanReg },
-      { $set: { phone: '', email: '', avatar: '', activities: '' } }
+      { regNo: regRegex },
+      {
+        $set: {
+          phone: '',
+          email: '',
+          avatar: '',
+          bloodGroup: '',
+          activities: '',
+          currentJob: '',
+          designation: '',
+          company: '',
+          jobSector: '',
+          workLocation: '',
+          experienceYears: '',
+          linkedin: '',
+          currentLocation: '',
+          address: ''
+        }
+      }
     );
 
     // Auto-sync cleared data to Excel

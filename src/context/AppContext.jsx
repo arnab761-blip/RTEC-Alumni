@@ -2282,7 +2282,7 @@ export function AppProvider({ children }) {
       prev.filter(s => String(s.regNo || '').trim().toLowerCase() !== cleanReg.toLowerCase())
     );
 
-    // 2. Clear phone, email, avatar from students record so real student can claim fresh
+    // 2. Clear all user-claimed/edited fields from students record so it resets to Empty/Unclaimed/Unset
     setStudents(prev =>
       prev.map(s => {
         if (s.regNo && String(s.regNo).trim().toLowerCase() === cleanReg.toLowerCase()) {
@@ -2291,8 +2291,17 @@ export function AppProvider({ children }) {
             phone: '',
             email: '',
             avatar: '',
+            bloodGroup: '',
             address: '',
-            activities: ''
+            activities: '',
+            currentJob: '',
+            designation: '',
+            company: '',
+            jobSector: '',
+            workLocation: '',
+            experienceYears: '',
+            linkedin: '',
+            currentLocation: ''
           };
         }
         return s;

@@ -25,6 +25,12 @@ const studentSchema = new mongoose.Schema({
   merit: { type: String, default: '' },
   studentType: { type: String, default: 'Graduate' },
   currentJob: { type: String, default: '' },
+  designation: { type: String, default: '' },
+  company: { type: String, default: '' },
+  jobSector: { type: String, default: '' },
+  workLocation: { type: String, default: '' },
+  experienceYears: { type: String, default: '' },
+  linkedin: { type: String, default: '' },
   currentLocation: { type: String, default: '' },
   address: { type: String, default: '' },
   remarks: { type: String, default: '' }

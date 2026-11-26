@@ -1930,6 +1930,25 @@ export default function Admin() {
                           )}
                         </td>
                         <td className="p-4 text-right space-x-1 whitespace-nowrap">
+                          {(s.email || s.phone || s.bloodGroup || s.currentJob || s.currentLocation || s.avatar || s.activities) && (
+                            <button
+                              onClick={() => {
+                                const msg = lang === 'bn'
+                                  ? `${s.name} (${s.regNo})-এর সব ইউজার তথ্য (ইমেইল, ফোন, রক্তের গ্রুপ, চাকরি, লোকেশন, ছবি) মুছে আগের খালি অবস্থায় (Unclaimed / Unset) ফেরত নেবেন?\n\nএটি এই আইডির সাথে যুক্ত ভুল সাবমিশনও মুছে দেবে।`
+                                  : `Undo & reset all claimed info (Email, Phone, Blood Group, Career, Location, Photo) for ${s.name} (${s.regNo}) back to blank (Unclaimed / Unset)?\n\nThis will also clear any linked submission for this ID.`;
+                                if (window.confirm(msg)) {
+                                  resetStudentClaim(s.regNo);
+                                  showToast(lang === 'bn'
+                                    ? `✓ ${s.regNo}-এর সব ইউজার তথ্য মুছে আনসেট (Unclaimed) করা হয়েছে!`
+                                    : `✓ Reset ${s.regNo} back to Unclaimed & Unset!`);
+                                }
+                              }}
+                              className="p-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition cursor-pointer"
+                              title={lang === 'bn' ? 'ইউজার তথ্য আনডু / আনক্লেম করুন' : 'Undo & Reset User Info (Unclaim / Unset)'}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleOpenEdit('editStudent', s)}
                             className="btn-action-edit p-2 rounded-lg cursor-pointer"
@@ -3835,10 +3854,11 @@ export default function Admin() {
                           {lang === 'bn' ? 'রক্তের গ্রুপ (Blood Group)' : 'Blood Group'}
                         </label>
                         <select
-                          value={formData.bloodGroup || 'A+'}
+                          value={formData.bloodGroup || ''}
                           onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         >
+                          <option value="">{lang === 'bn' ? 'ফাঁকা / Unset (Empty)' : 'Empty / Unset'}</option>
                           {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
                             <option key={bg} value={bg}>{bg}</option>
                           ))}
@@ -3956,6 +3976,124 @@ export default function Admin() {
                         placeholder={lang === 'bn' ? 'আরটেক টেক্সটাইল ক্লাব, ডিবেট, ক্রীড়া' : 'RTEC Textile Club, Debate Society, Sports'}
                         className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                       />
+                    </div>
+
+                    {/* Career, Designation, Company & Work Location */}
+                    <div className="pt-3 border-t border-slate-800/80 space-y-3">
+                      <p className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        <span>{lang === 'bn' ? 'চাকরি, পদবী ও কর্মস্থলের ঠিকানা (ফাঁকা রাখলে Unset হবে)' : 'Career, Designation & Location (Leave blank for Unset)'}</span>
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            {lang === 'bn' ? 'পেশা / পদবী (Designation)' : 'Job Title / Designation'}
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.designation || ''}
+                            onChange={(e) => {
+                              const des = e.target.value;
+                              const comp = formData.company || '';
+                              setFormData({
+                                ...formData,
+                                designation: des,
+                                currentJob: des && comp ? `${des}, ${comp}` : (des || comp || '')
+                              });
+                            }}
+                            placeholder={lang === 'bn' ? 'উদা: Production Officer' : 'e.g. Production Officer'}
+                            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            {lang === 'bn' ? 'প্রতিষ্ঠান / কোম্পানি (Company)' : 'Company / Organization'}
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.company || ''}
+                            onChange={(e) => {
+                              const comp = e.target.value;
+                              const des = formData.designation || '';
+                              setFormData({
+                                ...formData,
+                                company: comp,
+                                currentJob: des && comp ? `${des}, ${comp}` : (des || comp || '')
+                              });
+                            }}
+                            placeholder={lang === 'bn' ? 'উদা: Square Textiles Ltd.' : 'e.g. Square Textiles Ltd.'}
+                            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            {lang === 'bn' ? 'বর্তমান চাকরি / সারসংক্ষেপ (Current Job)' : 'Current Job / Role Summary'}
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.currentJob || ''}
+                            onChange={(e) => setFormData({ ...formData, currentJob: e.target.value })}
+                            placeholder={lang === 'bn' ? 'ফাঁকা রাখলে Unset দেখাবে' : 'Leave blank for Unset'}
+                            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            {lang === 'bn' ? 'কর্মস্থল / বর্তমান ঠিকানা (Location)' : 'Work / Current Location'}
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.currentLocation || formData.workLocation || ''}
+                            onChange={(e) => setFormData({ ...formData, currentLocation: e.target.value, workLocation: e.target.value })}
+                            placeholder={lang === 'bn' ? 'উদা: Gazipur, Dhaka' : 'e.g. Gazipur, Dhaka'}
+                            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            {lang === 'bn' ? 'ইন্ডাস্ট্রি সেক্টর (Job Sector)' : 'Industry Sector'}
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.jobSector || ''}
+                            onChange={(e) => setFormData({ ...formData, jobSector: e.target.value })}
+                            placeholder={lang === 'bn' ? 'উদা: Dyeing & Finishing' : 'e.g. Dyeing & Finishing'}
+                            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-slate-400 block mb-1">
+                            {lang === 'bn' ? 'অভিজ্ঞতা (Experience)' : 'Experience'}
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.experienceYears || ''}
+                            onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
+                            placeholder={lang === 'bn' ? 'উদা: ২ বছর' : 'e.g. 2 Years'}
+                            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-slate-400 block mb-1">
+                          {lang === 'bn' ? 'LinkedIn / পোর্টফোলিও লিংক' : 'LinkedIn / Portfolio URL'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.linkedin || ''}
+                          onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                          placeholder="https://www.linkedin.com/in/..."
+                          className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                        />
+                      </div>
                     </div>
 
                     <CloudinaryImageInput
@@ -4494,23 +4632,50 @@ export default function Admin() {
                 )}
 
                 {/* Submit Buttons */}
-                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setModalType(null);
-                      setActiveItem(null);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
-                  >
-                    {lang === 'bn' ? 'বাতিল' : 'Cancel'}
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg shadow-emerald-950/50"
-                  >
-                    {lang === 'bn' ? 'সংরক্ষণ করুন (Save)' : 'Save Record'}
-                  </button>
+                <div className="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800">
+                  <div>
+                    {modalType === 'editStudent' && activeItem?.regNo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const msg = lang === 'bn'
+                            ? `${activeItem.name} (${activeItem.regNo})-এর সব ইউজার তথ্য (ইমেইল, ফোন, রক্তের গ্রুপ, চাকরি, লোকেশন, ছবি) মুছে Unclaimed ও Unset অবস্থায় ফেরত নেবেন?`
+                            : `Undo & clear all claimed info (Email, Phone, Blood Group, Career, Location, Photo) for ${activeItem.name} (${activeItem.regNo}) back to Unclaimed & Unset?`;
+                          if (window.confirm(msg)) {
+                            resetStudentClaim(activeItem.regNo);
+                            showToast(lang === 'bn'
+                              ? `✓ ${activeItem.regNo}-এর সব ইউজার তথ্য মুছে Unclaimed & Unset করা হয়েছে!`
+                              : `✓ Cleared & reset ${activeItem.regNo} back to Unclaimed & Unset!`);
+                            setModalType(null);
+                            setActiveItem(null);
+                            setFormData({});
+                          }
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>{lang === 'bn' ? 'ইউজার তথ্য আনডু / আনক্লেম করুন' : 'Undo & Reset to Unclaimed'}</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalType(null);
+                        setActiveItem(null);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
+                    >
+                      {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-lg shadow-emerald-950/50"
+                    >
+                      {lang === 'bn' ? 'সংরক্ষণ করুন (Save)' : 'Save Record'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </motion.div>
