@@ -3332,7 +3332,7 @@ export default function Admin() {
                     type="url"
                     value={apiBaseUrlInput}
                     onChange={(e) => setApiBaseUrlInput(e.target.value)}
-                    placeholder="https://rtec-alumni-api.onrender.com"
+                    placeholder="https://rtec-alumni.onrender.com"
                     className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-mono focus:outline-none focus:border-emerald-500"
                   />
                   <button

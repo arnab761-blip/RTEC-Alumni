@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: rtec-alumni-api
+    name: rtec-alumni
     runtime: node
     plan: free
     buildCommand: npm install

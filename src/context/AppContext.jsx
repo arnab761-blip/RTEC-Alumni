@@ -73,7 +73,7 @@ export function AppProvider({ children }) {
   // Backend API Base URL (local dev uses Vite '/api' proxy; production uses Render URL)
   const DEFAULT_API_BASE = import.meta.env.VITE_API_URL
     ? String(import.meta.env.VITE_API_URL).replace(/\/+$/, '')
-    : (import.meta.env.PROD ? 'https://rtec-alumni-api.onrender.com' : '');
+    : (import.meta.env.PROD ? 'https://rtec-alumni.onrender.com' : '');
 
   const [apiBaseUrl, setApiBaseUrlState] = useState(() => {
     const saved = localStorage.getItem('rtec_api_url');
