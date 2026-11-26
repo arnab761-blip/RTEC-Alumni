@@ -9,11 +9,15 @@ const NewsSchema = new mongoose.Schema(
     summaryBn: { type: String, default: '' },
     content: { type: String, default: '' },
     contentBn: { type: String, default: '' },
+    description: { type: String, default: '' },
     date: { type: String, default: '' },
     category: { type: String, default: 'Notice' }, // 'Notice', 'Event', 'Academic', 'Alumni'
     image: { type: String, default: '' },
     fileUrl: { type: String, default: '' },
-    isPinned: { type: Boolean, default: false }
+    pdfUrl: { type: String, default: '' },
+    views: { type: Number, default: 1 },
+    isPinned: { type: Boolean, default: false },
+    isUserCreated: { type: Boolean, default: true }
   },
   { timestamps: true }
 );

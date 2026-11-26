@@ -354,7 +354,9 @@ export default function Teachers() {
                         <span>{lang === 'bn' ? 'ইমেইল' : 'Email'}</span>
                       </a>
                     ) : (
-                      <span className="text-[11px] text-[#A89884] font-mono-tech">RTEC Faculty</span>
+                      <span className="text-[11px] text-[#A89884] font-mono-tech">
+                        {lang === 'bn' ? 'আরটেক অনুষদ' : 'RTEC Faculty'}
+                      </span>
                     )}
 
                     <button
@@ -409,7 +411,7 @@ export default function Teachers() {
                 <button
                   onClick={() => setStaffSearch('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A89884] hover:text-[#EDE8DF] cursor-pointer"
-                  aria-label="Clear staff search"
+                  aria-label={lang === 'bn' ? 'সার্চ মুছুন' : 'Clear staff search'}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -604,7 +606,7 @@ export default function Teachers() {
                   <button
                     onClick={closeTeacherModal}
                     className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors duration-150 cursor-pointer"
-                    aria-label="Close"
+                    aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
                   >
                     <X className="w-4 h-4" />
                   </button>

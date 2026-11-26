@@ -720,7 +720,7 @@ export default function Navbar() {
 
                 {/* Drawer Footer with Theme Toggle */}
                 <div className="pt-4 border-t border-[#C5A880]/20 mt-6 flex items-center justify-between text-[11px] font-mono-tech text-[#57534E] dark:text-[#A89884]">
-                  <span className="font-semibold">RTEC PIRGANJ, RANGPUR</span>
+                  <span className="font-semibold">{lang === 'bn' ? 'আরটেক পীরগঞ্জ, রংপুর' : 'RTEC PIRGANJ, RANGPUR'}</span>
                   <button
                     type="button"
                     onClick={toggleTheme}

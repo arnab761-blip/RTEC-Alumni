@@ -11,8 +11,16 @@ const UserSchema = new mongoose.Schema(
     department: { type: String, default: 'Yarn Engineering' },
     company: { type: String, default: '' },
     phone: { type: String, default: '' },
+    regNo: { type: String, default: '' },
+    address: { type: String, default: '' },
+    location: { type: String, default: '' },
+    bio: { type: String, default: '' },
+    studentType: { type: String, default: '' },
+    submissionId: { type: String, default: '' },
+    submissionStatus: { type: String, default: 'none' },
     avatar: { type: String, default: '' },
     isVerified: { type: Boolean, default: false },
+    googleVerified: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: Date.now }
   },
   { timestamps: true }

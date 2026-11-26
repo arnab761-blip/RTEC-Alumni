@@ -171,7 +171,7 @@ export default function ExcelImportModal({ isOpen, onClose }) {
           <button
             onClick={() => checkMongoHealth?.()}
             className="flex items-center gap-1 text-[11px] text-[#854D0E] dark:text-[#DFCA9E] hover:underline cursor-pointer"
-            title="Refresh status"
+            title={lang === 'bn' ? 'স্ট্যাটাস রিফ্রেশ করুন' : 'Refresh status'}
           >
             <RefreshCw className={`w-3 h-3 ${mongoStatus?.checking ? 'animate-spin' : ''}`} />
             <span>{lang === 'bn' ? 'স্ট্যাটাস রিফ্রেশ' : 'Check status'}</span>
@@ -283,11 +283,11 @@ export default function ExcelImportModal({ isOpen, onClose }) {
                   <table className="w-full text-left">
                     <thead className="bg-[#EBE3D6] dark:bg-[#201E1A] text-[#1C1917] dark:text-[#DCD3C1] font-bold text-[10px] uppercase">
                       <tr>
-                        <th className="p-2">Reg No</th>
-                        <th className="p-2">Name</th>
-                        <th className="p-2">Batch</th>
-                        <th className="p-2">Department</th>
-                        <th className="p-2">Blood</th>
+                        <th className="p-2">{lang === 'bn' ? 'রেজি. নং' : 'Reg No'}</th>
+                        <th className="p-2">{lang === 'bn' ? 'নাম' : 'Name'}</th>
+                        <th className="p-2">{lang === 'bn' ? 'ব্যাচ' : 'Batch'}</th>
+                        <th className="p-2">{lang === 'bn' ? 'বিভাগ' : 'Department'}</th>
+                        <th className="p-2">{lang === 'bn' ? 'রক্ত' : 'Blood'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#C5A880]/15 text-[11px]">

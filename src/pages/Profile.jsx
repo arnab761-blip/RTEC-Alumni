@@ -161,7 +161,7 @@ export default function Profile() {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="mt-4 p-3 rounded-xl bg-emerald-950/90 border border-emerald-500/60 text-xs font-bold text-white text-center shadow-md">
+                <div className="mt-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/90 border border-emerald-500/60 text-xs font-bold text-emerald-900 dark:text-white text-center shadow-md">
                   {lang === 'bn'
                     ? '✓ প্রোফাইল তথ্য ও ঠিকানা সফলভাবে সংরক্ষণ করা হয়েছে!'
                     : '✓ Profile information & address saved successfully!'}

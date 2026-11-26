@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function Contact() {
-  const { lang } = useApp();
+  const { lang, submitContactMessage, footerContact } = useApp();
   const [sent, setSent] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +26,10 @@ export default function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    submitContactMessage({
+      ...formData,
+      source: 'contact'
+    });
     setSent(true);
     setTimeout(() => {
       setSent(false);
@@ -77,13 +81,13 @@ export default function Contact() {
                 {lang === 'bn' ? (
                   <>
                     রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ (আরটেক)<br />
-                    টুকুরিয়া, পীরগঞ্জ উপজেলা, রংপুর - ৫৪২০, বাংলাদেশ।<br />
+                    {footerContact?.addressBn || 'টুকুরিয়া, পীরগঞ্জ উপজেলা, রংপুর - ৫৪২০, বাংলাদেশ।'}<br />
                     (পীরগঞ্জ সদর থেকে পীরগাছা রোড)
                   </>
                 ) : (
                   <>
                     Rangpur Textile Engineering College (RTEC)<br />
-                    Tukuriya, Pirganj Upazila, Rangpur - 5420, Bangladesh.<br />
+                    {footerContact?.addressEn || 'Tukuriya, Pirganj Upazila, Rangpur - 5420, Bangladesh.'}<br />
                     (Pirganj Sadar to Pirgacha Road)
                   </>
                 )}
@@ -98,7 +102,7 @@ export default function Contact() {
                 {lang === 'bn' ? 'টেলিফোন ও হটলাইন' : 'Telephone & Hotlines'}
               </h3>
               <p className="text-xs text-[#DCD3C1] leading-relaxed font-mono-tech">
-                {lang === 'bn' ? 'অধ্যক্ষের দপ্তর: ' : 'Principal Desk: '}+880 521-55421<br />
+                {lang === 'bn' ? 'অধ্যক্ষের দপ্তর: ' : 'Principal Desk: '}{footerContact?.phone || '+880 521-55421'}<br />
                 {lang === 'bn' ? 'ওয়েবসাইট: ' : 'Official Portal: '}rtec.pirgonj.rangpur.gov.bd
               </p>
             </div>
@@ -111,7 +115,7 @@ export default function Contact() {
                 {lang === 'bn' ? 'ইমেইল ও অফিসিয়াল পোর্টাল' : 'Official Email & Web Portal'}
               </h3>
               <p className="text-xs text-[#DCD3C1] leading-relaxed font-mono-tech">
-                info@rtec.edu.bd<br />
+                {footerContact?.email || 'info@rtec.edu.bd'}<br />
                 alumni@rtec.edu.bd<br />
                 {lang === 'bn' ? 'ওয়েব: ' : 'Web: '}rtec.pirgonj.rangpur.gov.bd
               </p>

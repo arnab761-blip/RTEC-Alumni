@@ -154,14 +154,22 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
 
     setIsLoading(true);
     setTimeout(() => {
-      const user = loginWithGmail(email, nameInput);
+      const result = loginWithGmail(email, nameInput);
       setIsLoading(false);
+      if (result?.error === 'ADMIN_GOOGLE_REQUIRED') {
+        setGsiError(
+          lang === 'bn'
+            ? 'অ্যাডমিন অ্যাকাউন্টে প্রবেশের জন্য অবশ্যই উপরের অফিসিয়াল "Continue with Google" বাটন ব্যবহার করে গুগল ভেরিফিকেশন সম্পন্ন করতে হবে।'
+            : 'Administrator accounts require real Google OAuth verification via the official Sign in with Google button.'
+        );
+        return;
+      }
       showToast?.(
         lang === 'bn'
           ? `✓ গুগল অ্যাকাউন্ট দিয়ে সফলভাবে লগইন হয়েছে: ${email}`
           : `✓ Successfully signed in with Google: ${email}`
       );
-      if (onSuccess) onSuccess(user);
+      if (onSuccess) onSuccess(result);
       onClose();
     }, 250);
   };
@@ -189,11 +197,17 @@ export default function GoogleSignInModal({ isOpen, onClose, onSuccess }) {
             className="w-full max-w-md bg-white dark:bg-[#181715] border border-slate-300 dark:border-[#C5A880]/35 rounded-3xl p-6 sm:p-7 shadow-2xl relative text-[#0C0A09] dark:text-[#FDFBF7] max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            {gsiError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-600/50 text-rose-900 dark:text-rose-200 text-xs font-semibold text-center leading-relaxed">
+                {gsiError}
+              </div>
+            )}
+
         {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 dark:bg-[#25221E] text-[#1C1917] dark:text-[#FDFBF7] hover:bg-slate-200 dark:hover:bg-[#332E28] transition cursor-pointer"
-          aria-label="Close"
+          aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
         >
           <X className="w-4 h-4" />
         </button>

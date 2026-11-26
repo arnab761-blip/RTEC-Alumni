@@ -86,15 +86,19 @@ export default function Home() {
           <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-8 border-b border-[#C5A880]/20 text-[11px] font-mono-tech text-[#A89884] uppercase">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#BD452F] animate-pulse" />
-              <span className="text-[#DFCA9E] font-bold">OFFICIAL CENTRAL REGISTER</span>
+              <span className="text-[#DFCA9E] font-bold">
+                {lang === 'bn' ? 'অফিসিয়াল কেন্দ্রীয় রেজিস্টার' : 'OFFICIAL CENTRAL REGISTER'}
+              </span>
               <span>•</span>
-              <span className="hidden sm:inline">TUKURIYA, PIRGANJ</span>
+              <span className="hidden sm:inline">
+                {lang === 'bn' ? 'টুকুরিয়া, পীরগঞ্জ' : 'TUKURIYA, PIRGANJ'}
+              </span>
             </div>
             <div className="flex items-center gap-3">
-              <span>LAT: 25.4311° N</span>
-              <span>LON: 89.1500° E</span>
+              <span>{lang === 'bn' ? 'অক্ষাংশ: ২৫.৪৩১১° উ.' : 'LAT: 25.4311° N'}</span>
+              <span>{lang === 'bn' ? 'দ্রাঘিমা: ৮৯.১৫০০° পূ.' : 'LON: 89.1500° E'}</span>
               <span className="hidden md:inline px-1.5 py-0.5 rounded bg-[#1E1C18] border border-[#C5A880]/20 text-[#DFCA9E]">
-                DOC-REF: RTEC/ALM/2026
+                {lang === 'bn' ? 'নথি-সূত্র: RTEC/ALM/২০২৬' : 'DOC-REF: RTEC/ALM/2026'}
               </span>
             </div>
           </div>
@@ -189,7 +193,7 @@ export default function Home() {
                   <Link
                     to="/admin"
                     className="px-3.5 py-3 rounded bg-[#BD452F]/10 dark:bg-[#BD452F]/20 hover:bg-[#BD452F]/20 dark:hover:bg-[#BD452F]/30 border border-[#BD452F]/40 text-xs text-[#BD452F] dark:text-[#DE644E] transition font-mono-tech flex items-center gap-1.5 font-bold"
-                    title="Administrative Console"
+                    title={lang === 'bn' ? 'অ্যাডমিনিস্ট্রেটিভ কনসোল' : 'Administrative Console'}
                   >
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{lang === 'bn' ? 'এডমিন' : 'Admin'}</span>
@@ -232,8 +236,8 @@ export default function Home() {
                 
                 {/* Vintage Brass Corner Registration Stamp */}
                 <div className="flex items-center justify-between pb-4 border-b border-[#C5A880]/15 text-[10px] font-mono-tech text-[#A89884]">
-                  <span className="text-[#DFCA9E]">INSTITUTE CHARTER</span>
-                  <span>ESTABLISHED 2018</span>
+                  <span className="text-[#DFCA9E]">{lang === 'bn' ? 'প্রতিষ্ঠান চার্টার' : 'INSTITUTE CHARTER'}</span>
+                  <span>{lang === 'bn' ? 'প্রতিষ্ঠিত ২০১৮' : 'ESTABLISHED 2018'}</span>
                 </div>
 
                 <div className="mt-4 space-y-3">
@@ -246,11 +250,11 @@ export default function Home() {
                         {lang === 'bn' ? '১ম ব্যাচ — ৮ম ব্যাচ' : '1st Batch — 8th Batch'}
                       </h4>
                       <p className="text-xs text-[#A89884] font-mono-tech">
-                        Sessions: 2018-19 to 2025-26
+                        {lang === 'bn' ? 'সেশন: ২০১৮-১৯ থেকে ২০২৫-২৬' : 'Sessions: 2018-19 to 2025-26'}
                       </p>
                     </div>
                     <span className="px-2 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] border border-[#C5A880]/30 text-xs font-mono-tech font-bold">
-                      08 SESSIONS
+                      {lang === 'bn' ? '০৮ সেশন' : '08 SESSIONS'}
                     </span>
                   </div>
 
@@ -281,15 +285,21 @@ export default function Home() {
                   <div className="pt-3 border-t border-[#C5A880]/15 space-y-2 text-xs font-sans">
                     <div className="flex items-center justify-between text-[#EDE8DF]">
                       <span className="text-[#A89884]">{lang === 'bn' ? 'নিবন্ধিত অ্যালামনাই:' : 'Verified Alumni:'}</span>
-                      <strong className="text-[#DFCA9E] font-mono-tech">{alumni.length} Engineers</strong>
+                      <strong className="text-[#DFCA9E] font-mono-tech">
+                        {alumni.length} {lang === 'bn' ? 'জন প্রকৌশলী' : 'Engineers'}
+                      </strong>
                     </div>
                     <div className="flex items-center justify-between text-[#EDE8DF]">
                       <span className="text-[#A89884]">{lang === 'bn' ? 'অনুষদ ও শিক্ষক মণ্ডলী:' : 'Faculty & HODs:'}</span>
-                      <strong className="text-[#DFCA9E] font-mono-tech">{teachers.length} Members</strong>
+                      <strong className="text-[#DFCA9E] font-mono-tech">
+                        {teachers.length} {lang === 'bn' ? 'জন সদস্য' : 'Members'}
+                      </strong>
                     </div>
                     <div className="flex items-center justify-between text-[#EDE8DF]">
                       <span className="text-[#A89884]">{lang === 'bn' ? 'অধ্যয়নরত শিক্ষার্থী:' : 'Enrolled Students:'}</span>
-                      <strong className="text-[#DFCA9E] font-mono-tech">{students.length} Registered</strong>
+                      <strong className="text-[#DFCA9E] font-mono-tech">
+                        {students.length} {lang === 'bn' ? 'জন নিবন্ধিত' : 'Registered'}
+                      </strong>
                     </div>
                   </div>
 
@@ -355,7 +365,21 @@ export default function Home() {
                     {/* Category & Date */}
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="px-2.5 py-0.5 rounded text-[11px] font-mono-tech font-bold uppercase tracking-wide bg-[#DE644E]/20 text-[#DE644E] border border-[#DE644E]/30">
-                        {notice.category || 'Notice'}
+                        {lang === 'bn' ? (
+                          {
+                            'Academic Notice': 'একাডেমিক নোটিশ',
+                            'Examination': 'পরীক্ষা',
+                            'Admission': 'ভর্তি',
+                            'General Notice': 'সাধারণ নোটিশ',
+                            'Holiday': 'ছুটি',
+                            'Career & Placement': 'ক্যারিয়ার',
+                            'Urgent Notice': 'জরুরি নোটিশ',
+                            'Notice': 'নোটিশ',
+                            'Achievement': 'অর্জন',
+                            'Spotlight': 'স্পটলাইট',
+                            'Campus': 'ক্যাম্পাস'
+                          }[notice.category] || notice.category || 'নোটিশ'
+                        ) : (notice.category || 'Notice')}
                       </span>
                       <span className="text-[11px] font-mono-tech text-[#A89884] flex items-center gap-1">
                         <Calendar className="w-3 h-3 text-[#C5A880]" />
@@ -370,7 +394,9 @@ export default function Home() {
 
                     {/* Excerpt / Summary */}
                     <p className="text-xs text-[#DCD3C1] font-sans mt-2.5 line-clamp-3 leading-relaxed">
-                      {notice.summaryBn || notice.summary || notice.content || notice.description}
+                      {lang === 'bn'
+                        ? (notice.summaryBn || notice.summary || notice.content || notice.description)
+                        : (notice.summary || notice.content || notice.description || notice.summaryBn)}
                     </p>
 
                     {/* PDF / Attachment Action Links */}
@@ -456,7 +482,7 @@ export default function Home() {
                 subEn: '30 seats per department under BUTEX'
               },
               {
-                num: '687',
+                num: `${students.length || 834}`,
                 labelBn: 'মোট শিক্ষার্থী ও গবেষক',
                 labelEn: 'Undergraduate Scholars',
                 subBn: 'বস্ত্র অধিদপ্তর পরিচালিত সমন্বিত ভর্তি পরীক্ষার মাধ্যমে মনোনীত',
@@ -488,7 +514,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-[10px] font-mono-tech text-[#DE644E] uppercase tracking-widest block">
-                SENIOR KNOWLEDGE COMMONS • REAL INDUSTRY EXPERIENCE SHARE
+                {lang === 'bn' ? 'সিনিয়র নলেজ কমন্স • বাস্তব কর্মঅভিজ্ঞতা' : 'SENIOR KNOWLEDGE COMMONS • REAL INDUSTRY EXPERIENCE SHARE'}
               </span>
               <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
                 {lang === 'bn' ? 'সিনিয়র অ্যালামনাই অভিজ্ঞতা বিনিময় ও ক্যারিয়ার গল্প' : 'Senior Alumni Experience Share'}
@@ -532,18 +558,18 @@ export default function Home() {
 
                   {/* Post Title */}
                   <h3 className="font-serif-regal font-bold text-base sm:text-lg text-[#FDFBF7] group-hover:text-[#DFCA9E] transition-colors leading-snug">
-                    {post.title}
+                    {lang === 'bn' ? (post.titleBn || post.title) : (post.title || post.titleBn)}
                   </h3>
 
                   {/* Post Excerpt */}
                   <p className="text-xs text-[#DCD3C1] font-sans mt-2.5 line-clamp-3 leading-relaxed">
-                    {post.content}
+                    {post.content || post.body || post.description}
                   </p>
 
                   {/* Author Credentials */}
                   <div className="mt-5 pt-3 border-t border-[#C5A880]/15 flex items-center gap-3">
                     <UserAvatar
-                      src={post.authorAvatar}
+                      src={post.avatar || post.authorAvatar}
                       name={post.author}
                       role={post.authorRole?.toLowerCase()?.includes('alumni') ? 'alumni' : (post.authorRole?.toLowerCase()?.includes('admin') ? 'faculty' : 'student')}
                       className="w-9 h-9 rounded-full border border-[#C5A880]/30"
@@ -691,7 +717,7 @@ export default function Home() {
           
           <div className="max-w-3xl mb-12">
             <span className="text-[10px] font-mono-tech uppercase text-[#DFCA9E] tracking-widest block">
-              ACCREDITED BUTEX CURRICULUM • 4 DISCIPLINES
+              {lang === 'bn' ? 'অনুমোদিত বুটেক্স কারিকুলাম • ৪টি বিভাগ' : 'ACCREDITED BUTEX CURRICULUM • 4 DISCIPLINES'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
               {lang === 'bn' ? 'বিশেষায়িত ৪টি বস্ত্র প্রকৌশল বিভাগ' : '4 Pillars of Textile Engineering'}
@@ -777,7 +803,7 @@ export default function Home() {
                 </div>
 
                 <div className="mt-6 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between text-xs font-mono-tech">
-                  <span className="text-[#A89884]">BUTEX CURRICULUM</span>
+                  <span className="text-[#A89884]">{lang === 'bn' ? 'বুটেক্স সিলেবাস' : 'BUTEX CURRICULUM'}</span>
                   <Link to="/teachers" className="text-[#DFCA9E] hover:underline flex items-center gap-1">
                     <span>{lang === 'bn' ? 'অনুষদ →' : 'Faculty →'}</span>
                   </Link>
@@ -797,7 +823,7 @@ export default function Home() {
               </span>
             </div>
             <span className="px-2.5 py-1 rounded bg-[#1A1916] border border-[#C5A880]/30 text-[#DFCA9E] whitespace-nowrap text-[11px]">
-              120 SEATS / ANNUM
+              {lang === 'bn' ? '১২০ আসন / শিক্ষাবর্ষ' : '120 SEATS / ANNUM'}
             </span>
           </div>
 
@@ -811,7 +837,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <span className="text-[10px] font-mono-tech uppercase text-[#DFCA9E] tracking-widest block">
-                ROSTER SPOTLIGHT • DISTINGUISHED COHORTS
+                {lang === 'bn' ? 'অ্যালামনাই স্পটলাইট • বিশিষ্ট ব্যাচসমূহ' : 'ROSTER SPOTLIGHT • DISTINGUISHED COHORTS'}
               </span>
               <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
                 {lang === 'bn' ? 'বিশিষ্ট প্রকৌশলী ও শিক্ষক প্রোফাইল' : 'Distinguished Engineers & Faculty'}
@@ -834,8 +860,8 @@ export default function Home() {
               <div className="lg:col-span-5 plaque-elevated rounded-xl p-6 sm:p-8 border border-[#C5A880]/30 flex flex-col justify-between relative">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-[#C5A880]/15 text-[10px] font-mono-tech text-[#A89884]">
-                    <span className="text-[#DFCA9E]">ALUMNI SPOTLIGHT</span>
-                    <span>{alumni[0]?.batch || 'RTEC ALUMNI'}</span>
+                    <span className="text-[#DFCA9E]">{lang === 'bn' ? 'অ্যালামনাই স্পটলাইট' : 'ALUMNI SPOTLIGHT'}</span>
+                    <span>{alumni[0]?.batch || (lang === 'bn' ? 'আরটেক অ্যালামনাই' : 'RTEC ALUMNI')}</span>
                   </div>
 
                   <div className="relative h-64 w-full rounded-lg overflow-hidden border border-[#C5A880]/25 bg-[#121110] on-dark-media">
@@ -1013,7 +1039,7 @@ export default function Home() {
       <section className="py-14 sm:py-20 bg-transparent border-b border-[#C5A880]/15">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
           <span className="px-3 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] text-[11px] font-mono-tech tracking-wider uppercase border border-[#C5A880]/25">
-            CENTRAL ALUMNI COMMUNION • PIRGANJ
+            {lang === 'bn' ? 'কেন্দ্রীয় অ্যালামনাই নেটওয়ার্ক • পীরগঞ্জ' : 'CENTRAL ALUMNI COMMUNION • PIRGANJ'}
           </span>
           <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7]">
             {lang === 'bn'

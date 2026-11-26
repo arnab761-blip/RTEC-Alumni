@@ -78,7 +78,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-emerald-700 dark:hover:text-emerald-400 transition flex items-center gap-1.5 text-[11px] font-mono-tech font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-md border border-emerald-300/60 dark:border-emerald-700/50 shadow-sm"
-                title="RTEC Government Portal"
+                title={lang === 'bn' ? 'আরটেক সরকারি ওয়েবসাইট' : 'RTEC Government Portal'}
               >
                 <img src={rtecLogoSrc} alt="RTEC" className="w-3.5 h-3.5 object-contain shrink-0" />
                 <span>{lang === 'bn' ? 'সরকারি ওয়েবসাইট' : 'Govt Portal'}</span>
@@ -90,10 +90,10 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-blue-700 dark:hover:text-blue-400 transition flex items-center gap-1.5 text-[11px] font-mono-tech font-bold text-blue-800 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-md border border-blue-300/60 dark:border-blue-700/50 shadow-sm"
-                title="RTEC Facebook Community"
+                title={lang === 'bn' ? 'আরটেক ফেসবুক কমিউনিটি' : 'RTEC Facebook Community'}
               >
                 <FacebookBadge className="w-3.5 h-3.5 shrink-0" />
-                <span>Facebook</span>
+                <span>{lang === 'bn' ? 'ফেসবুক' : 'Facebook'}</span>
                 <ExternalLink className="w-2.5 h-2.5 opacity-70" />
               </a>
 
@@ -101,7 +101,7 @@ export default function Footer() {
                 <Link
                   to="/admin"
                   className="hover:text-[#8E2E1D] dark:hover:text-[#FDFBF7] transition flex items-center gap-1.5 text-[11px] font-mono-tech font-bold text-[#854D0E] dark:text-[#DFCA9E] bg-amber-50 dark:bg-[#1E1C18] px-2.5 py-1 rounded-md border border-[#C5A880]/50 dark:border-[#C5A880]/40 shadow-sm"
-                  title="Admin Portal"
+                  title={lang === 'bn' ? 'অ্যাডমিন পোর্টাল' : 'Admin Portal'}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DFCA9E] shrink-0" />
                   <span>{lang === 'bn' ? 'এডমিন পোর্টাল' : 'Admin'}</span>
@@ -185,37 +185,47 @@ export default function Footer() {
           
           {/* Left: Copyright */}
           <p className="text-[#57534E] dark:text-[#A89884] text-center lg:text-left">
-            © 2026 RTEC Alumni Association. All rights reserved.
+            {lang === 'bn'
+              ? '© ২০২৬ আরটেক অ্যালামনাই অ্যাসোসিয়েশন। সর্বস্বত্ব সংরক্ষিত।'
+              : '© 2026 RTEC Alumni Association. All rights reserved.'}
           </p>
 
           {/* Right: Developer & QA Credits */}
           <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-end gap-y-1.5 gap-x-2 text-center lg:text-right">
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
-              <span className="text-[#6B655E] dark:text-[#9E907E]">Developed by</span>
+              <span className="text-[#57534E] dark:text-[#C9C0B3]">
+                {lang === 'bn' ? 'ডেভেলপমেন্টে:' : 'Developed by'}
+              </span>
               <a
                 href="https://www.linkedin.com/in/md-tahmidul-islam-arnab-580587320/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B92ju51LVShS4kPDu0W7pLw%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
               >
-                Md. Tahmidul Islam Arnab
+                {lang === 'bn' ? 'মো. তাহমিদুল ইসলাম অর্ণব' : 'Md. Tahmidul Islam Arnab'}
               </a>
-              <span className="whitespace-nowrap text-[#57534E] dark:text-[#B5A795] text-[11.5px]">(5th Batch)</span>
+              <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
+                {lang === 'bn' ? '(৫ম ব্যাচ)' : '(5th Batch)'}
+              </span>
             </span>
 
             <span className="hidden sm:inline text-[#C5A880]/70 dark:text-[#C5A880]/50 select-none" aria-hidden="true">·</span>
 
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
-              <span className="text-[#6B655E] dark:text-[#9E907E]">QA &amp; Testing by</span>
+              <span className="text-[#57534E] dark:text-[#C9C0B3]">
+                {lang === 'bn' ? 'কিউএ ও টেস্টিং:' : 'QA & Testing by'}
+              </span>
               <a
                 href="https://www.linkedin.com/in/abdur-rouf-87a449338/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BzfHUWGZzQbuZmJ8vRBe6Bg%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="relative whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
               >
-                Abdur Rouf Chowdhury
+                {lang === 'bn' ? 'আব্দুর রউফ চৌধুরী' : 'Abdur Rouf Chowdhury'}
               </a>
-              <span className="whitespace-nowrap text-[#57534E] dark:text-[#B5A795] text-[11.5px]">(5th Batch)</span>
+              <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
+                {lang === 'bn' ? '(৫ম ব্যাচ)' : '(5th Batch)'}
+              </span>
             </span>
           </div>
 

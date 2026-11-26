@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
+import GoogleSignInModal, { GoogleSignInButton } from '../components/GoogleSignInModal.jsx';
 import {
   MessageSquare,
   MessageSquareQuote,
@@ -54,9 +55,12 @@ export default function Forum() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [newPostModalOpen, setNewPostModalOpen] = useState(false);
   const [approvalGateModalOpen, setApprovalGateModalOpen] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [pendingDesiredPostType, setPendingDesiredPostType] = useState('experience');
   const [replyTextMap, setReplyTextMap] = useState({});
   const [expandedReplies, setExpandedReplies] = useState({});
   const [activeCategory, setActiveCategory] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('all'); // 'all' | 'experience' | 'question'
   const [search, setSearch] = useState('');
 
   // Edit Post State
@@ -101,23 +105,23 @@ export default function Forum() {
     };
   }, [newPostModalOpen, approvalGateModalOpen, editPostModalOpen]);
 
-  // Authorization check for posting
+  // Anyone signed in (via Google or Student/Alumni/Admin session) or approved member can share stories & ask questions effortlessly
   const isApprovedToShareExperience = Boolean(
-    user?.role === 'admin' ||
-    user?.role === 'alumni' ||
-    user?.role === 'student' ||
+    (user && user.role && user.role !== 'guest') ||
     mySubmission?.status === 'approved' ||
-    (user?.submissionStatus === 'approved') ||
+    user?.submissionStatus === 'approved' ||
     (user?.isVerified && user?.status === 'approved') ||
     (user?.email && alumni.some(a => a.email?.toLowerCase() === user.email?.toLowerCase() && a.isVerified)) ||
     (mySubmission?.email && alumni.some(a => a.email?.toLowerCase() === mySubmission.email?.toLowerCase() && a.isVerified)) ||
     (mySubmission?.regNo && students.some(s => s.regNo === mySubmission.regNo))
   );
 
-  const handleOpenPostModal = () => {
+  const handleOpenPostModal = (desiredType = 'experience') => {
+    handleSwitchPostType(desiredType);
     if (isApprovedToShareExperience) {
       setNewPostModalOpen(true);
     } else {
+      setPendingDesiredPostType(desiredType);
       setApprovalGateModalOpen(true);
     }
   };
@@ -314,15 +318,17 @@ export default function Forum() {
   };
 
   const filteredPosts = useMemo(() => forumPosts.filter(p => {
+    const matchType = typeFilter === 'all' || (p.type || 'experience') === typeFilter;
     const matchCat = activeCategory === 'All' || p.category === activeCategory || p.categoryBn === activeCategory;
+    const bodyText = p.body || p.content || p.description || '';
     const matchSearch =
       (p.title && p.title.toLowerCase().includes(search.toLowerCase())) ||
       (p.titleBn && p.titleBn.toLowerCase().includes(search.toLowerCase())) ||
-      (p.body && p.body.toLowerCase().includes(search.toLowerCase())) ||
+      bodyText.toLowerCase().includes(search.toLowerCase()) ||
       (p.author && p.author.toLowerCase().includes(search.toLowerCase())) ||
       (p.tags && p.tags.some(t => t.toLowerCase().includes(search.toLowerCase())));
-    return matchCat && matchSearch;
-  }), [forumPosts, activeCategory, search]);
+    return matchType && matchCat && matchSearch;
+  }), [forumPosts, typeFilter, activeCategory, search]);
 
   return (
     <motion.div
@@ -337,8 +343,10 @@ export default function Forum() {
         {/* Page Archival Header */}
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#57534E] dark:text-[#A89884] uppercase mb-2">
-            <span className="text-[#BD452F] font-bold">ALUMNI KNOWLEDGE COMMONS • SECTION 05</span>
-            <span>RTEC PIRGANJ • EXPERIENCE SHARE</span>
+            <span className="text-[#BD452F] font-bold">
+              {lang === 'bn' ? 'অ্যালামনাই নলেজ কমন্স • সেকশন ০৫' : 'ALUMNI KNOWLEDGE COMMONS • SECTION 05'}
+            </span>
+            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • অভিজ্ঞতা বিনিময়' : 'RTEC PIRGANJ • EXPERIENCE SHARE'}</span>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -353,13 +361,22 @@ export default function Forum() {
               </p>
             </div>
 
-            <button
-              onClick={handleOpenPostModal}
-              className="btn-agency btn-agency-terracotta px-5 py-3 rounded-xl text-xs font-sans uppercase tracking-wider shrink-0 flex items-center gap-2 shadow-md cursor-pointer text-white font-bold"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>{lang === 'bn' ? 'অভিজ্ঞতা বা গল্প শেয়ার করুন' : 'Share Experience / Story'}</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <button
+                onClick={() => handleOpenPostModal('question')}
+                className="btn-agency px-4 py-3 rounded-xl text-xs font-sans uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer font-bold"
+              >
+                <HelpCircle className="w-4 h-4 text-[#BD452F] dark:text-[#DFCA9E]" />
+                <span>{lang === 'bn' ? 'প্রশ্ন করুন' : 'Ask Question'}</span>
+              </button>
+              <button
+                onClick={() => handleOpenPostModal('experience')}
+                className="btn-agency btn-agency-terracotta px-5 py-3 rounded-xl text-xs font-sans uppercase tracking-wider flex items-center gap-2 shadow-md cursor-pointer text-white font-bold"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>{lang === 'bn' ? 'অভিজ্ঞতা শেয়ার করুন' : 'Share Experience'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -391,8 +408,26 @@ export default function Forum() {
             </span>
           </div>
 
-          {/* Topic Pills */}
-          <div className="flex flex-wrap gap-2.5 pt-2 border-t border-[#C5A880]/15">
+          {/* Post Type & Topic Pills */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#C5A880]/15">
+            {[
+              { id: 'all', bn: 'সব পোস্ট', en: 'All' },
+              { id: 'experience', bn: '⭐ অভিজ্ঞতা শেয়ার', en: '⭐ Experiences' },
+              { id: 'question', bn: '❓ প্রশ্নোত্তর', en: '❓ Q&A' }
+            ].map((tp) => (
+              <button
+                key={tp.id}
+                onClick={() => setTypeFilter(tp.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech transition cursor-pointer ${
+                  typeFilter === tp.id
+                    ? 'bg-[#BD452F] text-white font-bold shadow'
+                    : 'bg-white dark:bg-[#181715] text-[#44403C] dark:text-[#A89884] border border-[#C5A880]/30 hover:border-[#BD452F]/50'
+                }`}
+              >
+                {lang === 'bn' ? tp.bn : tp.en}
+              </button>
+            ))}
+            <span className="text-[#C5A880]/40 mx-1 hidden sm:inline">|</span>
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -521,7 +556,7 @@ export default function Forum() {
                   )}
 
                   <p className="text-xs sm:text-sm text-[#292524] dark:text-[#DCD3C1] font-sans leading-relaxed whitespace-pre-line">
-                    {post.body}
+                    {post.body || post.content || post.description}
                   </p>
 
                   {post.type === 'experience' && post.keyTakeaways && (
@@ -833,7 +868,7 @@ export default function Forum() {
             <button
               onClick={() => setApprovalGateModalOpen(false)}
               className="absolute top-5 right-5 p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#141311] border border-[#C5A880]/30 text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] transition cursor-pointer"
-              aria-label="Close"
+              aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
             >
               <X className="w-4 h-4" />
             </button>
@@ -841,93 +876,37 @@ export default function Forum() {
             {/* Badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-[10px] font-mono-tech uppercase font-bold tracking-wider">
               <Lock className="w-3 h-3 text-amber-500" />
-              <span>{lang === 'bn' ? 'অনুমোদন যাচাইকরণ • VERIFICATION REQUIRED' : 'VERIFICATION REQUIRED'}</span>
+              <span>{lang === 'bn' ? '১-ক্লিক গুগল লগইন প্রয়োজন' : 'SIGN IN TO PARTICIPATE'}</span>
             </div>
 
             {/* Modal Heading */}
             <div>
               <h3 className="font-serif-regal font-black text-xl sm:text-2xl text-[#0C0A09] dark:text-[#FDFBF7]">
-                {lang === 'bn' ? 'অভিজ্ঞতা শেয়ার করার পূর্বশর্ত' : 'Eligibility to Share Experiences'}
+                {lang === 'bn' ? 'প্রশ্ন বা অভিজ্ঞতা পোস্ট করতে লগইন করুন' : 'Sign In to Ask or Share'}
               </h3>
               <p className="text-xs text-[#57534E] dark:text-[#A89884] mt-1 font-sans">
                 {lang === 'bn'
-                  ? 'আরটেক (RTEC) কমিউনিটি ফোরামে দায়িত্বশীল ও মানসম্মত আলোচনা বজায় রাখতে সিনিয়র অভিজ্ঞতা প্রকাশের জন্য অ্যাডমিন অনুমোদন প্রযোজ্য।'
-                  : 'To ensure authentic and verified career advice, sharing new experiences requires an approved student profile.'}
+                  ? 'সবাই যেন স্বতঃস্ফূর্তভাবে অভিজ্ঞতা ও প্রশ্ন শেয়ার করতে পারেন, তাই গুগল অ্যাকাউন্ট দিয়ে মাত্র ১-ক্লিকে যুক্ত হয়ে সরাসরি পোস্ট করুন।'
+                  : 'Sign in with Google in one click to immediately publish questions, career stories, and plant experiences.'}
               </p>
             </div>
 
-            {/* State-Specific Status Notice Card */}
-            {mySubmission?.status === 'pending' ? (
-              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-500/40 text-amber-950 dark:text-amber-100 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 animate-pulse" />
-                  <h4 className="font-bold text-xs sm:text-sm">
-                    {lang === 'bn' ? '⏳ আপনার আবেদনটি পর্যালোচনায় রয়েছে (Pending)' : '⏳ Application Under Review (Pending)'}
-                  </h4>
-                </div>
-                <p className="text-xs font-sans leading-relaxed text-amber-900 dark:text-amber-200">
-                  {lang === 'bn'
-                    ? `আপনি স্টুডেন্ট পোর্টালে তথ্য জমা দিয়েছেন (রেজিস্ট্রেশন: ${mySubmission.regNo || mySubmission.id})। কলেজ অ্যাডমিন কর্তৃক আপনার প্রোফাইলটি যাচাইপূর্বক অনুমোদন (Approve) দেওয়া মাত্রই আপনি সরাসরি অভিজ্ঞতা বা প্রশ্ন পোস্ট করতে পারবেন।`
-                    : `Your profile submission (${mySubmission.regNo || mySubmission.id}) is currently pending administrative verification. Once approved, you can share stories.`}
-                </p>
-                <div className="pt-1">
-                  <Link
-                    to="/student-portal"
-                    onClick={() => setApprovalGateModalOpen(false)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300 hover:underline"
-                  >
-                    <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টালে স্ট্যাটাস দেখুন →' : 'View Status in Student Portal →'}</span>
-                  </Link>
-                </div>
+            {/* 1-Click Google Sign-In Box */}
+            <div className="p-4 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 space-y-3">
+              <GoogleSignInButton
+                onClick={() => setIsGoogleModalOpen(true)}
+                text={lang === 'bn' ? 'গুগল দিয়ে লগইন করে পোস্ট করুন' : 'Sign in with Google & Post Now'}
+              />
+              <div className="text-center">
+                <Link
+                  to="/student-portal"
+                  onClick={() => setApprovalGateModalOpen(false)}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#854D0E] dark:text-[#DFCA9E] hover:underline"
+                >
+                  <span>{lang === 'bn' ? 'অথবা স্টুডেন্ট পোর্টালে প্রোফাইল জমা দিন →' : 'Or verify ID in Student Portal →'}</span>
+                </Link>
               </div>
-            ) : mySubmission?.status === 'declined' ? (
-              <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-500/40 text-rose-950 dark:text-rose-100 space-y-2">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
-                  <h4 className="font-bold text-xs sm:text-sm">
-                    {lang === 'bn' ? '✕ আবেদন সংশোধনের জন্য ফেরত দেওয়া হয়েছে (Declined)' : '✕ Application Requires Modification'}
-                  </h4>
-                </div>
-                <p className="text-xs font-sans leading-relaxed text-rose-900 dark:text-rose-200">
-                  {lang === 'bn'
-                    ? `অ্যাডমিন পর্যবেক্ষণ: "${mySubmission.reviewNotes || 'কিছু তথ্যে অসম্পূর্ণতা রয়েছে'}।" স্টুডেন্ট পোর্টালে গিয়ে তথ্য আপডেট করে পুনরায় জমা দিন।`
-                    : `Admin feedback: "${mySubmission.reviewNotes || 'Information requires correction'}." Please update your information.`}
-                </p>
-                <div className="pt-1">
-                  <Link
-                    to="/student-portal"
-                    onClick={() => setApprovalGateModalOpen(false)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-800 dark:text-rose-300 hover:underline"
-                  >
-                    <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টালে তথ্য সংশোধন করুন →' : 'Update Details in Student Portal →'}</span>
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <div className="p-4 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 space-y-3">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-[#854D0E] dark:text-[#DFCA9E] shrink-0" />
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0C0A09] dark:text-[#FDFBF7]">
-                    {lang === 'bn' ? 'স্টুডেন্ট পোর্টালে তথ্য জমা দিন' : 'Submit Details in Student Portal'}
-                  </h4>
-                </div>
-                <p className="text-xs font-sans leading-relaxed text-[#44403C] dark:text-[#DCD3C1]">
-                  {lang === 'bn'
-                    ? 'আপনি এখনো শিক্ষার্থী তথ্য জমা দেননি। স্টুডেন্ট পোর্টাল থেকে আপনার নাম, রেজিস্ট্রেশন নম্বর ও জিমেইল দিয়ে তথ্য সাবমিট করুন। অ্যাডমিন অনুমোদন দিলেই আপনার আইডি থেকে ফোরামে পোস্ট করা যাবে।'
-                    : 'You have not submitted your student details yet. Submit your name, registration number, and Gmail in the Student Portal to gain posting rights.'}
-                </p>
-                <div>
-                  <Link
-                    to="/student-portal"
-                    onClick={() => setApprovalGateModalOpen(false)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs shadow-md hover:from-emerald-500 hover:to-teal-500 transition"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টালে তথ্য জমা দিন →' : 'Submit Details in Student Portal →'}</span>
-                  </Link>
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Crucial Reassurance Banner: Comments & Likes are completely open to everyone! */}
             <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-xs font-sans flex items-start gap-2.5">
@@ -989,13 +968,13 @@ export default function Forum() {
             <button
               onClick={() => setNewPostModalOpen(false)}
               className="absolute top-5 right-5 p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#141311] border border-[#C5A880]/30 text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] transition cursor-pointer"
-              aria-label="Close"
+              aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
             >
               <X className="w-4 h-4" />
             </button>
 
             <span className="text-[10px] font-mono-tech text-[#BD452F] uppercase tracking-wider block font-bold">
-              POST TO ALUMNI COMMUNITY
+              {lang === 'bn' ? 'অ্যালামনাই কমিউনিটি পোস্ট' : 'POST TO ALUMNI COMMUNITY'}
             </span>
             <h3 className="font-serif-regal font-black text-lg sm:text-xl text-[#0C0A09] dark:text-[#FDFBF7] mt-1 mb-1.5">
               {lang === 'bn' ? 'প্রশ্ন জিজ্ঞাসা করুন অথবা অভিজ্ঞতা শেয়ার করুন' : 'Ask a Question or Share Experience'}
@@ -1204,7 +1183,7 @@ export default function Forum() {
                   type="text"
                   value={newTags}
                   onChange={(e) => setNewTags(e.target.value)}
-                  placeholder="Spinning, Interview, HigherStudies"
+                  placeholder={lang === 'bn' ? 'যেমন: স্পিনিং, ইন্টারভিউ, উচ্চশিক্ষা' : 'e.g., Spinning, Interview, HigherStudies'}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                 />
               </div>
@@ -1262,13 +1241,13 @@ export default function Forum() {
             <button
               onClick={() => setEditPostModalOpen(false)}
               className="absolute top-5 right-5 p-2 rounded-xl bg-[#F4EFE6] dark:bg-[#141311] border border-[#C5A880]/30 text-[#44403C] dark:text-[#A89884] hover:text-[#0C0A09] dark:hover:text-[#EDE8DF] transition cursor-pointer"
-              aria-label="Close"
+              aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
             >
               <X className="w-4 h-4" />
             </button>
 
             <span className="text-[10px] font-mono-tech text-[#BD452F] uppercase tracking-wider block font-bold">
-              EDIT POST • DISCUSSION
+              {lang === 'bn' ? 'পোস্ট সম্পাদনা • আলোচনা' : 'EDIT POST • DISCUSSION'}
             </span>
             <h3 className="font-serif-regal font-black text-lg sm:text-xl text-[#0C0A09] dark:text-[#FDFBF7] mt-1 mb-1.5">
               {lang === 'bn' ? 'পোস্ট সম্পাদনা করুন' : 'Edit Your Post'}
@@ -1444,6 +1423,17 @@ export default function Forum() {
         </AnimatePresence>,
         document.body
       )}
+
+      {/* 1-Click Google Sign-In Modal for seamless community posting */}
+      <GoogleSignInModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onSuccess={() => {
+          setApprovalGateModalOpen(false);
+          handleSwitchPostType(pendingDesiredPostType);
+          setNewPostModalOpen(true);
+        }}
+      />
 
     </motion.div>
   );

@@ -18,6 +18,10 @@ import { AdminEmail } from './models/AdminEmail.js';
 import { SiteSetting } from './models/SiteSetting.js';
 import { ForumPost } from './models/ForumPost.js';
 import { Memory } from './models/Memory.js';
+import { ContactMessage } from './models/ContactMessage.js';
+import { MentorshipRequest } from './models/MentorshipRequest.js';
+import { EventRegistration } from './models/EventRegistration.js';
+import { JobApplication } from './models/JobApplication.js';
 import fs from 'fs';
 import {
   masterExcelPath,
@@ -171,14 +175,18 @@ app.get('/api/health', async (req, res) => {
   let stats = {};
   if (isDbConnected) {
     try {
-      const [studentsCount, alumniCount, teachersCount, eventsCount, jobsCount, usersCount, forumCount] = await Promise.all([
+      const [studentsCount, alumniCount, teachersCount, eventsCount, jobsCount, usersCount, forumCount, contactsCount, mentorshipCount, eventRegsCount, jobAppsCount] = await Promise.all([
         Student.countDocuments(),
         Alumni.countDocuments(),
         Teacher.countDocuments(),
         Event.countDocuments(),
         Job.countDocuments(),
         User.countDocuments(),
-        ForumPost.countDocuments()
+        ForumPost.countDocuments(),
+        ContactMessage.countDocuments(),
+        MentorshipRequest.countDocuments(),
+        EventRegistration.countDocuments(),
+        JobApplication.countDocuments()
       ]);
       stats = {
         students: studentsCount,
@@ -187,7 +195,11 @@ app.get('/api/health', async (req, res) => {
         events: eventsCount,
         jobs: jobsCount,
         users: usersCount,
-        forumPosts: forumCount
+        forumPosts: forumCount,
+        contacts: contactsCount,
+        mentorshipRequests: mentorshipCount,
+        eventRegistrations: eventRegsCount,
+        jobApplications: jobAppsCount
       };
     } catch (e) {}
   }
@@ -228,7 +240,7 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
       );
     }
 
-    const [students, alumni, teachers, events, jobs, news, submissions, disputes, adminEmailDocs, settingsDocs, forumPosts, memories] = await Promise.all([
+    const [students, alumni, teachers, events, jobs, news, submissions, disputes, adminEmailDocs, settingsDocs, forumPosts, memories, contacts, mentorshipRequests, eventRegistrations, jobApplications] = await Promise.all([
       Student.find({}).sort({ batch: 1, regNo: 1 }).lean(),
       Alumni.find({}).sort({ batch: 1, name: 1 }).lean(),
       Teacher.find({}).sort({ order: 1 }).lean(),
@@ -240,7 +252,11 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
       AdminEmail.find({}).lean(),
       SiteSetting.find({}).lean(),
       ForumPost.find({}).sort({ createdAt: -1 }).lean(),
-      Memory.find({}).sort({ createdAt: -1 }).lean()
+      Memory.find({}).sort({ createdAt: -1 }).lean(),
+      ContactMessage.find({}).sort({ createdAt: -1 }).lean(),
+      MentorshipRequest.find({}).sort({ createdAt: -1 }).lean(),
+      EventRegistration.find({}).sort({ createdAt: -1 }).lean(),
+      JobApplication.find({}).sort({ createdAt: -1 }).lean()
     ]);
 
     const settingsMap = {};
@@ -264,8 +280,14 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
         disputes,
         forumPosts,
         memories,
+        contacts,
+        mentorshipRequests,
+        eventRegistrations,
+        jobApplications,
         adminEmails,
         contact: settingsMap['footerContact'] || null,
+        collegeLogo: settingsMap['collegeLogo'] || null,
+        googleClientId: settingsMap['googleClientId'] || null,
         settings: settingsMap
       }
     });
@@ -923,6 +945,174 @@ app.post('/api/settings/contact', requireDb, async (req, res) => {
       { upsert: true, new: true }
     );
     res.json({ success: true, contact: doc.value });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Generic Key-Value Settings (collegeLogo, googleClientId, etc.)
+app.post('/api/settings/kv', requireDb, async (req, res) => {
+  try {
+    const { key, value } = req.body || {};
+    if (!key) return res.status(400).json({ success: false, error: 'Setting key is required' });
+    const doc = await SiteSetting.findOneAndUpdate(
+      { key: String(key) },
+      { $set: { key: String(key), value } },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true, setting: doc });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================================
+// 13. CONTACT INQUIRIES & ALUMNI MESSAGES
+// ==========================================================
+app.get('/api/contacts', requireDb, async (req, res) => {
+  try {
+    const contacts = await ContactMessage.find({}).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: contacts.length, contacts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/contacts', requireDb, async (req, res) => {
+  try {
+    const data = req.body || {};
+    if (!data.id && (!data.name || !data.message)) {
+      return res.status(400).json({ success: false, error: 'Name and message are required' });
+    }
+    const item = await ContactMessage.findOneAndUpdate(
+      { id: data.id || `cnt-${Date.now()}` },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, contact: item });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/contacts/:id', requireDb, async (req, res) => {
+  try {
+    await ContactMessage.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true, message: 'Contact message removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================================
+// 14. MENTORSHIP BOOKINGS & REQUESTS
+// ==========================================================
+app.get('/api/mentorship', requireDb, async (req, res) => {
+  try {
+    const requests = await MentorshipRequest.find({}).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: requests.length, mentorshipRequests: requests });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/mentorship', requireDb, async (req, res) => {
+  try {
+    const data = req.body || {};
+    if (!data.id && (!data.studentName || !data.studentEmail)) {
+      return res.status(400).json({ success: false, error: 'Student name and email are required' });
+    }
+    const item = await MentorshipRequest.findOneAndUpdate(
+      { id: data.id || `mnt-${Date.now()}` },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, mentorshipRequest: item });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/mentorship/:id', requireDb, async (req, res) => {
+  try {
+    await MentorshipRequest.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true, message: 'Mentorship request removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================================
+// 15. EVENT PASS REGISTRATIONS
+// ==========================================================
+app.get('/api/event-registrations', requireDb, async (req, res) => {
+  try {
+    const registrations = await EventRegistration.find({}).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: registrations.length, eventRegistrations: registrations });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/event-registrations', requireDb, async (req, res) => {
+  try {
+    const data = req.body || {};
+    if (!data.eventId || !data.attendeeName) {
+      return res.status(400).json({ success: false, error: 'Event ID and attendee name are required' });
+    }
+    const item = await EventRegistration.findOneAndUpdate(
+      { id: data.id || `reg-${Date.now()}` },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, registration: item });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/event-registrations/:id', requireDb, async (req, res) => {
+  try {
+    await EventRegistration.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true, message: 'Event registration removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================================
+// 16. JOB APPLICATIONS
+// ==========================================================
+app.get('/api/job-applications', requireDb, async (req, res) => {
+  try {
+    const applications = await JobApplication.find({}).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: applications.length, jobApplications: applications });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/job-applications', requireDb, async (req, res) => {
+  try {
+    const data = req.body || {};
+    if (!data.jobId || !data.applicantName) {
+      return res.status(400).json({ success: false, error: 'Job ID and applicant name are required' });
+    }
+    const item = await JobApplication.findOneAndUpdate(
+      { id: data.id || `app-${Date.now()}` },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, jobApplication: item });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/job-applications/:id', requireDb, async (req, res) => {
+  try {
+    await JobApplication.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true, message: 'Job application removed' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

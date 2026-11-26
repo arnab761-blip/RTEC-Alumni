@@ -51,6 +51,7 @@ export default function Auth() {
   const [batch, setBatch] = useState('1st Batch (2018-19)');
   const [dept, setDept] = useState('Yarn Engineering');
   const [matchedStudent, setMatchedStudent] = useState(null);
+  const [authError, setAuthError] = useState('');
 
   const handleRegNoChange = (val) => {
     setRegNo(val);
@@ -74,7 +75,8 @@ export default function Auth() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login(
+    setAuthError('');
+    const res = login(
       role,
       email,
       name || matchedStudent?.name || 'Registered Member',
@@ -82,6 +84,15 @@ export default function Auth() {
       dept,
       { phone, regNo }
     );
+    if (res?.error === 'ADMIN_GOOGLE_REQUIRED') {
+      setAuthError(
+        lang === 'bn'
+          ? 'অ্যাডমিন অ্যাকাউন্টের নিরাপত্তার জন্য পাসওয়ার্ডের বদলে উপরের "Continue with Google" বাটনে ক্লিক করে গুগল ভেরিফিকেশন করুন।'
+          : 'Admin accounts require verified Google Sign-In. Please click Continue with Google above.'
+      );
+      setIsGoogleModalOpen(true);
+      return;
+    }
     navigate('/profile');
   };
 
@@ -156,6 +167,11 @@ export default function Auth() {
         </div>
 
         {/* Form */}
+        {authError && (
+          <div className="mb-3 p-3 rounded-xl bg-rose-100 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-500/40 text-xs font-semibold text-rose-900 dark:text-rose-200 leading-relaxed">
+            {authError}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* Registration Number (For Student & Alumni) */}
           {role !== 'admin' && (

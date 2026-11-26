@@ -33,14 +33,20 @@ export default function Gallery() {
   });
 
   const categories = [
-    'All',
-    'Rag Day',
-    'Lab Memories',
-    'Sports',
-    'Campus Life',
-    'Cultural',
-    'Convocation'
+    { id: 'All', bn: 'সকল ছবি', en: 'All Photos' },
+    { id: 'Rag Day', bn: 'র‍্যাগ ডে', en: 'Rag Day' },
+    { id: 'Lab Memories', bn: 'ল্যাব স্মৃতি', en: 'Lab Memories' },
+    { id: 'Sports', bn: 'খেলাধুলা', en: 'Sports' },
+    { id: 'Campus Life', bn: 'ক্যাম্পাস জীবন', en: 'Campus Life' },
+    { id: 'Cultural', bn: 'সাংস্কৃতিক অনুষ্ঠান', en: 'Cultural' },
+    { id: 'Convocation', bn: 'সমাবর্তন', en: 'Convocation' }
   ];
+
+  const getCategoryLabel = (catId) => {
+    const found = categories.find(c => c.id === catId);
+    if (!found) return catId;
+    return lang === 'bn' ? found.bn : found.en;
+  };
 
   const filteredMemories = useMemo(() => (memories || []).filter(
     m => selectedCategory === 'All' || m.category === selectedCategory
@@ -104,15 +110,15 @@ export default function Gallery() {
         <div className="flex items-center gap-2.5 overflow-x-auto py-2 px-1 mb-6 no-scrollbar">
           {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
-                selectedCategory === cat
+                selectedCategory === cat.id
                   ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30 font-bold scale-110'
                   : 'bg-white dark:bg-[#1E1C18] text-[#1C1917] dark:text-[#DCD3C1] hover:bg-[#F3EFE7] dark:hover:bg-[#25221E] border border-[#C5A880]/30'
               }`}
             >
-              {cat === 'All' ? (lang === 'bn' ? 'সকল ছবি (All Photos)' : 'All Photos') : cat}
+              {lang === 'bn' ? cat.bn : cat.en}
             </button>
           ))}
         </div>
@@ -138,7 +144,7 @@ export default function Gallery() {
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent opacity-85 group-hover:opacity-70 transition-opacity" />
 
                   <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-slate-950/90 text-emerald-300 keep-emerald-light text-[10px] font-mono border border-emerald-500/40 font-bold">
-                    {mem.category}
+                    {getCategoryLabel(mem.category)}
                   </span>
 
                   <span className="absolute top-3 right-3 px-2 py-0.5 rounded bg-slate-950/90 text-white keep-white text-[10px] font-mono border border-white/20">
@@ -233,7 +239,7 @@ export default function Gallery() {
                   {lang === 'bn' ? (lightboxImage.titleBn || lightboxImage.title) : (lightboxImage.title || lightboxImage.titleBn)}
                 </h3>
                 <p className="text-xs text-[#374151] dark:text-[#DCD3C1] font-mono font-medium">
-                  {lightboxImage.batch} • {lightboxImage.year} • {lightboxImage.category}
+                  {lightboxImage.batch} • {lightboxImage.year} • {getCategoryLabel(lightboxImage.category)}
                 </p>
               </div>
 
@@ -242,7 +248,7 @@ export default function Gallery() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 font-bold text-xs cursor-pointer"
               >
                 <Heart className="w-4 h-4 fill-rose-500" />
-                <span>{lightboxImage.likes} Likes</span>
+                <span>{lightboxImage.likes} {lang === 'bn' ? 'পছন্দ' : 'Likes'}</span>
               </button>
             </div>
               </motion.div>
@@ -323,12 +329,9 @@ export default function Gallery() {
                       onChange={(e) => setNewMemory({ ...newMemory, category: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-white focus:outline-none focus:border-emerald-500"
                     >
-                      <option value="Rag Day">Rag Day</option>
-                      <option value="Lab Memories">Lab Memories</option>
-                      <option value="Sports">Sports</option>
-                      <option value="Campus Life">Campus Life</option>
-                      <option value="Cultural">Cultural</option>
-                      <option value="Convocation">Convocation</option>
+                      {categories.filter(c => c.id !== 'All').map(c => (
+                        <option key={c.id} value={c.id}>{lang === 'bn' ? c.bn : c.en}</option>
+                      ))}
                     </select>
                   </div>
                   <div>

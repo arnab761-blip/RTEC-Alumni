@@ -320,7 +320,16 @@ export default function StudentPortal() {
       return;
     }
 
-    loginWithGmail(email, gmailNameInput);
+    const authRes = loginWithGmail(email, gmailNameInput);
+    if (authRes?.error === 'ADMIN_GOOGLE_REQUIRED') {
+      triggerToast(
+        lang === 'bn'
+          ? 'অ্যাডমিন জিমেইলে প্রবেশের জন্য অনুগ্রহ করে উপরের "গুগল দিয়ে লগইন" বাটনে ক্লিক করুন।'
+          : 'Admin Gmail requires official Google Sign-In verification. Please use the Google button.'
+      );
+      setIsGoogleModalOpen(true);
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       email: email,
@@ -947,12 +956,12 @@ export default function StudentPortal() {
                           required
                           value={gmailInput}
                           onChange={(e) => setGmailInput(e.target.value)}
-                          placeholder="your.email@gmail.com"
-                          className="w-full sm:w-44 px-3 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880]"
+                          placeholder={lang === 'bn' ? 'your.email@gmail.com' : 'your.email@gmail.com'}
+                          className="w-full sm:w-44 px-3 py-2 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#57534E] dark:placeholder-[#BDB09E] focus:outline-none focus:border-[#C5A880]"
                         />
                         <button
                           type="submit"
-                          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition whitespace-nowrap cursor-pointer shrink-0"
+                          className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition whitespace-nowrap cursor-pointer shrink-0 shadow-sm"
                         >
                           {lang === 'bn' ? 'যুক্ত' : 'Go'}
                         </button>

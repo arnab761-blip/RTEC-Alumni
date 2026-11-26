@@ -67,6 +67,7 @@ export function AppProvider({ children }) {
     } else {
       localStorage.removeItem('rtec_google_client_id');
     }
+    syncEntityToMongo('/api/settings/kv', 'POST', { key: 'googleClientId', value: clean });
     return clean;
   };
 
@@ -617,6 +618,51 @@ export function AppProvider({ children }) {
     return [];
   });
 
+  // 11.3 Contact Inquiries, Mentorship Requests, Event Registrations (Admin View), Job Applications
+  const [contactMessages, setContactMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rtec_contact_messages');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [mentorshipRequests, setMentorshipRequests] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rtec_mentorship_requests');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [allEventRegistrations, setAllEventRegistrations] = useState([]);
+
+  const [jobApplications, setJobApplications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rtec_job_applications');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('rtec_contact_messages', JSON.stringify(contactMessages)); } catch (e) {}
+  }, [contactMessages]);
+
+  useEffect(() => {
+    try { localStorage.setItem('rtec_mentorship_requests', JSON.stringify(mentorshipRequests)); } catch (e) {}
+  }, [mentorshipRequests]);
+
+  useEffect(() => {
+    try { localStorage.setItem('rtec_job_applications', JSON.stringify(jobApplications)); } catch (e) {}
+  }, [jobApplications]);
+
   useEffect(() => {
     localStorage.setItem('rtec_disputes', JSON.stringify(disputes));
   }, [disputes]);
@@ -680,12 +726,14 @@ export function AppProvider({ children }) {
 
   const updateCollegeLogo = (logoUrl) => {
     setCollegeLogo(logoUrl || '');
+    syncEntityToMongo('/api/settings/kv', 'POST', { key: 'collegeLogo', value: logoUrl || '' });
     confetti({ particleCount: 50, spread: 60 });
   };
 
   const resetCollegeLogo = () => {
     setCollegeLogo('');
     localStorage.removeItem('rtec_college_logo');
+    syncEntityToMongo('/api/settings/kv', 'POST', { key: 'collegeLogo', value: '' });
   };
 
   // ============================================
@@ -714,8 +762,11 @@ export function AppProvider({ children }) {
     const phone = extra.phone ? String(extra.phone).trim() : '';
     const cleanEmail = (email || '').toLowerCase().trim();
 
-    // STRICT AUTHORIZATION: Grant admin ONLY if email is authorized!
+    // STRICT AUTHORIZATION: Admin accounts MUST sign in via verified Google Identity Services OAuth
     const isAuthorizedAdmin = isAdminEmail(cleanEmail);
+    if (isAuthorizedAdmin && !extra.googleVerified) {
+      return { error: 'ADMIN_GOOGLE_REQUIRED' };
+    }
     let effectiveRole = isAuthorizedAdmin ? 'admin' : (role === 'admin' ? 'student' : role);
 
     // Clear previous session submission tracking before switching user
@@ -744,14 +795,16 @@ export function AppProvider({ children }) {
       company: effectiveRole === 'alumni' ? 'Textile Industry' : (effectiveRole === 'admin' ? 'RTEC Administration' : 'Student at RTEC'),
       email: cleanEmail || 'user@rtec.edu.bd',
       phone: phone || existingSub?.phone || verifiedStudent?.phone || '',
-      regNo: existingSub?.regNo || verifiedStudent?.regNo || '',
+      regNo: regNo || existingSub?.regNo || verifiedStudent?.regNo || '',
       avatar: sanitizeAvatar(existingSub?.avatar || verifiedStudent?.avatar) || '',
       isVerified: effectiveRole === 'admin' || effectiveRole === 'alumni' || Boolean(verifiedStudent) || existingSub?.status === 'approved',
+      googleVerified: Boolean(extra.googleVerified),
       submissionStatus: existingSub?.status || 'none',
       submissionId: existingSub?.id || null
     };
     setUser(newUser);
     syncUserToMongo(newUser);
+    return newUser;
   };
 
   const logout = () => {
@@ -844,49 +897,116 @@ export function AppProvider({ children }) {
             submissions: dbSubs,
             disputes: dbDisputes,
             forumPosts: dbForumPosts,
-            memories: dbMemories
+            memories: dbMemories,
+            contacts: dbContacts,
+            mentorshipRequests: dbMentorship,
+            eventRegistrations: dbEventRegs,
+            jobApplications: dbJobApps,
+            collegeLogo: dbCollegeLogo,
+            googleClientId: dbGoogleClientId
           } = json.data;
 
           if (Array.isArray(dbStudents) && dbStudents.length > 0) {
             setStudents(dbStudents);
           }
+          let cleanAlumni = [];
           if (Array.isArray(dbAlumni)) {
-            const cleanAlumni = dbAlumni.filter(a => !a.id?.startsWith('alm-') && !a.name?.includes('Tanvir Ahmed'));
+            cleanAlumni = dbAlumni.filter(a => !a.id?.startsWith('alm-1') && !a.name?.includes('Tanvir Ahmed'));
             setAlumni(cleanAlumni);
           }
           if (Array.isArray(dbTeachers) && dbTeachers.length > 0) {
             setTeachers(dbTeachers);
           }
-          if (Array.isArray(dbEvents) && dbEvents.length > 0) {
+          if (Array.isArray(dbEvents)) {
             setEvents(dbEvents);
           }
-          if (Array.isArray(dbJobs) && dbJobs.length > 0) {
+          if (Array.isArray(dbJobs)) {
             setJobs(dbJobs);
           }
-          if (Array.isArray(dbNews) && dbNews.length > 0) {
+          if (Array.isArray(dbNews)) {
             setNews(dbNews);
           }
-          if (Array.isArray(dbSubs) && dbSubs.length > 0) {
+          if (Array.isArray(dbSubs)) {
             setStudentSubmissions(dbSubs);
           }
-          if (Array.isArray(dbDisputes) && dbDisputes.length > 0) {
+          if (Array.isArray(dbDisputes)) {
             setDisputes(dbDisputes);
           }
-          if (Array.isArray(dbForumPosts) && dbForumPosts.length > 0) {
+          if (Array.isArray(dbForumPosts)) {
             setForumPosts(dbForumPosts);
           }
-          if (Array.isArray(dbMemories) && dbMemories.length > 0) {
+          if (Array.isArray(dbMemories)) {
             setMemories(dbMemories);
           }
+          if (Array.isArray(dbContacts)) {
+            setContactMessages(dbContacts);
+          }
+          if (Array.isArray(dbMentorship)) {
+            setMentorshipRequests(dbMentorship);
+          }
+          if (Array.isArray(dbEventRegs)) {
+            setAllEventRegistrations(dbEventRegs);
+            setUser(currUser => {
+              const curEmail = (currUser?.email || '').toLowerCase().trim();
+              if (curEmail) {
+                const mine = dbEventRegs.filter(r => (r.attendeeEmail || '').toLowerCase().trim() === curEmail);
+                if (mine.length > 0) {
+                  setRegisteredEvents(mine);
+                }
+              }
+              return currUser;
+            });
+          }
+          if (Array.isArray(dbJobApps)) {
+            setJobApplications(dbJobApps);
+          }
+          if (typeof dbCollegeLogo === 'string' && dbCollegeLogo) {
+            setCollegeLogo(dbCollegeLogo);
+          }
+          if (typeof dbGoogleClientId === 'string' && dbGoogleClientId) {
+            setGoogleClientIdState(dbGoogleClientId);
+            try { localStorage.setItem('rtec_google_client_id', dbGoogleClientId); } catch (e) {}
+          }
+          let latestAdmins = adminEmails;
           if (Array.isArray(json.data.adminEmails) && json.data.adminEmails.length > 0) {
-            const list = Array.from(new Set([...SUPER_ADMIN_EMAILS, ...json.data.adminEmails.map(e => e.toLowerCase().trim())]));
-            setAdminEmails(list);
-            localStorage.setItem('rtec_admin_emails', JSON.stringify(list));
+            latestAdmins = Array.from(new Set([...SUPER_ADMIN_EMAILS, ...json.data.adminEmails.map(e => e.toLowerCase().trim())]));
+            setAdminEmails(latestAdmins);
+            localStorage.setItem('rtec_admin_emails', JSON.stringify(latestAdmins));
           }
           if (json.data.contact && typeof json.data.contact === 'object') {
             setFooterContact(prev => ({ ...prev, ...json.data.contact }));
             localStorage.setItem('rtec_footer_contact', JSON.stringify(json.data.contact));
           }
+
+          // Reconcile current authenticated session against live MongoDB status
+          setUser(prevUser => {
+            if (!prevUser || prevUser.role === 'guest' || !prevUser.email) return prevUser;
+            const curEmail = prevUser.email.toLowerCase().trim();
+            const sub = Array.isArray(dbSubs) ? dbSubs.find(s => s.email && s.email.toLowerCase().trim() === curEmail) : null;
+            const std = Array.isArray(dbStudents) ? dbStudents.find(s => s.email && s.email.toLowerCase().trim() === curEmail) : null;
+            const alm = cleanAlumni.find(a => a.email && a.email.toLowerCase().trim() === curEmail);
+            if (sub?.id) {
+              setMySubmissionId(sub.id);
+              try {
+                localStorage.setItem('rtec_my_submission_id', sub.id);
+                localStorage.setItem('rtec_my_submission_email', curEmail);
+                if (sub.regNo) localStorage.setItem('rtec_my_submission_reg', sub.regNo);
+              } catch (e) {}
+            }
+            const isAdmin = latestAdmins.includes(curEmail) && Boolean(prevUser.googleVerified || prevUser.role === 'admin');
+            const nextRole = isAdmin ? 'admin' : (alm ? 'alumni' : (prevUser.role || 'student'));
+            const nextVerified = isAdmin || Boolean(prevUser.googleVerified) || sub?.status === 'approved' || Boolean(std || alm);
+            return {
+              ...prevUser,
+              role: nextRole,
+              isVerified: nextVerified,
+              batch: sub?.batch || std?.batch || alm?.batch || prevUser.batch,
+              department: sub?.department || std?.department || alm?.department || prevUser.department,
+              regNo: sub?.regNo || std?.regNo || alm?.regNo || prevUser.regNo,
+              submissionId: sub?.id || prevUser.submissionId,
+              submissionStatus: sub?.status || (std ? 'approved' : prevUser.submissionStatus || 'none')
+            };
+          });
         }
       }
     } catch (e) {
@@ -1139,6 +1259,20 @@ export function AppProvider({ children }) {
     });
   };
 
+  const toggleMentorAlumni = (id) => {
+    setAlumni(prev => {
+      const updated = prev.map(a => {
+        if (a.id === id) {
+          const nextVal = !a.isMentor;
+          syncEntityToMongo('/api/alumni', 'POST', { id, isMentor: nextVal });
+          return { ...a, isMentor: nextVal };
+        }
+        return a;
+      });
+      return updated;
+    });
+  };
+
   // ============================================
   // EVENTS CRUD
   // ============================================
@@ -1197,6 +1331,7 @@ export function AppProvider({ children }) {
     );
 
     const attendeeEmail = (attendeeInfo?.email || (user?.role !== 'guest' ? user?.email : '') || '').trim().toLowerCase();
+    const token = `RTEC-EVT-${String(Date.now()).slice(-6)}`;
     const registrationRecord = {
       id: `reg-${Date.now()}`,
       eventId,
@@ -1205,9 +1340,13 @@ export function AppProvider({ children }) {
       date: targetEvent?.date || '',
       venue: targetEvent?.venue || targetEvent?.location || 'RTEC Campus',
       venueBn: targetEvent?.venueBn || targetEvent?.venue || 'আরটেক ক্যাম্পাস',
-      token: `RTEC-EVT-${String(Date.now()).slice(-6)}`,
+      token,
       attendeeEmail,
-      attendeeName: attendeeInfo?.name || user?.name || '',
+      attendeeName: attendeeInfo?.name || user?.name || 'RTEC Attendee',
+      phone: attendeeInfo?.phone || user?.phone || '',
+      batch: attendeeInfo?.batch || user?.batch || '',
+      tshirt: attendeeInfo?.tshirt || 'L',
+      guests: attendeeInfo?.guests || '0',
       registeredAt: new Date().toISOString()
     };
 
@@ -1218,12 +1357,21 @@ export function AppProvider({ children }) {
       if (exists) return prev;
       return [registrationRecord, ...prev];
     });
+    setAllEventRegistrations(prev => [registrationRecord, ...prev]);
+    syncEntityToMongo('/api/event-registrations', 'POST', registrationRecord);
 
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 }
     });
+    return registrationRecord;
+  };
+
+  const deleteEventRegistration = (id) => {
+    setAllEventRegistrations(prev => prev.filter(r => r.id !== id));
+    setRegisteredEvents(prev => prev.filter(r => r.id !== id));
+    syncEntityToMongo(`/api/event-registrations/${id}`, 'DELETE');
   };
 
   // ============================================
@@ -1850,6 +1998,11 @@ export function AppProvider({ children }) {
 
   const loginWithGmail = (email, name = '', additional = {}) => {
     const userEmail = email.toLowerCase().trim();
+    const isMasterAdmin = isAdminEmail(userEmail);
+    if (isMasterAdmin && !additional.googleVerified) {
+      return { error: 'ADMIN_GOOGLE_REQUIRED' };
+    }
+
     // Always wipe any prior user's local submission tracking before binding the new Gmail
     untrackSubmission();
 
@@ -1863,7 +2016,6 @@ export function AppProvider({ children }) {
       if (existingSub.regNo) localStorage.setItem('rtec_my_submission_reg', existingSub.regNo);
     }
 
-    const isMasterAdmin = isAdminEmail(userEmail);
     const assignedRole = isMasterAdmin ? 'admin' : (verifiedAlumni ? 'alumni' : (additional.role || 'student'));
 
     const newUser = {
@@ -2086,6 +2238,93 @@ export function AppProvider({ children }) {
   };
 
   // ============================================
+  // CONTACT MESSAGES, MENTORSHIP REQUESTS, JOB APPLICATIONS
+  // ============================================
+  const submitContactMessage = (msgData) => {
+    const item = {
+      id: `cnt-${Date.now()}`,
+      name: String(msgData.name || '').trim(),
+      email: String(msgData.email || '').trim().toLowerCase(),
+      phone: String(msgData.phone || '').trim(),
+      subject: String(msgData.subject || 'General Inquiry').trim(),
+      message: String(msgData.message || '').trim(),
+      recipientName: msgData.recipientName || '',
+      recipientId: msgData.recipientId || '',
+      source: msgData.source || 'contact',
+      status: 'unread',
+      createdAt: new Date().toISOString()
+    };
+    setContactMessages(prev => [item, ...prev]);
+    syncEntityToMongo('/api/contacts', 'POST', item);
+    return item;
+  };
+
+  const updateContactStatus = (id, status = 'resolved') => {
+    setContactMessages(prev => prev.map(m => (m.id === id ? { ...m, status } : m)));
+    syncEntityToMongo('/api/contacts', 'POST', { id, status });
+  };
+
+  const deleteContactMessage = (id) => {
+    setContactMessages(prev => prev.filter(m => m.id !== id));
+    syncEntityToMongo(`/api/contacts/${id}`, 'DELETE');
+  };
+
+  const submitMentorshipRequest = (reqData) => {
+    const item = {
+      id: `mnt-${Date.now()}`,
+      mentorId: reqData.mentorId || '',
+      mentorName: reqData.mentorName || 'RTEC Mentor Desk',
+      mentorEmail: reqData.mentorEmail || '',
+      studentName: String(reqData.studentName || user?.name || '').trim(),
+      studentEmail: String(reqData.studentEmail || user?.email || '').trim().toLowerCase(),
+      studentBatch: reqData.studentBatch || user?.batch || '',
+      topic: String(reqData.topic || '').trim(),
+      details: String(reqData.details || '').trim(),
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    setMentorshipRequests(prev => [item, ...prev]);
+    syncEntityToMongo('/api/mentorship', 'POST', item);
+    confetti({ particleCount: 60, spread: 60 });
+    return item;
+  };
+
+  const updateMentorshipRequestStatus = (id, status) => {
+    setMentorshipRequests(prev => prev.map(m => (m.id === id ? { ...m, status } : m)));
+    syncEntityToMongo('/api/mentorship', 'POST', { id, status });
+  };
+
+  const deleteMentorshipRequest = (id) => {
+    setMentorshipRequests(prev => prev.filter(m => m.id !== id));
+    syncEntityToMongo(`/api/mentorship/${id}`, 'DELETE');
+  };
+
+  const submitJobApplication = (appData) => {
+    const item = {
+      id: `app-${Date.now()}`,
+      jobId: appData.jobId,
+      jobTitle: appData.jobTitle || '',
+      company: appData.company || '',
+      applicantName: String(appData.applicantName || user?.name || '').trim(),
+      applicantEmail: String(appData.applicantEmail || user?.email || '').trim().toLowerCase(),
+      applicantBatch: String(appData.applicantBatch || '').trim(),
+      cvLink: String(appData.cvLink || '').trim(),
+      coverNote: String(appData.coverNote || '').trim(),
+      status: 'submitted',
+      appliedAt: new Date().toISOString()
+    };
+    setJobApplications(prev => [item, ...prev]);
+    syncEntityToMongo('/api/job-applications', 'POST', item);
+    confetti({ particleCount: 50, spread: 50 });
+    return item;
+  };
+
+  const deleteJobApplication = (id) => {
+    setJobApplications(prev => prev.filter(a => a.id !== id));
+    syncEntityToMongo(`/api/job-applications/${id}`, 'DELETE');
+  };
+
+  // ============================================
   // RESET ALL SYSTEM DATA
   // ============================================
   const resetAllData = () => {
@@ -2166,6 +2405,7 @@ export function AppProvider({ children }) {
         updateAlumni,
         deleteAlumni,
         toggleVerifyAlumni,
+        toggleMentorAlumni,
         // Events
         events,
         setEvents,
@@ -2174,6 +2414,8 @@ export function AppProvider({ children }) {
         deleteEvent,
         registerForEvent,
         registeredEvents,
+        allEventRegistrations,
+        deleteEventRegistration,
         updateOwnProfile,
         // Jobs
         jobs,
@@ -2183,6 +2425,9 @@ export function AppProvider({ children }) {
         declineJob,
         updateJob,
         deleteJob,
+        jobApplications,
+        submitJobApplication,
+        deleteJobApplication,
         // Campaigns
         campaigns,
         setCampaigns,
@@ -2229,6 +2474,15 @@ export function AppProvider({ children }) {
         resolveDispute,
         deleteDispute,
         resetStudentClaim,
+        // Inquiries & Mentorship
+        contactMessages,
+        submitContactMessage,
+        updateContactStatus,
+        deleteContactMessage,
+        mentorshipRequests,
+        submitMentorshipRequest,
+        updateMentorshipRequestStatus,
+        deleteMentorshipRequest,
         // Admin Authorization Management
         adminEmails,
         addAdminEmail,

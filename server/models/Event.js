@@ -6,15 +6,20 @@ const EventSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     titleBn: { type: String, default: '' },
     description: { type: String, default: '' },
+    descriptionEn: { type: String, default: '' },
     descriptionBn: { type: String, default: '' },
     date: { type: String, default: '' },
     time: { type: String, default: '' },
     location: { type: String, default: 'Campus Auditorium, RTEC' },
     locationBn: { type: String, default: 'ক্যাম্পাস অডিটোরিয়াম, আরটিইসি' },
+    venue: { type: String, default: 'RTEC Campus, Pirganj' },
+    venueBn: { type: String, default: 'আরটেক ক্যাম্পাস, পীরগঞ্জ' },
+    registrationFee: { type: String, default: '' },
     category: { type: String, default: 'General' },
     image: { type: String, default: '' },
     seatsTotal: { type: Number, default: 200 },
-    seatsRegistered: { type: Number, default: 0 }
+    seatsRegistered: { type: Number, default: 0 },
+    isUserCreated: { type: Boolean, default: true }
   },
   { timestamps: true }
 );

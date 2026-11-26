@@ -525,27 +525,28 @@ html[data-theme="light"] .group:hover .group-hover\:text-\[\#DFCA9E\] {
   color: #B45309 !important;
 }
 
-/* Dark Mode Enhanced Readability for Secondary & Muted Text */
+/* Dark Mode & Dim Viewport Enhanced Readability for Secondary & Muted Text */
 html.dark .text-\[\#A89884\],
 html[data-theme="dark"] .text-\[\#A89884\] {
-  color: #CFC3B2 !important;
+  color: #DDD2C2 !important;
 }
 
 html.dark .text-slate-400,
 html[data-theme="dark"] .text-slate-400 {
-  color: #D4CCC0 !important;
+  color: #E2DBD0 !important;
 }
 
 html.dark .text-slate-500,
 html[data-theme="dark"] .text-slate-500 {
-  color: #B8B0A4 !important;
+  color: #C9C0B3 !important;
 }
 
 html.dark input::placeholder,
 html.dark textarea::placeholder,
 html[data-theme="dark"] input::placeholder,
 html[data-theme="dark"] textarea::placeholder {
-  color: #A89884 !important;
+  color: #BDB2A2 !important;
+  opacity: 1 !important;
 }
 
 /* Hero Slider Landmark Caption Pill Text: Must ALWAYS remain pure brilliant white in ALL modes */
@@ -623,41 +624,82 @@ html[data-theme="light"] [role="dialog"] {
   border-color: rgba(140, 115, 75, 0.32) !important;
 }
 
-/* Glass Panel in Dark and Light */
+/* Glass Panel in Dark and Light (Solid high-clarity surfaces so dimmed backdrops never blur content) */
 .glass-panel {
-  background: rgba(26, 25, 22, 0.9);
-  border: 1px solid rgba(197, 168, 128, 0.2);
+  background: rgba(24, 23, 21, 0.97);
+  border: 1px solid rgba(197, 168, 128, 0.25);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 html:not(.dark) .glass-panel:not(.on-dark-media):not(.on-dark-media *),
 html[data-theme="light"] .glass-panel:not(.on-dark-media):not(.on-dark-media *) {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(140, 115, 75, 0.28) !important;
-  box-shadow: 0 10px 30px -10px rgba(40, 30, 20, 0.1) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(140, 115, 75, 0.32) !important;
+  box-shadow: 0 10px 30px -10px rgba(40, 30, 20, 0.12) !important;
 }
 
-/* Safe Slate Surface Overrides for Light Mode (Excludes fixed modal backdrops & dark media containers) */
-html:not(.dark) .bg-slate-900:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html:not(.dark) .bg-slate-900\/80:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html:not(.dark) .bg-slate-900\/90:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html[data-theme="light"] .bg-slate-900:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html[data-theme="light"] .bg-slate-900\/80:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html[data-theme="light"] .bg-slate-900\/90:not(.fixed):not(.on-dark-media):not(.on-dark-media *) {
-  background-color: #FFFFFF !important;
-}
-
-html:not(.dark) .bg-slate-950:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html[data-theme="light"] .bg-slate-950:not(.fixed):not(.on-dark-media):not(.on-dark-media *) {
+/* Safe Slate & Dark-Tint Surface Overrides for Light Mode (Excludes fixed modal backdrops, toast & dark media overlays) */
+html:not(.dark) [class*="bg-slate-900"]:not(.fixed):not(.on-dark-media):not(.on-dark-media *):not(button.text-white),
+html:not(.dark) [class*="bg-slate-950"]:not(.fixed):not(.on-dark-media):not(.on-dark-media *):not(button.text-white),
+html[data-theme="light"] [class*="bg-slate-900"]:not(.fixed):not(.on-dark-media):not(.on-dark-media *):not(button.text-white),
+html[data-theme="light"] [class*="bg-slate-950"]:not(.fixed):not(.on-dark-media):not(.on-dark-media *):not(button.text-white) {
   background-color: #FAF9F6 !important;
+  color: #1C1917 !important;
 }
 
-html:not(.dark) .bg-slate-800:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html:not(.dark) .bg-slate-800\/80:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html[data-theme="light"] .bg-slate-800:not(.fixed):not(.on-dark-media):not(.on-dark-media *),
-html[data-theme="light"] .bg-slate-800\/80:not(.fixed):not(.on-dark-media):not(.on-dark-media *) {
+html:not(.dark) [class*="bg-slate-800"]:not(.fixed):not(.on-dark-media):not(.on-dark-media *):not(button.text-white),
+html[data-theme="light"] [class*="bg-slate-800"]:not(.fixed):not(.on-dark-media):not(.on-dark-media *):not(button.text-white) {
   background-color: #F4EFE6 !important;
+  color: #1C1917 !important;
+}
+
+html:not(.dark) button[class*="bg-slate-800"].text-white,
+html:not(.dark) button[class*="bg-slate-900"].text-white,
+html[data-theme="light"] button[class*="bg-slate-800"].text-white,
+html[data-theme="light"] button[class*="bg-slate-900"].text-white {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+}
+
+html:not(.dark) [class*="bg-emerald-950"]:not(.system-toast):not(.on-dark-media):not(.on-dark-media *),
+html[data-theme="light"] [class*="bg-emerald-950"]:not(.system-toast):not(.on-dark-media):not(.on-dark-media *) {
+  background-color: #ECFDF5 !important;
+  border-color: #6EE7B7 !important;
+  color: #064E3B !important;
+}
+
+html:not(.dark) [class*="bg-amber-950"]:not(.on-dark-media):not(.on-dark-media *),
+html[data-theme="light"] [class*="bg-amber-950"]:not(.on-dark-media):not(.on-dark-media *) {
+  background-color: #FFFBEB !important;
+  border-color: #FCD34D !important;
+  color: #78350F !important;
+}
+
+html:not(.dark) [class*="bg-rose-950"]:not(.on-dark-media):not(.on-dark-media *),
+html:not(.dark) [class*="bg-rose-900"]:not(.on-dark-media):not(.on-dark-media *),
+html:not(.dark) [class*="bg-red-950"]:not(.on-dark-media):not(.on-dark-media *),
+html[data-theme="light"] [class*="bg-rose-950"]:not(.on-dark-media):not(.on-dark-media *),
+html[data-theme="light"] [class*="bg-rose-900"]:not(.on-dark-media):not(.on-dark-media *),
+html[data-theme="light"] [class*="bg-red-950"]:not(.on-dark-media):not(.on-dark-media *) {
+  background-color: #FFF1F2 !important;
+  border-color: #FDA4AF !important;
+  color: #881337 !important;
+}
+
+html:not(.dark) .text-emerald-200:not(.on-dark-media *):not(.keep-white):not(.system-toast *),
+html[data-theme="light"] .text-emerald-200:not(.on-dark-media *):not(.keep-white):not(.system-toast *) {
+  color: #064E3B !important;
+}
+html:not(.dark) .text-amber-200:not(.on-dark-media *):not(.keep-white),
+html[data-theme="light"] .text-amber-200:not(.on-dark-media *):not(.keep-white) {
+  color: #78350F !important;
+}
+html:not(.dark) .text-rose-200:not(.on-dark-media *):not(.keep-white),
+html:not(.dark) .text-red-200:not(.on-dark-media *):not(.keep-white),
+html[data-theme="light"] .text-rose-200:not(.on-dark-media *):not(.keep-white),
+html[data-theme="light"] .text-red-200:not(.on-dark-media *):not(.keep-white) {
+  color: #881337 !important;
 }
 
 html:not(.dark) .border-slate-700:not(.on-dark-media):not(.on-dark-media *),

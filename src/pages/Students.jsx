@@ -132,8 +132,10 @@ export default function Students() {
         {/* Page Archival Header */}
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
-            <span className="text-[#DE644E]">STUDENT ROSTER • CENTRAL REGISTER</span>
-            <span>RTEC PIRGANJ • 1ST TO 8TH BATCH</span>
+            <span className="text-[#DE644E]">
+              {lang === 'bn' ? 'শিক্ষার্থী তালিকা • কেন্দ্রীয় রেজিস্টার' : 'STUDENT ROSTER • CENTRAL REGISTER'}
+            </span>
+            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • ১ম থেকে ৮ম ব্যাচ' : 'RTEC PIRGANJ • 1ST TO 8TH BATCH'}</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
@@ -490,7 +492,7 @@ export default function Students() {
                   <button
                     onClick={closeStudentModal}
                     className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors duration-150 cursor-pointer"
-                    aria-label="Close"
+                    aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -524,7 +526,9 @@ export default function Students() {
 
                 <div className="p-4 rounded-xl bg-stone-50 dark:bg-[#141311] border border-stone-200 dark:border-[#C5A880]/20 space-y-2.5 text-xs mb-5 font-mono-tech">
                   <div className="flex items-center justify-between">
-                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">SL NO:</span>
+                    <span className="text-stone-600 dark:text-[#A89884] font-semibold">
+                      {lang === 'bn' ? 'ক্রমিক নং:' : 'SL NO:'}
+                    </span>
                     <span className="text-teal-700 dark:text-teal-400 font-bold">#{selectedStudent.serialNo || 'N/A'}</span>
                   </div>
                   <div className="flex items-center justify-between">

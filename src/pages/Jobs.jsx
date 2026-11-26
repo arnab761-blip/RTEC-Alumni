@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function Jobs() {
-  const { jobs, addJob, user, lang = 'en', students = [], alumni = [], mySubmission } = useApp();
+  const { jobs, addJob, submitJobApplication, user, lang = 'en', students = [], alumni = [], mySubmission } = useApp();
   const [selectedJob, setSelectedJob] = useState(null);
   const [postJobModalOpen, setPostJobModalOpen] = useState(false);
   const [graduateGateModalOpen, setGraduateGateModalOpen] = useState(false);
@@ -30,6 +30,28 @@ export default function Jobs() {
   const [appliedSuccess, setAppliedSuccess] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [salaryMode, setSalaryMode] = useState('negotiable'); // 'negotiable' | 'range'
+  const [applyForm, setApplyForm] = useState({
+    name: user?.name || '',
+    batch: `${user?.batch || '8th Batch'} - ${user?.department || 'Yarn Eng.'}`,
+    cvLink: '',
+    coverNote: ''
+  });
+
+  const JOB_TYPE_LABELS = {
+    'Full-time': { bn: 'ফুল-টাইম (Full-time)', en: 'Full-time' },
+    'Full Time': { bn: 'ফুল-টাইম (Full Time)', en: 'Full Time' },
+    'Internship / Entry Level': { bn: 'ইন্টার্নশিপ / এন্ট্রি লেভেল', en: 'Internship / Entry Level' },
+    'Internship': { bn: 'ইন্টার্নশিপ', en: 'Internship' },
+    'Remote': { bn: 'রিমোট / অনলাইন', en: 'Remote' },
+    'Part Time': { bn: 'পার্ট-টাইম', en: 'Part Time' },
+    'Contractual': { bn: 'চুক্তিভিত্তিক', en: 'Contractual' },
+    'Management Trainee (MTO)': { bn: 'ম্যানেজমেন্ট ট্রেইনি (MTO)', en: 'Management Trainee (MTO)' }
+  };
+  const getJobTypeLabel = (typeVal) => {
+    const found = JOB_TYPE_LABELS[typeVal];
+    if (!found) return typeVal;
+    return lang === 'bn' ? found.bn : found.en;
+  };
 
   // Lock background scroll when any job modal is open
   useScrollLock(Boolean(postJobModalOpen || graduateGateModalOpen || selectedJob));
@@ -148,10 +170,23 @@ export default function Jobs() {
 
   const handleApplySubmit = (e) => {
     e.preventDefault();
+    if (selectedJob) {
+      submitJobApplication({
+        jobId: selectedJob.id,
+        jobTitle: selectedJob.titleBn || selectedJob.title,
+        company: selectedJob.company,
+        applicantName: applyForm.name || user?.name || 'RTEC Applicant',
+        applicantEmail: user?.email || '',
+        applicantBatch: applyForm.batch,
+        cvLink: applyForm.cvLink,
+        coverNote: applyForm.coverNote
+      });
+    }
     setAppliedSuccess(true);
     setTimeout(() => {
       setAppliedSuccess(false);
       setApplyModalOpen(false);
+      setApplyForm(prev => ({ ...prev, cvLink: '', coverNote: '' }));
     }, 2000);
   };
 
@@ -254,9 +289,9 @@ export default function Jobs() {
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
             >
               <option value="All">{lang === 'bn' ? 'সকল কাজের ধরন' : 'All Job Types'}</option>
-              <option value="Full-time">Full-time</option>
-              <option value="Internship / Entry Level">Internship / Entry Level</option>
-              <option value="Remote">Remote</option>
+              <option value="Full-time">{lang === 'bn' ? 'ফুল-টাইম (Full-time)' : 'Full-time'}</option>
+              <option value="Internship / Entry Level">{lang === 'bn' ? 'ইন্টার্নশিপ / এন্ট্রি লেভেল' : 'Internship / Entry Level'}</option>
+              <option value="Remote">{lang === 'bn' ? 'রিমোট / অনলাইন' : 'Remote'}</option>
             </select>
           </div>
         </div>
@@ -272,14 +307,14 @@ export default function Jobs() {
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono border border-emerald-500/30">
-                      {job.type}
+                      {getJobTypeLabel(job.type)}
                     </span>
                     <span className="text-[11px] text-slate-400 font-mono">
                       {job.department}
                     </span>
                     {job.isFeatured && (
                       <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30">
-                        ★ Featured
+                        {lang === 'bn' ? '★ বিশেষ বিজ্ঞপ্তি' : '★ Featured'}
                       </span>
                     )}
                   </div>
@@ -461,9 +496,9 @@ export default function Jobs() {
                         onChange={(e) => setNewJobData({ ...newJobData, type: e.target.value })}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       >
-                        <option value="Full-time">Full-time</option>
-                        <option value="Internship / Entry Level">Internship / Entry Level</option>
-                        <option value="Remote">Remote</option>
+                        <option value="Full-time">{lang === 'bn' ? 'ফুল-টাইম (Full-time)' : 'Full-time'}</option>
+                        <option value="Internship / Entry Level">{lang === 'bn' ? 'ইন্টার্নশিপ / এন্ট্রি লেভেল' : 'Internship / Entry Level'}</option>
+                        <option value="Remote">{lang === 'bn' ? 'রিমোট / অনলাইন' : 'Remote'}</option>
                       </select>
                     </div>
                     <div>
@@ -805,7 +840,9 @@ export default function Jobs() {
                       <input
                         type="text"
                         required
-                        defaultValue={user?.name || ''}
+                        value={applyForm.name}
+                        onChange={(e) => setApplyForm({ ...applyForm, name: e.target.value })}
+                        placeholder={lang === 'bn' ? 'আপনার পূর্ণ নাম লিখুন' : 'Enter your full name'}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
@@ -816,7 +853,9 @@ export default function Jobs() {
                       <input
                         type="text"
                         required
-                        defaultValue={`${user?.batch || '8th Batch'} - ${user?.department || 'Yarn Eng.'}`}
+                        value={applyForm.batch}
+                        onChange={(e) => setApplyForm({ ...applyForm, batch: e.target.value })}
+                        placeholder={lang === 'bn' ? 'যেমন: ৫ম ব্যাচ - ইয়ার্ন ইঞ্জিনিয়ারিং' : 'e.g., 5th Batch - Yarn Eng.'}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
                     </div>
@@ -827,6 +866,8 @@ export default function Jobs() {
                       <input
                         type="url"
                         required
+                        value={applyForm.cvLink}
+                        onChange={(e) => setApplyForm({ ...applyForm, cvLink: e.target.value })}
                         placeholder="https://drive.google.com/..."
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />
@@ -837,6 +878,8 @@ export default function Jobs() {
                       </label>
                       <textarea
                         rows="3"
+                        value={applyForm.coverNote}
+                        onChange={(e) => setApplyForm({ ...applyForm, coverNote: e.target.value })}
                         placeholder={lang === 'bn' ? 'আপনার কাজের আগ্রহ ও অভিজ্ঞতা সম্পর্কে লিখুন...' : 'Share your relevant background and interest...'}
                         className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
                       />

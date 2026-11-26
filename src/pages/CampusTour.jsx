@@ -196,7 +196,7 @@ export default function CampusTour() {
               className={`p-1.5 rounded-xl transition ${
                 timeOfDay === 'day' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
               }`}
-              title="Sunny Day"
+              title={lang === 'bn' ? 'দিনের আলো' : 'Sunny Day'}
             >
               <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -205,7 +205,7 @@ export default function CampusTour() {
               className={`p-1.5 rounded-xl transition ${
                 timeOfDay === 'sunset' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
               }`}
-              title="Golden Sunset"
+              title={lang === 'bn' ? 'সোনালী গোধূলি' : 'Golden Sunset'}
             >
               <Sunset className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -214,7 +214,7 @@ export default function CampusTour() {
               className={`p-1.5 rounded-xl transition ${
                 timeOfDay === 'night' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
               }`}
-              title="Night Campus"
+              title={lang === 'bn' ? 'রাতের ক্যাম্পাস' : 'Night Campus'}
             >
               <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -228,7 +228,9 @@ export default function CampusTour() {
                 ? 'border-emerald-500 text-emerald-300 bg-emerald-950/40 shadow-lg shadow-emerald-900/30'
                 : 'border-slate-800 text-slate-400 hover:text-white'
             }`}
-            title={soundEnabled ? 'Mute Campus Sounds' : 'Play Campus Ambient Sounds (Birds & Wind)'}
+            title={soundEnabled
+              ? (lang === 'bn' ? 'শব্দ বন্ধ করুন' : 'Mute Campus Sounds')
+              : (lang === 'bn' ? 'ক্যাম্পাসের প্রকৃতির শব্দ শুনুন' : 'Play Campus Ambient Sounds')}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 animate-bounce" /> : <VolumeX className="w-4 h-4" />}
           </button>
@@ -241,7 +243,9 @@ export default function CampusTour() {
                 ? 'border-amber-500 text-amber-300 bg-amber-950/40'
                 : 'border-slate-800 text-slate-400 hover:text-white'
             }`}
-            title={autoTour ? 'Pause Auto Tour' : 'Start Auto Tour (Auto Advance)'}
+            title={autoTour
+              ? (lang === 'bn' ? 'অটো ট্যুর বিরতি দিন' : 'Pause Auto Tour')
+              : (lang === 'bn' ? 'অটো ক্যাম্পাস ট্যুর শুরু করুন' : 'Start Auto Tour')}
           >
             {autoTour ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
@@ -250,7 +254,7 @@ export default function CampusTour() {
           <button
             onClick={() => setShowHelp(!showHelp)}
             className="p-2 rounded-2xl glass-panel border border-slate-800 text-slate-400 hover:text-white transition"
-            title="Navigation Guide"
+            title={lang === 'bn' ? 'নেভিগেশন নির্দেশিকা' : 'Navigation Guide'}
           >
             <HelpCircle className="w-4 h-4" />
           </button>

@@ -59,7 +59,9 @@ export default function BuildingInfoModal({
                 ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-300'
                 : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
-            title={isSpeaking ? 'Stop Audio Tour' : 'Play Bengali Audio Tour'}
+            title={isSpeaking
+              ? (lang === 'bn' ? 'অডিও বন্ধ করুন' : 'Stop Audio Tour')
+              : (lang === 'bn' ? 'অডিও ট্যুর শুনুন' : 'Play Campus Audio Tour')}
           >
             {isSpeaking ? <VolumeX className="w-4 h-4 animate-pulse" /> : <Volume2 className="w-4 h-4" />}
           </button>
@@ -67,7 +69,7 @@ export default function BuildingInfoModal({
             <button
               onClick={onClose}
               className="p-2 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700 transition"
-              title="Close card"
+              title={lang === 'bn' ? 'কার্ড বন্ধ করুন' : 'Close card'}
             >
               <X className="w-4 h-4" />
             </button>

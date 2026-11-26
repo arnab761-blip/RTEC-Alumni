@@ -18,6 +18,7 @@ const SubmissionSchema = new mongoose.Schema(
     address: { type: String, default: '' },
     avatar: { type: String, default: '' },
     bio: { type: String, default: '' },
+    studentType: { type: String, default: '' },
     status: { type: String, default: 'pending' }, // 'pending', 'approved', 'declined'
     declineReason: { type: String, default: '' },
     reviewNotes: { type: String, default: '' },

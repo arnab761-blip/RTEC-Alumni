@@ -24,6 +24,7 @@ export default function Events() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
+  const [issuedToken, setIssuedToken] = useState('');
 
   // Lock background scroll when registration modal is open
   useScrollLock(Boolean(registerModalOpen && selectedEvent));
@@ -64,7 +65,8 @@ export default function Events() {
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
     if (!selectedEvent) return;
-    registerForEvent(selectedEvent.id, formData);
+    const reg = registerForEvent(selectedEvent.id, formData);
+    setIssuedToken(reg?.token || `RTEC-EVT-${Date.now().toString().slice(-6)}`);
     setRegisteredSuccess(true);
     setTimeout(() => {
       setRegisteredSuccess(false);
@@ -85,8 +87,10 @@ export default function Events() {
         {/* Page Archival Header */}
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
-            <span className="text-[#DE644E]">OFFICIAL EVENT PASSES & CONVOCATIONS</span>
-            <span>RTEC PIRGANJ • CONCLAVE REGISTER</span>
+            <span className="text-[#DE644E]">
+              {lang === 'bn' ? 'অফিসিয়াল ইভেন্ট পাস ও সমাবর্তন' : 'OFFICIAL EVENT PASSES & CONVOCATIONS'}
+            </span>
+            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • কনক্লেভ রেজিস্টার' : 'RTEC PIRGANJ • CONCLAVE REGISTER'}</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
@@ -142,14 +146,14 @@ export default function Events() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <span className="text-[10px] font-mono-tech text-[#DFCA9E] uppercase tracking-wider block">
-              SCHEDULED CONFERENCES & MEETS
+              {lang === 'bn' ? 'নির্ধারিত সম্মেলন ও মিলনমেলা সূচি' : 'SCHEDULED CONFERENCES & MEETS'}
             </span>
             <h2 className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7] mt-0.5">
               {lang === 'bn' ? 'সকল অনুমোদিত ইভেন্ট ও টিকেট' : 'Upcoming Conclaves & Event Passes'}
             </h2>
           </div>
           <span className="text-xs font-mono-tech text-[#A89884]">
-            TOTAL: {events.length} SESSIONS
+            {lang === 'bn' ? `মোট: ${events.length}টি ইভেন্ট` : `TOTAL: ${events.length} SESSIONS`}
           </span>
         </div>
 
@@ -232,10 +236,11 @@ export default function Events() {
                   <div className="pt-3 border-t border-[#C5A880]/15 space-y-1.5 font-mono-tech">
                     <div className="flex justify-between text-[11px]">
                       <span className="text-[#A89884]">
-                        SEATS RESERVED: <strong className="text-[#DFCA9E]">{evt.seatsRegistered}</strong> / {evt.seatsTotal}
+                        {lang === 'bn' ? 'সংরক্ষিত আসন:' : 'SEATS RESERVED:'}{' '}
+                        <strong className="text-[#DFCA9E]">{evt.seatsRegistered}</strong> / {evt.seatsTotal}
                       </span>
                       <span className="text-[#DE644E]">
-                        {Math.round(((evt.seatsRegistered || 0) / evt.seatsTotal) * 100)}% OCCUPIED
+                        {Math.round(((evt.seatsRegistered || 0) / (evt.seatsTotal || 200)) * 100)}% {lang === 'bn' ? 'বুকিং সম্পন্ন' : 'OCCUPIED'}
                       </span>
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-[#141311] overflow-hidden border border-[#C5A880]/15">
@@ -322,16 +327,16 @@ export default function Events() {
                 <button
                   onClick={() => setRegisterModalOpen(false)}
                   className="absolute top-5 right-5 p-2 rounded-lg bg-[#141311] border border-[#C5A880]/25 text-[#A89884] hover:text-[#EDE8DF]"
-                  aria-label="Close"
+                  aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
                 >
                   <X className="w-4 h-4" />
                 </button>
 
                 <span className="text-[10px] font-mono-tech text-[#DE644E] uppercase tracking-wider block">
-                  ADMISSION PASS REGISTRATION
+                  {lang === 'bn' ? 'প্রবেশ পাস ও টিকেট নিবন্ধন' : 'ADMISSION PASS REGISTRATION'}
                 </span>
                 <h3 className="font-serif-regal font-bold text-lg sm:text-xl text-[#FDFBF7] mt-1 mb-1">
-                  {selectedEvent.titleBn || selectedEvent.title}
+                  {lang === 'bn' ? (selectedEvent.titleBn || selectedEvent.title) : (selectedEvent.title || selectedEvent.titleBn)}
                 </h3>
                 <p className="text-xs text-[#A89884] mb-6 font-sans">
                   {lang === 'bn' ? 'রেজিস্ট্রেশন নিশ্চিত হলে ডিজিটাল কনফার্মেশন স্লিপ তৈরি হবে।' : 'Fill your details to issue an authentic digital gate pass token.'}
@@ -344,7 +349,7 @@ export default function Events() {
                       {lang === 'bn' ? 'অভিনন্দন! রেজিস্ট্রেশন সফল হয়েছে' : 'Pass Reserved Successfully!'}
                     </h4>
                     <p className="text-xs text-[#DCD3C1] font-mono-tech">
-                      TOKEN: <strong className="text-[#DFCA9E]">RTEC-EVT-{Date.now().toString().slice(-6)}</strong>
+                      {lang === 'bn' ? 'টোকেন নং:' : 'TOKEN:'} <strong className="text-[#DFCA9E]">{issuedToken}</strong>
                     </p>
                   </div>
                 ) : (
@@ -384,10 +389,10 @@ export default function Events() {
                           onChange={(e) => setFormData({ ...formData, tshirt: e.target.value })}
                           className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                         >
-                          <option value="M">M (Medium)</option>
-                          <option value="L">L (Large)</option>
-                          <option value="XL">XL (Extra Large)</option>
-                          <option value="XXL">XXL</option>
+                          <option value="M">{lang === 'bn' ? 'M (মিডিয়াম)' : 'M (Medium)'}</option>
+                          <option value="L">{lang === 'bn' ? 'L (লার্জ)' : 'L (Large)'}</option>
+                          <option value="XL">{lang === 'bn' ? 'XL (এক্সট্রা লার্জ)' : 'XL (Extra Large)'}</option>
+                          <option value="XXL">{lang === 'bn' ? 'XXL (ডাবল এক্সএল)' : 'XXL'}</option>
                         </select>
                       </div>
                     </div>
@@ -421,8 +426,8 @@ export default function Events() {
                     </div>
 
                     <div className="p-3 rounded bg-[#141311] border border-[#C5A880]/20 flex items-center justify-between text-xs font-mono-tech">
-                      <span className="text-[#A89884]">REGISTRATION PASS FEE:</span>
-                      <span className="text-[#DFCA9E] font-bold text-sm">{selectedEvent.registrationFee}</span>
+                      <span className="text-[#A89884]">{lang === 'bn' ? 'রেজিস্ট্রেশন পাস ফি:' : 'REGISTRATION PASS FEE:'}</span>
+                      <span className="text-[#DFCA9E] font-bold text-sm">{selectedEvent.registrationFee || (lang === 'bn' ? 'ফ্রি / প্রযোজ্য নয়' : 'Free / Open')}</span>
                     </div>
 
                     <button

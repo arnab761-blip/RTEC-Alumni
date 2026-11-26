@@ -24,16 +24,31 @@ export default function News() {
   useScrollLock(Boolean(selectedArticle));
 
   const categories = [
-    { id: 'All', labelBn: 'সকল খবর', labelEn: 'All Updates' },
-    { id: 'Achievement', labelBn: 'সাফল্য ও অর্জন', labelEn: 'Achievements' },
-    { id: 'Notice', labelBn: 'প্রশাসনিক নোটিশ', labelEn: 'Official Notices' },
+    { id: 'All', labelBn: 'সকল নোটিশ ও খবর', labelEn: 'All Notices & News' },
+    { id: 'Academic Notice', labelBn: 'একাডেমিক নোটিশ', labelEn: 'Academic Notice' },
+    { id: 'Examination', labelBn: 'পরীক্ষা সংক্রান্ত', labelEn: 'Examination' },
+    { id: 'Admission', labelBn: 'ভর্তি সংক্রান্ত', labelEn: 'Admission' },
+    { id: 'General Notice', labelBn: 'সাধারণ নোটিশ', labelEn: 'General Notice' },
+    { id: 'Holiday', labelBn: 'ছুটির নোটিশ', labelEn: 'Holiday' },
+    { id: 'Career & Placement', labelBn: 'ক্যারিয়ার ও প্লেসমেন্ট', labelEn: 'Career & Placement' },
+    { id: 'Urgent Notice', labelBn: 'জরুরি নোটিশ', labelEn: 'Urgent Notice' },
+    { id: 'Notice', labelBn: 'প্রশাসনিক নোটিশ', labelEn: 'Official Notice' },
+    { id: 'Achievement', labelBn: 'সাফল্য ও অর্জন', labelEn: 'Achievement' },
     { id: 'Spotlight', labelBn: 'স্পটলাইট', labelEn: 'Spotlight' },
     { id: 'Campus', labelBn: 'ক্যাম্পাস জীবন', labelEn: 'Campus News' }
   ];
 
-  const filteredNews = useMemo(() => news.filter(
-    n => activeCategory === 'All' || n.category === activeCategory
-  ), [news, activeCategory]);
+  const getCategoryLabel = (catId) => {
+    const found = categories.find(c => c.id === catId);
+    if (found) return lang === 'bn' ? found.labelBn : found.labelEn;
+    return catId || (lang === 'bn' ? 'সাধারণ নোটিশ' : 'General Notice');
+  };
+
+  const filteredNews = useMemo(() => news.filter(n => {
+    if (activeCategory === 'All') return true;
+    if (activeCategory === 'Notice') return n.category === 'Notice' || String(n.category || '').includes('Notice');
+    return n.category === activeCategory;
+  }), [news, activeCategory]);
 
   return (
     <motion.div
@@ -99,7 +114,7 @@ export default function News() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
                       <span className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-emerald-600 text-white keep-white text-xs font-bold shadow">
-                        {item.category}
+                        {getCategoryLabel(item.category)}
                       </span>
                       <span className="absolute bottom-3 left-3 text-xs text-white keep-white font-mono font-semibold drop-shadow">
                         {item.date}
@@ -108,7 +123,7 @@ export default function News() {
                   ) : (
                     <div className="px-5 pt-5 flex items-center justify-between gap-2">
                       <span className="px-2.5 py-1 rounded-md bg-emerald-600 text-white keep-white text-xs font-bold shadow">
-                        {item.category}
+                        {getCategoryLabel(item.category)}
                       </span>
                       <span className="text-xs text-[#374151] dark:text-[#DCD3C1] font-mono font-semibold">
                         {item.date}
@@ -190,8 +205,8 @@ export default function News() {
                 </button>
 
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="px-2.5 py-1 rounded-md bg-emerald-600 text-white text-xs font-bold shadow">
-                    {selectedArticle.category}
+                  <span className="px-2.5 py-1 rounded-md bg-emerald-600 text-white keep-white text-xs font-bold shadow">
+                    {getCategoryLabel(selectedArticle.category)}
                   </span>
                   <span className="text-xs text-[#A89884] font-mono font-semibold">
                     {selectedArticle.date}

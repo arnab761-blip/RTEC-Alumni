@@ -27,13 +27,16 @@ import { LinkedinIcon } from '../components/SocialIcons.jsx';
 import UserAvatar from '../components/UserAvatar.jsx';
 
 export default function AlumniDirectory() {
-  const { alumni, lang } = useApp();
+  const { alumni, user, lang, submitContactMessage } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('All');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
+  const [senderName, setSenderName] = useState(user?.name || '');
+  const [senderContact, setSenderContact] = useState(user?.email || '');
+  const [messageBody, setMessageBody] = useState('');
 
   // Lock background scroll when any alumni modal is open
   useScrollLock(Boolean(selectedProfile || contactModalOpen));
@@ -94,10 +97,21 @@ export default function AlumniDirectory() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
+    submitContactMessage({
+      name: senderName || user?.name || 'RTEC Visitor',
+      email: senderContact.includes('@') ? senderContact : '',
+      phone: senderContact.includes('@') ? '' : senderContact,
+      subject: selectedProfile ? `Direct Message to ${selectedProfile.name}` : 'Alumni Directory Message',
+      message: messageBody,
+      recipientName: selectedProfile?.name || '',
+      recipientId: selectedProfile?.id || '',
+      source: 'alumni-directory'
+    });
     setMessageSent(true);
     setTimeout(() => {
       setMessageSent(false);
       setContactModalOpen(false);
+      setMessageBody('');
     }, 2000);
   };
 
@@ -114,8 +128,10 @@ export default function AlumniDirectory() {
         {/* Page Architectural Header */}
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
-            <span className="text-[#DFCA9E]">OFFICIAL ARCHIVAL REGISTER • SECTION 02</span>
-            <span>RTEC PIRGANJ • BUTEX AFFILIATION</span>
+            <span className="text-[#DFCA9E]">
+              {lang === 'bn' ? 'অফিসিয়াল অ্যালামনাই রেজিস্টার • সেকশন ০২' : 'OFFICIAL ARCHIVAL REGISTER • SECTION 02'}
+            </span>
+            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • বুটেক্স অধিভুক্ত' : 'RTEC PIRGANJ • BUTEX AFFILIATION'}</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
@@ -178,7 +194,9 @@ export default function AlumniDirectory() {
           {/* Result Count and Clear Filters */}
           <div className="flex items-center justify-between text-xs font-mono-tech text-[#A89884] pt-1 border-t border-[#C5A880]/15">
             <span>
-              TOTAL MATCHED: <strong className="text-[#DFCA9E] font-bold">{filteredAlumni.length}</strong> PROFILES
+              {lang === 'bn' ? 'মোট মিলেছে:' : 'TOTAL MATCHED:'}{' '}
+              <strong className="text-[#DFCA9E] font-bold">{filteredAlumni.length}</strong>{' '}
+              {lang === 'bn' ? 'জন প্রোফাইল' : 'PROFILES'}
             </span>
             {(searchQuery || selectedBatch !== 'All' || selectedDept !== 'All') && (
               <button
@@ -226,7 +244,7 @@ export default function AlumniDirectory() {
                       className="w-18 h-18 sm:w-20 sm:h-20 rounded-lg border-2 border-[#C5A880]/40 p-0.5 bg-[#121110] shadow"
                     />
                     {alm.isVerified && (
-                      <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#C5A880] text-[#121110] shadow" title="Verified Alumni">
+                      <span className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#C5A880] text-[#121110] shadow" title={lang === 'bn' ? 'ভেরিফায়েড অ্যালামনাই' : 'Verified Alumni'}>
                         <ShieldCheck className="w-3.5 h-3.5" />
                       </span>
                     )}
@@ -234,10 +252,10 @@ export default function AlumniDirectory() {
 
                   <div className="text-right">
                     <span className="inline-block px-2 py-0.5 rounded bg-[#141311] text-[#DFCA9E] text-[10px] font-mono-tech border border-[#C5A880]/25">
-                      PASS '{alm.passingYear?.slice(-2) || '22'}
+                      {lang === 'bn' ? `ব্যাচ '${alm.passingYear?.slice(-2) || '২২'}` : `PASS '${alm.passingYear?.slice(-2) || '22'}`}
                     </span>
                     <span className="block text-[9px] text-[#A89884] font-mono-tech mt-1">
-                      REG: VERIFIED
+                      {lang === 'bn' ? 'রেজি: ভেরিফায়েড' : 'REG: VERIFIED'}
                     </span>
                   </div>
                 </div>
@@ -245,10 +263,10 @@ export default function AlumniDirectory() {
                 {/* Name & Academic Credentials */}
                 <div>
                   <h3 className="font-serif-regal font-bold text-base sm:text-lg text-[#FDFBF7] group-hover:text-[#DFCA9E] transition-colors leading-tight">
-                    {alm.name}
+                    {lang === 'bn' ? (alm.nameBn || alm.name) : (alm.name || alm.nameBn)}
                   </h3>
                   <p className="text-[11px] text-[#DE644E] font-mono-tech mt-0.5">
-                    {alm.department}
+                    {lang === 'bn' ? (alm.deptBn || alm.department) : (alm.department || alm.deptBn)}
                   </p>
                 </div>
 
@@ -301,7 +319,7 @@ export default function AlumniDirectory() {
                     target="_blank"
                     rel="noreferrer"
                     className="p-2 rounded bg-[#141311] hover:bg-[#1E1C18] border border-[#C5A880]/25 text-[#A89884] hover:text-[#DFCA9E] transition"
-                    title="LinkedIn Profile"
+                    title={lang === 'bn' ? 'লিঙ্কডইন প্রোফাইল' : 'LinkedIn Profile'}
                   >
                     <LinkedinIcon className="w-3.5 h-3.5" />
                   </a>
@@ -356,7 +374,7 @@ export default function AlumniDirectory() {
                 <button
                   onClick={() => setSelectedProfile(null)}
                   className="absolute top-5 right-5 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 dark:bg-[#141311] dark:border-[#C5A880]/25 dark:text-[#A89884] dark:hover:text-[#EDE8DF] transition-colors cursor-pointer"
-                  aria-label="Close"
+                  aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -371,49 +389,51 @@ export default function AlumniDirectory() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-serif-regal font-bold text-xl text-[#FDFBF7]">
-                        {selectedProfile.name}
+                        {lang === 'bn' ? (selectedProfile.nameBn || selectedProfile.name) : (selectedProfile.name || selectedProfile.nameBn)}
                       </h3>
                       {selectedProfile.isVerified && (
                         <ShieldCheck className="w-4 h-4 text-[#DFCA9E]" />
                       )}
                     </div>
                     <p className="text-xs text-[#DFCA9E] font-mono-tech mt-0.5">
-                      {selectedProfile.batch} • {selectedProfile.passingYear} Pass
+                      {selectedProfile.batch}{selectedProfile.passingYear ? ` • ${selectedProfile.passingYear}` : ''}
                     </p>
                     <p className="text-xs text-[#DE644E] font-mono-tech">
-                      {selectedProfile.department}
+                      {lang === 'bn' ? (selectedProfile.deptBn || selectedProfile.department) : (selectedProfile.department || selectedProfile.deptBn)}
                     </p>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-2 text-xs mb-5 font-mono-tech">
                   <div className="flex items-center justify-between">
-                    <span className="text-[#A89884]">POSITION / ROLE:</span>
+                    <span className="text-[#A89884]">{lang === 'bn' ? 'পদবী / দায়িত্ব:' : 'POSITION / ROLE:'}</span>
                     <span className="text-[#FDFBF7] font-bold">{selectedProfile.role}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[#A89884]">ORGANIZATION:</span>
+                    <span className="text-[#A89884]">{lang === 'bn' ? 'প্রতিষ্ঠান:' : 'ORGANIZATION:'}</span>
                     <span className="text-[#DFCA9E] font-bold">{selectedProfile.company}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[#A89884]">LOCATION:</span>
+                    <span className="text-[#A89884]">{lang === 'bn' ? 'অবস্থান:' : 'LOCATION:'}</span>
                     <span className="text-[#EDE8DF]">{selectedProfile.location}</span>
                   </div>
                 </div>
 
-                <div className="mb-5">
-                  <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#A89884] mb-1.5">
-                    EXECUTIVE BIOGRAPHY
-                  </h4>
-                  <p className="text-xs text-[#DCD3C1] leading-relaxed font-sans">
-                    {selectedProfile.bio}
-                  </p>
-                </div>
+                {selectedProfile.bio && (
+                  <div className="mb-5">
+                    <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#A89884] mb-1.5">
+                      {lang === 'bn' ? 'সংক্ষিপ্ত জীবনী' : 'EXECUTIVE BIOGRAPHY'}
+                    </h4>
+                    <p className="text-xs text-[#DCD3C1] leading-relaxed font-sans">
+                      {selectedProfile.bio}
+                    </p>
+                  </div>
+                )}
 
-                {selectedProfile.skills && (
+                {selectedProfile.skills && selectedProfile.skills.length > 0 && (
                   <div className="mb-6">
                     <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#A89884] mb-2">
-                      TECHNICAL SPECIALIZATION & SKILLS
+                      {lang === 'bn' ? 'কারিগরি দক্ষতা ও স্পেশালাইজেশন' : 'TECHNICAL SPECIALIZATION & SKILLS'}
                     </h4>
                     <div className="flex flex-wrap gap-1.5 font-mono-tech text-xs">
                       {selectedProfile.skills.map((s, idx) => (
@@ -505,7 +525,9 @@ export default function AlumniDirectory() {
                       <input
                         type="text"
                         required
-                        placeholder="Engr. Full Name"
+                        value={senderName}
+                        onChange={(e) => setSenderName(e.target.value)}
+                        placeholder={lang === 'bn' ? 'আপনার পূর্ণ নাম লিখুন' : 'Your full name'}
                         className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                       />
                     </div>
@@ -516,7 +538,9 @@ export default function AlumniDirectory() {
                       <input
                         type="text"
                         required
-                        placeholder="engineer@domain.com"
+                        value={senderContact}
+                        onChange={(e) => setSenderContact(e.target.value)}
+                        placeholder={lang === 'bn' ? 'ইমেইল বা ০১৭XXXXXXXX' : 'Email or phone number'}
                         className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                       />
                     </div>
@@ -527,7 +551,9 @@ export default function AlumniDirectory() {
                       <textarea
                         rows="3"
                         required
-                        placeholder="Write message..."
+                        value={messageBody}
+                        onChange={(e) => setMessageBody(e.target.value)}
+                        placeholder={lang === 'bn' ? 'আপনার বার্তা লিখুন...' : 'Write your message...'}
                         className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                       />
                     </div>
