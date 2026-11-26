@@ -773,7 +773,7 @@ export function AppProvider({ children }) {
   };
 
   // Auth Functions
-  const login = (role, email, name, batch = '8th Batch (2025-26)', dept = 'Yarn Engineering', extra = {}) => {
+  const login = (role, email, name, batch = '', dept = '', extra = {}) => {
     const regNo = extra.regNo ? String(extra.regNo).trim() : '';
     const phone = extra.phone ? String(extra.phone).trim() : '';
     const cleanEmail = (email || '').toLowerCase().trim();
@@ -1831,9 +1831,9 @@ export function AppProvider({ children }) {
         email: cleanEmail,
         phone: data.phone || '',
         regNo: cleanReg,
-        batch: data.batch || '8th Batch (2025-26)',
-        department: data.department || 'Yarn Engineering',
-        deptBn: data.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+        batch: data.batch || '',
+        department: data.department || '',
+        deptBn: data.deptBn || '',
         currentJob: composedJob,
         designation: data.designation || '',
         company: data.company || '',
@@ -2095,8 +2095,8 @@ export function AppProvider({ children }) {
       nameBn: isMasterAdmin ? (name || 'সিস্টেম অ্যাডমিনিস্ট্রেটর') : (existingSub?.name || verifiedStudent?.nameBn || verifiedAlumni?.nameBn || name || 'আরটেক সদস্য'),
       role: assignedRole,
       email: userEmail,
-      batch: existingSub?.batch || verifiedStudent?.batch || verifiedAlumni?.batch || additional.batch || '8th Batch (2025-26)',
-      department: existingSub?.department || verifiedStudent?.department || verifiedAlumni?.department || additional.department || 'Yarn Engineering',
+      batch: existingSub?.batch || verifiedStudent?.batch || verifiedAlumni?.batch || additional.batch || '',
+      department: existingSub?.department || verifiedStudent?.department || verifiedAlumni?.department || additional.department || '',
       company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || verifiedAlumni?.company || 'Student at RTEC'),
       avatar: sanitizeAvatar(additional.avatar || existingSub?.avatar || verifiedStudent?.avatar || verifiedAlumni?.avatar) || '',
       isVerified: isMasterAdmin || Boolean(additional.googleVerified) || existingSub?.status === 'approved' || Boolean(verifiedStudent || verifiedAlumni),

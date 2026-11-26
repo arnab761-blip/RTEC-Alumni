@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,7 +30,6 @@ import {
   Image as ImageIcon,
   Search,
   Edit3,
-  PlusCircle,
   ExternalLink,
   Check,
   ShieldAlert,
@@ -68,7 +67,6 @@ export default function StudentPortal() {
     mySubmission,
     mySubmissionId,
     trackSubmission,
-    untrackSubmission,
     submitStudentProfile,
     getRegNoClaimConflict,
     loginWithGmail,
@@ -128,9 +126,9 @@ export default function StudentPortal() {
     email: '',
     phone: '',
     regNo: '',
-    batch: '8th Batch (2025-26)',
-    department: 'Yarn Engineering',
-    deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+    batch: '',
+    department: '',
+    deptBn: '',
     currentJob: '',
     designation: '',
     company: '',
@@ -145,6 +143,13 @@ export default function StudentPortal() {
   });
 
   const [toastMessage, setToastMessage] = useState('');
+  const [phoneError, setPhoneError] = useState(false);
+  const [batchError, setBatchError] = useState(false);
+  const [deptError, setDeptError] = useState(false);
+  const phoneFieldRef = useRef(null);
+  const phoneInputRef = useRef(null);
+  const batchFieldRef = useRef(null);
+  const deptFieldRef = useRef(null);
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -175,9 +180,9 @@ export default function StudentPortal() {
         email: activeSubmission.email || '',
         phone: activeSubmission.phone || '',
         regNo: activeSubmission.regNo || '',
-        batch: activeSubmission.batch || '8th Batch (2025-26)',
-        department: activeSubmission.department || 'Yarn Engineering',
-        deptBn: activeSubmission.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+        batch: activeSubmission.batch || '',
+        department: activeSubmission.department || '',
+        deptBn: activeSubmission.deptBn || '',
         currentJob: activeSubmission.currentJob || '',
         designation: activeSubmission.designation || '',
         company: activeSubmission.company || '',
@@ -201,9 +206,9 @@ export default function StudentPortal() {
         name: matchedStd?.nameBn || matchedStd?.name || user.nameBn || user.name || '',
         nameEn: matchedStd?.name || user.name || '',
         regNo: matchedStd?.regNo || '',
-        batch: matchedStd?.batch || user.batch || '8th Batch (2025-26)',
-        department: matchedStd?.department || user.department || 'Yarn Engineering',
-        deptBn: matchedStd?.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
+        batch: matchedStd?.batch || '',
+        department: matchedStd?.department || '',
+        deptBn: matchedStd?.deptBn || '',
         phone: matchedStd?.phone || user.phone || '',
         bloodGroup: matchedStd?.bloodGroup || user.bloodGroup || 'B+',
         avatar: matchedStd?.avatar || user.avatar || '',
@@ -402,6 +407,9 @@ export default function StudentPortal() {
 
   const handlePhoneDigitsChange = (raw) => {
     const cleaned = String(raw || '').replace(/\D/g, '').replace(/^88/, '').slice(0, 11);
+    if (cleaned.length === 0 || cleaned.length === 11) {
+      setPhoneError(false);
+    }
     setFormData({
       ...formData,
       phone: cleaned ? `+88${cleaned}` : ''
@@ -412,9 +420,29 @@ export default function StudentPortal() {
     e.preventDefault();
 
     if (phoneIsInvalid) {
+      setPhoneError(true);
       triggerToast(lang === 'bn' ? 'ইনভ্যালিড ফোন নম্বর! +88 এর পর ঠিক ১১টি ডিজিট দিন।' : 'Invalid phone number! Please enter all 11 digits after +88.');
+      phoneFieldRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      phoneInputRef.current?.focus({ preventScroll: true });
       return;
     }
+    setPhoneError(false);
+
+    if (!formData.batch) {
+      setBatchError(true);
+      triggerToast(lang === 'bn' ? 'অনুগ্রহ করে আপনার ব্যাচ সিলেক্ট করুন' : 'Please select your batch');
+      batchFieldRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setBatchError(false);
+
+    if (!formData.department) {
+      setDeptError(true);
+      triggerToast(lang === 'bn' ? 'অনুগ্রহ করে আপনার ডিপার্টমেন্ট সিলেক্ট করুন' : 'Please select your department');
+      deptFieldRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setDeptError(false);
 
     const finalEmail = effectiveFormEmail || (gmailInput.trim() ? (gmailInput.includes('@') ? gmailInput.trim() : `${gmailInput.trim()}@gmail.com`) : '');
     const finalRegNo = formData.regNo?.trim();
@@ -456,35 +484,6 @@ export default function StudentPortal() {
     setIsEditingDetails(false);
     triggerToast(lang === 'bn' ? '✓ আপনার আবেদনটি সফলভাবে জমা হয়েছে এবং অ্যাডমিন যাচাইয়ের জন্য অপেক্ষমাণ রয়েছে!' : '✓ Your profile has been submitted and is pending admin verification!');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const startNewSubmission = () => {
-    untrackSubmission();
-    setIsEditingDetails(true);
-    setFormData({
-      id: '',
-      name: '',
-      nameEn: '',
-      email: user && user.role !== 'guest' ? user.email : '',
-      phone: '',
-      regNo: '',
-      batch: '8th Batch (2025-26)',
-      department: 'Yarn Engineering',
-      deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
-      currentJob: '',
-      designation: '',
-      company: '',
-      jobSector: '',
-      workLocation: '',
-      experienceYears: '',
-      linkedin: '',
-      currentLocation: '',
-      bloodGroup: 'B+',
-      avatar: '',
-      bio: ''
-    });
-    setLookupMessage('');
-    triggerToast(lang === 'bn' ? 'নতুন ফর্ম খোলা হয়েছে। আপনার তথ্য পূরণ করুন।' : 'Fresh form opened. Fill your details.');
   };
 
   return (
@@ -817,19 +816,9 @@ export default function StudentPortal() {
                     )}
 
                     <p className="text-xs font-bold text-[#854D0E] dark:text-[#DFCA9E] mt-1">
-                      {activeSubmission.batch} • {(lang === 'bn' ? activeSubmission.deptBn : activeSubmission.department) || activeSubmission.department}
+                      {[activeSubmission.batch, (lang === 'bn' ? activeSubmission.deptBn : activeSubmission.department) || activeSubmission.department].filter(Boolean).join(' • ')}
                     </p>
                   </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    onClick={startNewSubmission}
-                    className="px-3.5 py-2 rounded-xl bg-[#FAF8F5] dark:bg-[#181715] hover:bg-[#F2ECE2] dark:hover:bg-[#201E1A] text-[#1C1917] dark:text-[#FDFBF7] border border-[#C5A880]/40 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E]" />
-                    <span>{lang === 'bn' ? 'নতুন আবেদন করুন' : 'Submit Another'}</span>
-                  </button>
                 </div>
               </div>
 
@@ -1181,30 +1170,17 @@ export default function StudentPortal() {
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Name Bangla */}
-                    <div>
+                    {/* Single Name Field */}
+                    <div className="sm:col-span-2">
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'নাম (বাংলায়)' : 'Name (Bangla)'}
+                        Name
                       </label>
                       <input
                         type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder={lang === 'bn' ? 'উদা: মো. রিয়াজুল ইসলাম' : 'e.g. Md. Riazul Islam'}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
-                      />
-                    </div>
-
-                    {/* Name English */}
-                    <div>
-                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'পূর্ণ নাম (ইংরেজিতে)' : 'Full Name (English)'}
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.nameEn}
-                        onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
-                        placeholder="e.g. Md. Riazul Islam"
+                        required
+                        value={formData.name || formData.nameEn || ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value, nameEn: e.target.value })}
+                        placeholder={lang === 'bn' ? 'আপনার পূর্ণ নাম লিখুন' : 'Enter your full name'}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
                       />
                     </div>
@@ -1246,11 +1222,11 @@ export default function StudentPortal() {
                     </div>
 
                     {/* Mobile Number (+88 Bangladesh Prefix + Fixed 11-Digit Numpad) */}
-                    <div>
+                    <div ref={phoneFieldRef}>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5 flex items-center justify-between">
                         <span>{lang === 'bn' ? 'মোবাইল নম্বর (+88 বাংলাদেশ)' : 'Mobile Phone (+88 BD)'}</span>
                         <span className={`text-[10px] font-mono-tech font-bold ${
-                          phoneIsInvalid
+                          phoneError && phoneIsInvalid
                             ? 'text-rose-500'
                             : localPhoneDigits.length === 11
                             ? 'text-emerald-600 dark:text-emerald-400'
@@ -1261,7 +1237,7 @@ export default function StudentPortal() {
                       </label>
                       <div
                         className={`flex items-center rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border transition overflow-hidden ${
-                          phoneIsInvalid
+                          phoneError && phoneIsInvalid
                             ? 'border-rose-500 ring-1 ring-rose-500/50'
                             : 'border-[#C5A880]/30 focus-within:border-[#C5A880]'
                         }`}
@@ -1271,6 +1247,7 @@ export default function StudentPortal() {
                           <span>+88</span>
                         </span>
                         <input
+                          ref={phoneInputRef}
                           type="tel"
                           inputMode="numeric"
                           pattern="[0-9]*"
@@ -1281,7 +1258,7 @@ export default function StudentPortal() {
                           className="w-full px-3.5 py-2.5 bg-transparent text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none font-mono-tech font-bold tracking-wide"
                         />
                       </div>
-                      {phoneIsInvalid && (
+                      {phoneError && phoneIsInvalid && (
                         <p className="text-[11px] text-rose-500 font-bold mt-1.5 flex items-center gap-1">
                           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                           <span>
@@ -1304,46 +1281,76 @@ export default function StudentPortal() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Batch */}
-                    <div>
+                    <div ref={batchFieldRef}>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
                         {lang === 'bn' ? 'কততম ব্যাচ (Batch)' : 'Cohort / Batch'}
                       </label>
                       <select
                         value={formData.batch}
-                        onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880] transition font-sans"
+                        onChange={(e) => {
+                          setBatchError(false);
+                          setFormData({ ...formData, batch: e.target.value });
+                        }}
+                        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none transition font-sans ${
+                          batchError && !formData.batch
+                            ? 'border-rose-500 ring-1 ring-rose-500/50'
+                            : 'border-[#C5A880]/30 focus:border-[#C5A880]'
+                        }`}
                       >
+                        <option value="" className="bg-white dark:bg-[#141311] text-[#A89884]">
+                          {lang === 'bn' ? 'ব্যাচ সিলেক্ট করুন' : 'Select Batch'}
+                        </option>
                         {BATCH_OPTIONS.map((b) => (
                           <option key={b} value={b} className="bg-white dark:bg-[#141311] text-[#1C1917] dark:text-[#EDE8DF]">
                             {b}
                           </option>
                         ))}
                       </select>
+                      {batchError && !formData.batch && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1.5 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{lang === 'bn' ? 'অনুগ্রহ করে ব্যাচ সিলেক্ট করুন' : 'Please select your batch'}</span>
+                        </p>
+                      )}
                     </div>
 
                     {/* Department */}
-                    <div>
+                    <div ref={deptFieldRef}>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
                         {lang === 'bn' ? 'বিভাগ (Department)' : 'Department'}
                       </label>
                       <select
                         value={formData.department}
                         onChange={(e) => {
+                          setDeptError(false);
                           const found = DEPARTMENT_OPTIONS.find(d => d.id === e.target.value);
                           setFormData({
                             ...formData,
                             department: e.target.value,
-                            deptBn: found ? found.nameBn : 'টেক্সটাইল ইঞ্জিনিয়ারিং'
+                            deptBn: found ? found.nameBn : ''
                           });
                         }}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880] transition font-sans"
+                        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none transition font-sans ${
+                          deptError && !formData.department
+                            ? 'border-rose-500 ring-1 ring-rose-500/50'
+                            : 'border-[#C5A880]/30 focus:border-[#C5A880]'
+                        }`}
                       >
+                        <option value="" className="bg-white dark:bg-[#141311] text-[#A89884]">
+                          {lang === 'bn' ? 'ডিপার্টমেন্ট সিলেক্ট করুন' : 'Select Department'}
+                        </option>
                         {DEPARTMENT_OPTIONS.map((d) => (
                           <option key={d.id} value={d.id} className="bg-white dark:bg-[#141311] text-[#1C1917] dark:text-[#EDE8DF]">
                             {lang === 'bn' ? d.nameBn : d.nameEn}
                           </option>
                         ))}
                       </select>
+                      {deptError && !formData.department && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1.5 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{lang === 'bn' ? 'অনুগ্রহ করে ডিপার্টমেন্ট সিলেক্ট করুন' : 'Please select your department'}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
