@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { formatDriveImageUrl } from '../utils/driveImage.js';
-import { formatBytes, uploadCompressedImageToCloudinary } from '../utils/cloudinaryUpload.js';
+import { uploadCompressedImageToCloudinary } from '../utils/cloudinaryUpload.js';
 import { UploadCloud, Trash2, Loader2, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 
 /**
@@ -22,7 +22,7 @@ export default function CloudinaryImageInput({
   const [imgError, setImgError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [uploadStats, setUploadStats] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const previewUrl = formatDriveImageUrl(value);
@@ -42,7 +42,7 @@ export default function CloudinaryImageInput({
     e.target.value = '';
 
     setErrorMsg('');
-    setUploadStats(null);
+    setUploadSuccess(false);
     setProgress(10);
     setUploadingState(true);
 
@@ -55,10 +55,7 @@ export default function CloudinaryImageInput({
 
       setImgError(false);
       onChange(result.url);
-      setUploadStats({
-        originalSize: result.originalSize,
-        compressedSize: result.compressedSize
-      });
+      setUploadSuccess(true);
     } catch (err) {
       setErrorMsg(
         err?.message ||
@@ -74,7 +71,7 @@ export default function CloudinaryImageInput({
 
   const handleRemove = () => {
     setImgError(false);
-    setUploadStats(null);
+    setUploadSuccess(false);
     setErrorMsg('');
     onChange('');
   };
@@ -145,7 +142,7 @@ export default function CloudinaryImageInput({
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>
-                    {lang === 'bn' ? 'কম্প্রেস ও আপলোড হচ্ছে...' : 'Compressing & Uploading...'}
+                    {lang === 'bn' ? 'আপলোড হচ্ছে...' : 'Uploading...'}
                   </span>
                 </>
               ) : (
@@ -176,13 +173,13 @@ export default function CloudinaryImageInput({
             )}
           </div>
 
-          {uploadStats && (
+          {uploadSuccess && (
             <p className={`text-[11px] flex items-center gap-1.5 font-medium ${darkSurface ? 'text-emerald-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
               <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
               <span>
                 {lang === 'bn'
-                  ? `ছবি কম্প্রেস হয়ে আপলোড হয়েছে (${formatBytes(uploadStats.originalSize)} → ${formatBytes(uploadStats.compressedSize)})`
-                  : `Compressed & uploaded (${formatBytes(uploadStats.originalSize)} → ${formatBytes(uploadStats.compressedSize)})`}
+                  ? 'ছবিটি সফলভাবে আপলোড হয়েছে'
+                  : 'Photo uploaded successfully'}
               </span>
             </p>
           )}
@@ -196,8 +193,8 @@ export default function CloudinaryImageInput({
 
           <p className={helperTextClass}>
             {lang === 'bn'
-              ? 'ফোন বা কম্পিউটারের গ্যালারি থেকে সরাসরি ছবি সিলেক্ট করুন। ছবিটি স্বয়ংক্রিয়ভাবে কম্প্রেস হয়ে Cloudinary-তে সংরক্ষিত হবে।'
-              : 'Select a photo directly from your gallery or computer. It will be automatically compressed before uploading to Cloudinary.'}
+              ? 'ফোন বা কম্পিউটারের গ্যালারি থেকে সরাসরি ছবি সিলেক্ট করুন।'
+              : 'Select a photo directly from your gallery or computer.'}
           </p>
         </div>
       </div>

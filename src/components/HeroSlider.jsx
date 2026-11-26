@@ -42,8 +42,8 @@ const SLIDES = [
   {
     id: 7,
     src: '/images/slider/slide-06-campus-view.webp',
-    titleBn: 'সবুজ ক্যাম্পাস প্রাঙ্গণ ও স্থাপত্যশৈলীপূর্ণ ওয়াচ টাওয়ার',
-    titleEn: 'Green Campus Quadrangle & Architectural Tower'
+    titleBn: 'সবুজ ক্যাম্পাস চত্বর ও মসজিদ প্রাঙ্গণ',
+    titleEn: 'Green Campus Quadrangle & Mosque Overview'
   },
   {
     id: 8,
@@ -94,7 +94,7 @@ const SLIDES = [
  * 
  * Guarantees:
  * 1. 100% full original image visibility (ZERO cropping, ZERO top cutting, full gate name visible via object-contain)
- * 2. Continuous unconditional auto-play every 3s (never pauses on hover, scroll, or click)
+ * 2. Continuous unconditional auto-play every 5s (never pauses on hover, scroll, or click)
  * 3. 60fps GPU-composited CSS crossfade (zero white flash or blank screen)
  * 4. Clean & uncluttered (no pause buttons, no numbers, no dots)
  */
@@ -102,11 +102,11 @@ export default function HeroSlider() {
   const { lang } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Unconditional continuous auto-play every 3 seconds
+  // Unconditional continuous auto-play every 5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % SLIDES.length);
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, []);

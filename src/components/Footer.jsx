@@ -189,7 +189,7 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-end gap-y-1.5 gap-x-2 text-center lg:text-right">
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
               <span className="text-[#57534E] dark:text-[#C9C0B3]">
-                {lang === 'bn' ? 'ডেভেলপমেন্টে:' : 'Developed by'}
+                {lang === 'bn' ? 'ডিজাইন ও ডেভেলপমেন্টে:' : 'Designed & Developed by'}
               </span>
               <a
                 href="https://www.linkedin.com/in/md-tahmidul-islam-arnab-580587320/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B92ju51LVShS4kPDu0W7pLw%3D%3D"
@@ -208,7 +208,7 @@ export default function Footer() {
 
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
               <span className="text-[#57534E] dark:text-[#C9C0B3]">
-                {lang === 'bn' ? 'কিউএ ও টেস্টিং:' : 'QA & Testing by'}
+                {lang === 'bn' ? 'কনসেপ্ট ও ইউএক্স ফিডব্যাক:' : 'Concept & UX Feedback by'}
               </span>
               <a
                 href="https://www.linkedin.com/in/abdur-rouf-87a449338/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BzfHUWGZzQbuZmJ8vRBe6Bg%3D%3D"
