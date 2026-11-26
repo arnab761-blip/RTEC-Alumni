@@ -463,7 +463,7 @@ export default function StudentPortal() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className="system-toast fixed top-28 sm:top-[116px] right-4 sm:right-8 z-[99999] px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold shadow-2xl flex items-center gap-2.5 max-w-md"
+                className="system-toast fixed top-36 sm:top-36 right-4 sm:right-8 z-[99999] px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold shadow-2xl flex items-center gap-2.5 max-w-md"
               >
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{toastMessage}</span>

@@ -220,7 +220,7 @@ export default function Jobs() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.2 }}
-                className="system-toast fixed top-28 sm:top-[116px] right-4 sm:right-8 z-[99999] max-w-md p-4 rounded-2xl border-2 border-emerald-400 bg-[#064E3B] text-white text-xs sm:text-sm font-bold flex items-center gap-3 shadow-2xl"
+                className="system-toast fixed top-36 sm:top-36 right-4 sm:right-8 z-[99999] max-w-md p-4 rounded-2xl border-2 border-emerald-400 bg-[#064E3B] text-white text-xs sm:text-sm font-bold flex items-center gap-3 shadow-2xl"
               >
                 <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0" />
                 <div className="flex-1">{toastMessage}</div>
