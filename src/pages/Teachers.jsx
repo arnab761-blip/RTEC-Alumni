@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext.jsx';
+import { OFFICE_STAFF } from '../data/officeStaffData.js';
 import { formatDriveImageUrl } from '../utils/driveImage.js';
 import { useScrollLock } from '../utils/useScrollLock.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -107,6 +108,21 @@ export default function Teachers() {
   }), [teachers, selectedDept, searchTerm]);
 
   const totalPrincipalAndHod = useMemo(() => (teachers || []).filter(t => t.isHod).length, [teachers]);
+
+  const [staffSearch, setStaffSearch] = useState('');
+  const filteredStaff = useMemo(() => {
+    const q = (staffSearch || searchTerm || '').toLowerCase().trim();
+    if (!q) return OFFICE_STAFF;
+    return OFFICE_STAFF.filter((staff) =>
+      staff.name.toLowerCase().includes(q) ||
+      staff.nameBn.toLowerCase().includes(q) ||
+      staff.designation.toLowerCase().includes(q) ||
+      staff.designationBn.toLowerCase().includes(q) ||
+      staff.phone.toLowerCase().includes(q) ||
+      (staff.email && staff.email.toLowerCase().includes(q)) ||
+      String(staff.serialNo).includes(q)
+    );
+  }, [staffSearch, searchTerm]);
 
   return (
     <motion.div
@@ -362,6 +378,168 @@ export default function Teachers() {
             </p>
           </div>
         )}
+
+        {/* Office & Support Staff Section (Compact Directory Below Faculty) */}
+        <section className="mt-14 pt-10 border-t border-[#C5A880]/25" aria-labelledby="office-staff-heading">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+              <span className="text-[10px] font-mono-tech text-[#DFCA9E] uppercase tracking-widest">
+                ADMINISTRATIVE &amp; SUPPORT STAFF ROSTER • RTEC
+              </span>
+              <h2 id="office-staff-heading" className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7] mt-1">
+                {lang === 'bn' ? 'অফিস কর্মচারী ও সহায়কবৃন্দ' : 'Office & Support Staff'}
+              </h2>
+              <p className="text-xs text-[#A89884] mt-1 font-sans">
+                {lang === 'bn'
+                  ? `কলেজের দাপ্তরিক, কারিগরি সহায়তা ও প্রশাসনিক কাজে নিয়োজিত কর্মচারীবৃন্দ (মোট ${OFFICE_STAFF.length} জন)`
+                  : `Administrative, technical support, and office personnel serving RTEC (${OFFICE_STAFF.length} Members)`}
+              </p>
+            </div>
+
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A89884]" />
+              <input
+                type="text"
+                value={staffSearch}
+                onChange={(e) => setStaffSearch(e.target.value)}
+                placeholder={lang === 'bn' ? 'কর্মচারীর নাম, পদবি বা নম্বর...' : 'Search staff name, role, phone...'}
+                className="w-full pl-9 pr-8 py-2 rounded-lg bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
+              />
+              {staffSearch && (
+                <button
+                  onClick={() => setStaffSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A89884] hover:text-[#EDE8DF] cursor-pointer"
+                  aria-label="Clear staff search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {filteredStaff.length > 0 ? (
+            <>
+              {/* Desktop Compact Table */}
+              <div className="hidden md:block plaque-elevated rounded-xl border border-[#C5A880]/25 overflow-hidden shadow-md">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#C5A880]/20 bg-[#141311]/70 text-[11px] font-mono-tech uppercase text-[#DFCA9E]">
+                        <th className="py-3 px-4 w-14 text-center">{lang === 'bn' ? 'নং' : 'SL'}</th>
+                        <th className="py-3 px-4">{lang === 'bn' ? 'নাম' : 'Name'}</th>
+                        <th className="py-3 px-4">{lang === 'bn' ? 'পদবি' : 'Designation'}</th>
+                        <th className="py-3 px-4">{lang === 'bn' ? 'মোবাইল' : 'Mobile'}</th>
+                        <th className="py-3 px-4">{lang === 'bn' ? 'ইমেইল' : 'Email'}</th>
+                        <th className="py-3 px-4 text-right">{lang === 'bn' ? 'যোগাযোগ' : 'Action'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#C5A880]/15 text-xs">
+                      {filteredStaff.map((staff) => (
+                        <tr key={staff.id} className="hover:bg-[#C5A880]/5 transition-colors">
+                          <td className="py-2.5 px-4 text-center font-mono-tech text-[#A89884] font-semibold">
+                            {String(staff.serialNo).padStart(2, '0')}
+                          </td>
+                          <td className="py-2.5 px-4 font-semibold text-[#FDFBF7]">
+                            {lang === 'bn' ? staff.nameBn : staff.name}
+                          </td>
+                          <td className="py-2.5 px-4 text-[#DE644E] font-medium">
+                            {lang === 'bn' ? staff.designationBn : staff.designation}
+                          </td>
+                          <td className="py-2.5 px-4 font-mono-tech text-[#DCD3C1] whitespace-nowrap">
+                            <a href={`tel:${staff.phone}`} className="hover:text-[#DFCA9E] hover:underline inline-flex items-center gap-1.5">
+                              <Phone className="w-3 h-3 text-[#DFCA9E] shrink-0" />
+                              <span>{staff.phone}</span>
+                            </a>
+                          </td>
+                          <td className="py-2.5 px-4 font-mono-tech text-[#A89884] max-w-[240px] truncate">
+                            {staff.email ? (
+                              <a href={`mailto:${staff.email}`} className="hover:text-[#DFCA9E] hover:underline truncate inline-block max-w-full align-bottom">
+                                {staff.email}
+                              </a>
+                            ) : (
+                              <span className="text-[#A89884]/50">—</span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-2">
+                              <a
+                                href={`tel:${staff.phone}`}
+                                className="px-2.5 py-1 rounded border border-[#C5A880]/30 text-[11px] font-mono-tech text-[#DFCA9E] hover:bg-[#C5A880]/15 transition inline-flex items-center gap-1"
+                                title={lang === 'bn' ? 'কল করুন' : 'Call'}
+                              >
+                                <Phone className="w-3 h-3" />
+                                <span>{lang === 'bn' ? 'কল' : 'Call'}</span>
+                              </a>
+                              {staff.email && (
+                                <a
+                                  href={`mailto:${staff.email}`}
+                                  className="px-2.5 py-1 rounded border border-[#C5A880]/30 text-[11px] font-mono-tech text-[#DCD3C1] hover:bg-[#C5A880]/15 transition inline-flex items-center gap-1"
+                                  title={lang === 'bn' ? 'ইমেইল' : 'Email'}
+                                >
+                                  <Mail className="w-3 h-3" />
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile Compact List */}
+              <div className="md:hidden space-y-2.5">
+                {filteredStaff.map((staff) => (
+                  <div
+                    key={staff.id}
+                    className="plaque-elevated rounded-lg border border-[#C5A880]/20 p-3.5 flex items-start justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-[#141311] text-[#DFCA9E] border border-[#C5A880]/25 shrink-0">
+                          #{String(staff.serialNo).padStart(2, '0')}
+                        </span>
+                        <h3 className="text-sm font-bold text-[#FDFBF7] truncate">
+                          {lang === 'bn' ? staff.nameBn : staff.name}
+                        </h3>
+                      </div>
+                      <p className="text-xs font-medium text-[#DE644E]">
+                        {lang === 'bn' ? staff.designationBn : staff.designation}
+                      </p>
+                      <div className="pt-1 space-y-0.5 text-[11px] font-mono-tech">
+                        <a href={`tel:${staff.phone}`} className="flex items-center gap-1.5 text-[#DCD3C1] hover:text-[#DFCA9E]">
+                          <Phone className="w-3 h-3 text-[#DFCA9E] shrink-0" />
+                          <span>{staff.phone}</span>
+                        </a>
+                        {staff.email && (
+                          <a href={`mailto:${staff.email}`} className="flex items-center gap-1.5 text-[#A89884] hover:text-[#DFCA9E] truncate">
+                            <Mail className="w-3 h-3 text-[#DFCA9E] shrink-0" />
+                            <span className="truncate">{staff.email}</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <a
+                      href={`tel:${staff.phone}`}
+                      className="shrink-0 px-2.5 py-1.5 rounded border border-[#C5A880]/30 text-[11px] font-mono-tech text-[#DFCA9E] hover:bg-[#C5A880]/15 transition inline-flex items-center gap-1"
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>{lang === 'bn' ? 'কল' : 'Call'}</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-10 plaque-elevated rounded-xl border border-[#C5A880]/20">
+              <p className="text-xs text-[#A89884] font-sans">
+                {lang === 'bn' ? 'কোন অফিস কর্মচারী পাওয়া যায়নি।' : 'No office staff matched your search.'}
+              </p>
+            </div>
+          )}
+        </section>
 
       </div>
 
