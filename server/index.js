@@ -242,7 +242,7 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
     }
 
     const [students, alumni, teachers, events, jobs, news, submissions, disputes, adminEmailDocs, settingsDocs, forumPosts, memories, contacts, mentorshipRequests, eventRegistrations, jobApplications] = await Promise.all([
-      Student.find({}).sort({ batch: 1, regNo: 1 }).lean(),
+      Student.find({}).sort({ serialNo: 1, batch: 1, regNo: 1 }).lean(),
       Alumni.find({}).sort({ batch: 1, name: 1 }).lean(),
       Teacher.find({}).sort({ order: 1 }).lean(),
       Event.find({}).sort({ createdAt: -1 }).lean(),

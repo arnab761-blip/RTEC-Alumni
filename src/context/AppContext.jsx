@@ -926,7 +926,13 @@ export function AppProvider({ children }) {
           } = json.data;
 
           if (Array.isArray(dbStudents) && dbStudents.length > 0) {
-            setStudents(dbStudents);
+            const sortedStudents = [...dbStudents].sort((a, b) => {
+              const slA = Number(a.serialNo) || 999999;
+              const slB = Number(b.serialNo) || 999999;
+              if (slA !== slB) return slA - slB;
+              return String(a.regNo || '').localeCompare(String(b.regNo || ''));
+            });
+            setStudents(sortedStudents);
           }
           let cleanAlumni = [];
           if (Array.isArray(dbAlumni)) {

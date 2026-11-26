@@ -83,31 +83,38 @@ export default function Students() {
     setCurrentPage(1);
   }, [searchTerm, selectedBatch, selectedDept, pageSize]);
 
-  // Filter students (Never show Roll or CGPA as per strict user guidelines)
+  // Filter students & strictly preserve PDF/Excel serial order (Never show Roll or CGPA as per strict user guidelines)
   const filteredStudents = useMemo(() => {
-    return students.filter((std) => {
-      const matchesBatch =
-        selectedBatch === 'all' ||
-        std.batch?.toLowerCase().includes(selectedBatch.toLowerCase());
+    return students
+      .filter((std) => {
+        const matchesBatch =
+          selectedBatch === 'all' ||
+          std.batch?.toLowerCase().includes(selectedBatch.toLowerCase());
 
-      const matchesDept =
-        selectedDept === 'all' ||
-        std.department?.toLowerCase() === selectedDept.toLowerCase() ||
-        std.deptBn?.includes(selectedDept) ||
-        (selectedDept.toLowerCase().includes('apparel') && (std.department || '').toLowerCase().includes('apparel'));
+        const matchesDept =
+          selectedDept === 'all' ||
+          std.department?.toLowerCase() === selectedDept.toLowerCase() ||
+          std.deptBn?.includes(selectedDept) ||
+          (selectedDept.toLowerCase().includes('apparel') && (std.department || '').toLowerCase().includes('apparel'));
 
-      const matchesSearch =
-        std.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        std.nameBn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        std.regNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        std.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (std.merit && std.merit.toString() === searchTerm.trim()) ||
-        (std.serialNo && std.serialNo.toString() === searchTerm.trim()) ||
-        std.activities?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        std.bloodGroup?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch =
+          std.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          std.nameBn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          std.regNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          std.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (std.merit && std.merit.toString() === searchTerm.trim()) ||
+          (std.serialNo && std.serialNo.toString() === searchTerm.trim()) ||
+          std.activities?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          std.bloodGroup?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      return matchesBatch && matchesDept && matchesSearch;
-    });
+        return matchesBatch && matchesDept && matchesSearch;
+      })
+      .sort((a, b) => {
+        const slA = Number(a.serialNo) || 999999;
+        const slB = Number(b.serialNo) || 999999;
+        if (slA !== slB) return slA - slB;
+        return String(a.regNo || '').localeCompare(String(b.regNo || ''));
+      });
   }, [students, selectedBatch, selectedDept, searchTerm]);
 
   // Paginated students for ultra-fast rendering (0ms lag)
