@@ -7,7 +7,6 @@ import {
   MapPin,
   Edit3,
   CheckCircle2,
-  Ticket,
   Clock,
   XCircle,
   ArrowRight
@@ -21,8 +20,6 @@ export default function Profile() {
     studentSubmissions = [],
     mySubmission: appMySubmission,
     mySubmissionId,
-    registeredEvents = [],
-    events = [],
     updateOwnProfile,
     lang
   } = useApp();
@@ -38,7 +35,6 @@ export default function Profile() {
     return students.find(st => st.email && st.email.toLowerCase().trim() === cleanEmail) || null;
   }, [students, user?.email]);
 
-  const [activeTab, setActiveTab] = useState('info'); // 'info' | 'events'
   const [isEditing, setIsEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -60,16 +56,6 @@ export default function Profile() {
     );
     setBio(user?.bio || mySubmission?.bio || matchedStudent?.activities || '');
   }, [user, mySubmission, matchedStudent]);
-
-  // Only show genuine registrations belonging to this user for existing events
-  const myRegisteredEvents = useMemo(() => {
-    const cleanEmail = (user?.email || '').toLowerCase().trim();
-    return (registeredEvents || []).filter(reg => {
-      const belongsToUser = !reg.attendeeEmail || (cleanEmail && reg.attendeeEmail === cleanEmail);
-      const eventStillExists = (events || []).some(e => e.id === reg.eventId);
-      return belongsToUser && eventStillExists;
-    });
-  }, [registeredEvents, events, user?.email]);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -316,131 +302,40 @@ export default function Profile() {
 
         {/* Tab Navigation */}
         <div className="flex border-b border-slate-800 mb-6 gap-4">
-          <button
-            onClick={() => setActiveTab('info')}
-            className={`pb-3 px-4 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 border-b-2 cursor-pointer ${
-              activeTab === 'info'
-                ? 'border-emerald-400 text-emerald-400 scale-110'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
+          <div className="pb-3 px-4 text-xs font-bold border-b-2 border-emerald-400 text-emerald-600 dark:text-emerald-400">
             {lang === 'bn' ? 'অ্যাকাউন্ট ওভারভিউ' : 'Account Overview'}
-          </button>
-          <button
-            onClick={() => setActiveTab('events')}
-            className={`pb-3 px-4 text-xs font-bold transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 border-b-2 cursor-pointer ${
-              activeTab === 'events'
-                ? 'border-emerald-400 text-emerald-400 scale-110'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            {lang === 'bn' ? 'আমার নিবন্ধিত ইভেন্ট' : 'My Registered Events'}
-            {myRegisteredEvents.length > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
-                {myRegisteredEvents.length}
-              </span>
-            )}
-          </button>
+          </div>
         </div>
 
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {activeTab === 'info' && (
-              <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-                <h3 className="font-bold text-white text-base">
-                  {lang === 'bn' ? 'পরিচিতি ও বিবরণ' : 'About & Bio'}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  {bio || (lang === 'bn' ? 'এখনও কোনো পরিচিতি যুক্ত করা হয়নি।' : 'No bio added yet.')}
-                </p>
+        {/* Account Overview */}
+        <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
+          <h3 className="font-bold text-white text-base">
+            {lang === 'bn' ? 'পরিচিতি ও বিবরণ' : 'About & Bio'}
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            {bio || (lang === 'bn' ? 'এখনও কোনো পরিচিতি যুক্ত করা হয়নি।' : 'No bio added yet.')}
+          </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-xs">
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-slate-400 block">
-                      {lang === 'bn' ? 'যোগাযোগ ফোন:' : 'Phone:'}
-                    </span>
-                    <p className="text-white font-semibold mt-0.5">
-                      {phone || (lang === 'bn' ? 'দেওয়া হয়নি' : 'Not provided')}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-slate-400 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{lang === 'bn' ? 'ঠিকানা:' : 'Address:'}</span>
-                    </span>
-                    <p className="text-white font-semibold mt-0.5">
-                      {address || (lang === 'bn' ? 'দেওয়া হয়নি' : 'Not provided')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'events' && (
-              <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-                <h3 className="font-bold text-white text-base flex items-center gap-2">
-                  <Ticket className="w-5 h-5 text-emerald-400" />
-                  <span>{lang === 'bn' ? 'নিবন্ধিত ইভেন্ট ও টিকিট' : 'Registered Events & Passes'}</span>
-                </h3>
-
-                {myRegisteredEvents.length > 0 ? (
-                  <div className="space-y-3">
-                    {myRegisteredEvents.map((reg) => (
-                      <div
-                        key={reg.id}
-                        className="p-4 rounded-2xl bg-slate-900/80 border border-emerald-500/30 flex items-center justify-between gap-4"
-                      >
-                        <div>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30 font-bold">
-                            {lang === 'bn' ? 'নিশ্চিতকৃত টিকিট' : 'Confirmed Ticket'}
-                          </span>
-                          <h4 className="font-bold text-white text-sm mt-1">
-                            {lang === 'bn' ? reg.eventTitleBn : reg.eventTitle}
-                          </h4>
-                          <p className="text-xs text-slate-400">
-                            {reg.date} • {lang === 'bn' ? reg.venueBn : reg.venue}
-                          </p>
-                          <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold mt-1">
-                            Token: {reg.token}
-                          </p>
-                        </div>
-                        <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 font-mono bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-500/30 shrink-0">
-                          {lang === 'bn' ? 'অ্যাক্টিভ পাস' : 'Active Pass'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-3">
-                    <Ticket className="w-8 h-8 text-slate-500 mx-auto" />
-                    <h4 className="text-sm font-bold text-white">
-                      {lang === 'bn' ? 'এখনও কোনো ইভেন্টে নিবন্ধন করা হয়নি' : 'No Registered Events Yet'}
-                    </h4>
-                    <p className="text-xs text-slate-400 max-w-md mx-auto">
-                      {lang === 'bn'
-                        ? 'আপনি কোনো ইভেন্ট বা প্রোগ্রামে নিবন্ধন করলে আপনার কনফার্মড টিকিট ও পাস এখানে দেখাবে।'
-                        : 'When you register for an upcoming reunion, seminar, or campus event, your active pass will appear here.'}
-                    </p>
-                    <Link
-                      to="/events"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow"
-                    >
-                      <span>{lang === 'bn' ? 'ইভেন্ট ও প্রোগ্রাম দেখুন' : 'Browse Events'}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-xs">
+            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+              <span className="text-slate-400 block">
+                {lang === 'bn' ? 'যোগাযোগ ফোন:' : 'Phone:'}
+              </span>
+              <p className="text-white font-semibold mt-0.5">
+                {phone || (lang === 'bn' ? 'দেওয়া হয়নি' : 'Not provided')}
+              </p>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+              <span className="text-slate-400 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{lang === 'bn' ? 'ঠিকানা:' : 'Address:'}</span>
+              </span>
+              <p className="text-white font-semibold mt-0.5">
+                {address || (lang === 'bn' ? 'দেওয়া হয়নি' : 'Not provided')}
+              </p>
+            </div>
+          </div>
+        </div>
 
       </div>
     </motion.div>

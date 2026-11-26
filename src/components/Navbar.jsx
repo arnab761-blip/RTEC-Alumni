@@ -22,7 +22,6 @@ import {
   Compass,
   ArrowUpRight,
   Sparkles,
-  Ticket,
   BookOpen,
   PhoneCall,
   Search,
@@ -143,7 +142,6 @@ export default function Navbar() {
   // Extended architectural archive menu items
   const archiveLinks = [
     { to: '/student-portal', labelBn: 'শিক্ষার্থী আইডি ও তথ্য পোর্টাল', labelEn: 'Student ID & Self-Input Portal', icon: GraduationCap, descBn: 'শিক্ষার্থীদের নিজস্ব প্রোফাইল ও আইডি খোলার পোর্টাল', descEn: 'Self-register student profile & submit info' },
-    { to: '/events', labelBn: 'টিকেট ও ইভেন্ট', labelEn: 'Tickets & Events', icon: Ticket, descBn: 'পুনর্মিলনী ও বার্ষিক কনক্লেভ টিকেট', descEn: 'Reunion gala passes & conclaves' },
     { to: '/jobs', labelBn: 'ক্যারিয়ার ও নিয়োগ', labelEn: 'Career & Industry', icon: Briefcase, descBn: 'টেক্সটাইল মিল ও বহুজাতিক সুযোগ', descEn: 'Textile mills & global openings' },
     { to: '/mentorship', labelBn: 'সিনিয়র মেন্টরশিপ', labelEn: 'Mentorship', icon: Compass, descBn: 'অভিজ্ঞ গ্র্যাজুয়েটদের সান্নিধ্য', descEn: 'Guidance from senior engineers' },
     { to: '/gallery', labelBn: 'আর্কাইভাল গ্যালারি', labelEn: 'Campus Archive', icon: ImageIcon, descBn: 'ঐতিহাসিক মুহূর্ত ও স্মৃতিচারণ', descEn: 'Milestones & photo archives' },

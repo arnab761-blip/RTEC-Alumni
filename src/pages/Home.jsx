@@ -22,7 +22,6 @@ import {
   ArrowUpRight,
   Layers,
   Cpu,
-  Ticket,
   Compass,
   Building2,
   BookOpen,
@@ -62,7 +61,7 @@ const staggerContainer = {
 };
 
 export default function Home() {
-  const { teachers, students, alumni, events, jobs, campaigns, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
+  const { teachers, students, alumni, jobs, campaigns, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const recentNotices = useMemo(() => [...news].reverse().slice(0, 3), [news]);
 

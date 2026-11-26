@@ -25,36 +25,38 @@ export default function AuthStatusPopup() {
           aria-live="polite"
         >
           <div
-            className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 border-2 shadow-2xl backdrop-blur-xl flex items-center gap-3.5 ${
+            className={`auth-status-popup on-dark-media relative overflow-hidden rounded-2xl p-4 sm:p-5 border-2 shadow-2xl flex items-center gap-3.5 ${
               isLogin
-                ? 'bg-[#064E3B]/95 border-emerald-400 text-white shadow-emerald-950/60'
-                : 'bg-[#1C1917]/95 border-[#C5A880] text-[#FDFBF7] shadow-black/60'
+                ? 'auth-status-popup-login border-emerald-400 shadow-emerald-950/60'
+                : 'auth-status-popup-logout border-[#DFCA9E] shadow-black/60'
             }`}
           >
-            {/* Animated Top Shimmer Bar */}
+            {/* Animated Top Progress Bar */}
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: 3.3, ease: 'linear' }}
               className={`absolute top-0 left-0 right-0 h-1 origin-left ${
-                isLogin ? 'bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-300' : 'bg-gradient-to-r from-[#C5A880] via-amber-300 to-[#C5A880]'
+                isLogin
+                  ? 'bg-gradient-to-r from-emerald-300 via-teal-200 to-emerald-300'
+                  : 'bg-gradient-to-r from-[#DFCA9E] via-amber-200 to-[#DFCA9E]'
               }`}
             />
 
-            {/* Animated Pulse Badge Icon */}
+            {/* Animated Badge Icon */}
             <motion.div
               initial={{ rotate: -20, scale: 0.6 }}
               animate={{ rotate: 0, scale: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.05 }}
               className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 relative border ${
                 isLogin
-                  ? 'bg-emerald-500/25 border-emerald-300/60 text-emerald-200'
-                  : 'bg-[#C5A880]/20 border-[#C5A880]/50 text-[#DFCA9E]'
+                  ? 'bg-emerald-500/25 border-emerald-300/60 text-emerald-100'
+                  : 'bg-[#C5A880]/20 border-[#DFCA9E]/60 text-[#DFCA9E]'
               }`}
             >
               {isLogin ? (
                 <>
-                  <CheckCircle2 className="w-6 h-6" />
+                  <CheckCircle2 className="w-6 h-6 keep-white" />
                   <motion.span
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: [0, 1, 0], scale: [0.6, 1.25, 1.4] }}
@@ -65,7 +67,7 @@ export default function AuthStatusPopup() {
                   </motion.span>
                 </>
               ) : (
-                <LogOut className="w-6 h-6" />
+                <LogOut className="w-6 h-6 keep-white" />
               )}
             </motion.div>
 
@@ -73,10 +75,10 @@ export default function AuthStatusPopup() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span
-                  className={`text-[10px] font-mono-tech uppercase tracking-widest font-extrabold px-2 py-0.5 rounded-full ${
+                  className={`keep-white text-[10px] font-mono-tech uppercase tracking-widest font-extrabold px-2.5 py-0.5 rounded-full ${
                     isLogin
-                      ? 'bg-emerald-400/25 text-emerald-100 border border-emerald-300/40'
-                      : 'bg-[#C5A880]/20 text-[#DFCA9E] border border-[#C5A880]/40'
+                      ? 'bg-emerald-500/35 text-white border border-emerald-300/60'
+                      : 'bg-[#C5A880]/30 text-[#FDFBF7] border border-[#DFCA9E]/60'
                   }`}
                 >
                   {isLogin
@@ -85,13 +87,13 @@ export default function AuthStatusPopup() {
                 </span>
               </div>
 
-              <h4 className="text-sm sm:text-base font-extrabold tracking-tight mt-1 text-white">
+              <h4 className="keep-white text-sm sm:text-base font-extrabold tracking-tight mt-1 text-white">
                 {isLogin
                   ? (lang === 'bn' ? 'লগইন সাকসেসফুল!' : 'Login Successful!')
                   : (lang === 'bn' ? 'লগড আউট সম্পন্ন!' : 'Logged Out Successfully')}
               </h4>
 
-              <p className="text-xs text-white/85 truncate mt-0.5 font-sans">
+              <p className="keep-white text-xs text-slate-100 truncate mt-0.5 font-sans font-medium">
                 {isLogin
                   ? (lang === 'bn'
                       ? `স্বাগতম, ${authFeedback.name || authFeedback.email}`
@@ -106,10 +108,10 @@ export default function AuthStatusPopup() {
             <button
               type="button"
               onClick={dismissAuthFeedback}
-              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition shrink-0 cursor-pointer"
+              className="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white keep-white transition shrink-0 cursor-pointer"
               aria-label={lang === 'bn' ? 'বন্ধ করুন' : 'Close'}
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 keep-white" />
             </button>
           </div>
         </motion.div>

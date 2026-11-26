@@ -1617,6 +1617,43 @@ html[data-theme="dark"] .system-toast * {
   font-weight: 700 !important;
 }
 
+/* Global Animated Auth Popup (100% Crisp White Text on Solid Dark Surface in Light, Dark & Dim Modes) */
+.auth-status-popup,
+html:not(.dark) .auth-status-popup,
+html.dark .auth-status-popup,
+html[data-theme="light"] .auth-status-popup,
+html[data-theme="dark"] .auth-status-popup {
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #FFFFFF !important;
+}
+
+.auth-status-popup-login,
+html:not(.dark) .auth-status-popup-login,
+html.dark .auth-status-popup-login {
+  background-color: #064E3B !important;
+}
+
+.auth-status-popup-logout,
+html:not(.dark) .auth-status-popup-logout,
+html.dark .auth-status-popup-logout {
+  background-color: #18181B !important;
+}
+
+.auth-status-popup h4,
+.auth-status-popup p,
+.auth-status-popup span,
+html:not(.dark) .auth-status-popup h4,
+html:not(.dark) .auth-status-popup p,
+html:not(.dark) .auth-status-popup span,
+html[data-theme="light"] .auth-status-popup h4,
+html[data-theme="light"] .auth-status-popup p,
+html[data-theme="light"] .auth-status-popup span {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
+}
+
 /* Universal Emerald/Green/Teal Text Contrast in Light Mode (excludes dark media overlays & white/emerald badges) */
 html:not(.dark) .text-emerald-300:not(.on-dark-media *):not(.keep-white):not(.keep-emerald-light),
 html:not(.dark) .text-emerald-400:not(.on-dark-media *):not(.keep-white):not(.keep-emerald-light),

@@ -154,11 +154,6 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/events" className="text-[#4B5563] dark:text-[#A89884] hover:text-[#BD452F] dark:hover:text-[#FDFBF7] font-medium transition-colors block py-0.5">
-                    {lang === 'bn' ? 'গ্র্যান্ড রিইউনিয়ন ২০২৬' : 'Grand Reunion Gala 2026'}
-                  </Link>
-                </li>
-                <li>
                   <Link to="/student-portal" className="text-[#4B5563] dark:text-[#A89884] hover:text-[#BD452F] dark:hover:text-[#FDFBF7] font-medium transition-colors block py-0.5">
                     {lang === 'bn' ? 'শিক্ষার্থী ও আইডি পোর্টাল' : 'Student ID Portal'}
                   </Link>

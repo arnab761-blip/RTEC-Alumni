@@ -79,14 +79,19 @@ export default function AlumniDirectory() {
 
   // Filtered Alumni list
   const filteredAlumni = useMemo(() => {
+    const q = (searchQuery || '').toLowerCase().trim();
     return alumni.filter((alm) => {
       const matchSearch =
-        alm.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (alm.nameBn && alm.nameBn.includes(searchQuery)) ||
-        alm.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        alm.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        alm.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        alm.skills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        alm.name?.toLowerCase().includes(q) ||
+        alm.nameBn?.toLowerCase().includes(q) ||
+        alm.company?.toLowerCase().includes(q) ||
+        alm.designation?.toLowerCase().includes(q) ||
+        alm.role?.toLowerCase().includes(q) ||
+        alm.jobSector?.toLowerCase().includes(q) ||
+        alm.workLocation?.toLowerCase().includes(q) ||
+        alm.location?.toLowerCase().includes(q) ||
+        alm.skills?.some(s => s.toLowerCase().includes(q));
 
       const matchBatch = selectedBatch === 'All' || alm.batch === selectedBatch;
       const matchDept = selectedDept === 'All' || alm.department === selectedDept;
@@ -270,48 +275,27 @@ export default function AlumniDirectory() {
                   </p>
                 </div>
 
-                {/* Professional Status Plate */}
-                <div className="p-2.5 rounded bg-[#141311] border border-[#C5A880]/15 space-y-1 text-xs">
-                  <div className="flex items-center gap-1.5 text-[#EDE8DF]">
+                {/* Outer Card Summary: Strictly Designation & Company */}
+                <div className="p-3 rounded-lg bg-[#141311] border border-[#C5A880]/20 space-y-1.5 text-xs">
+                  <div className="flex items-center gap-2 text-[#EDE8DF]">
                     <Briefcase className="w-3.5 h-3.5 text-[#DFCA9E] shrink-0" />
-                    <span className="font-semibold truncate">{alm.role}</span>
+                    <span className="font-bold truncate">
+                      {alm.designation || alm.role || (lang === 'bn' ? 'পদবী সংযুক্ত নেই' : 'Role Not Listed')}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-[#A89884] pl-5 truncate font-sans">
-                    {alm.company}
+                  <p className="text-[11px] text-[#A89884] pl-5 truncate font-sans font-medium">
+                    {alm.company || (lang === 'bn' ? 'প্রতিষ্ঠানের নাম সংযুক্ত নেই' : 'Company Not Listed')}
                   </p>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#A89884] font-mono-tech pt-0.5">
-                    <MapPin className="w-3 h-3 text-[#DE644E] shrink-0" />
-                    <span className="truncate">{alm.location}</span>
-                  </div>
                 </div>
-
-                {/* Skills tags */}
-                {alm.skills && (
-                  <div className="flex flex-wrap gap-1">
-                    {alm.skills.slice(0, 2).map((skill, sIdx) => (
-                      <span
-                        key={sIdx}
-                        className="px-2 py-0.5 rounded bg-[#141311] text-[#A89884] text-[9px] font-mono-tech border border-[#C5A880]/15"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                    {alm.skills.length > 2 && (
-                      <span className="text-[9px] text-[#A89884] self-center font-mono-tech">
-                        +{alm.skills.length - 2}
-                      </span>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Action Buttons */}
               <div className="p-3 bg-[#161513] border-t border-[#C5A880]/20 flex items-center gap-2">
                 <button
                   onClick={() => setSelectedProfile(alm)}
-                  className="btn-agency flex-1 py-2 px-3 rounded text-xs font-sans uppercase tracking-wider"
+                  className="btn-agency flex-1 py-2 px-3 rounded text-xs font-sans uppercase tracking-wider cursor-pointer"
                 >
-                  <span>{lang === 'bn' ? 'আইডি ফাইল দেখুন' : 'View Credentials'}</span>
+                  <span>{lang === 'bn' ? 'বিস্তারিত দেখুন' : 'View Details'}</span>
                 </button>
                 {alm.linkedin && (
                   <a
@@ -404,27 +388,63 @@ export default function AlumniDirectory() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#141311] border border-[#C5A880]/15 space-y-2 text-xs mb-5 font-mono-tech">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#A89884]">{lang === 'bn' ? 'পদবী / দায়িত্ব:' : 'POSITION / ROLE:'}</span>
-                    <span className="text-[#FDFBF7] font-bold">{selectedProfile.role}</span>
+                <div className="p-4 rounded-xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 dark:border-[#C5A880]/20 space-y-2.5 text-xs mb-5 font-sans">
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-[#57534E] dark:text-[#A89884] font-mono-tech uppercase text-[11px] shrink-0">
+                      {lang === 'bn' ? 'পদবী / ডেজিগনেশন:' : 'DESIGNATION / ROLE:'}
+                    </span>
+                    <span className="text-[#0C0A09] dark:text-[#FDFBF7] font-bold text-right">
+                      {selectedProfile.designation || selectedProfile.role || '—'}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#A89884]">{lang === 'bn' ? 'প্রতিষ্ঠান:' : 'ORGANIZATION:'}</span>
-                    <span className="text-[#DFCA9E] font-bold">{selectedProfile.company}</span>
+
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-[#57534E] dark:text-[#A89884] font-mono-tech uppercase text-[11px] shrink-0">
+                      {lang === 'bn' ? 'কোম্পানি / প্রতিষ্ঠান:' : 'COMPANY / ORGANIZATION:'}
+                    </span>
+                    <span className="text-[#854D0E] dark:text-[#DFCA9E] font-bold text-right">
+                      {selectedProfile.company || '—'}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#A89884]">{lang === 'bn' ? 'অবস্থান:' : 'LOCATION:'}</span>
-                    <span className="text-[#EDE8DF]">{selectedProfile.location}</span>
+
+                  {selectedProfile.jobSector && (
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="text-[#57534E] dark:text-[#A89884] font-mono-tech uppercase text-[11px] shrink-0">
+                        {lang === 'bn' ? 'ইন্ডাস্ট্রি সেক্টর:' : 'INDUSTRY SECTOR:'}
+                      </span>
+                      <span className="text-emerald-700 dark:text-emerald-300 font-semibold text-right">
+                        {selectedProfile.jobSector}
+                      </span>
+                    </div>
+                  )}
+
+                  {selectedProfile.experienceYears && (
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="text-[#57534E] dark:text-[#A89884] font-mono-tech uppercase text-[11px] shrink-0">
+                        {lang === 'bn' ? 'অভিজ্ঞতা:' : 'EXPERIENCE:'}
+                      </span>
+                      <span className="text-[#1C1917] dark:text-[#EDE8DF] font-semibold text-right">
+                        {selectedProfile.experienceYears}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-[#57534E] dark:text-[#A89884] font-mono-tech uppercase text-[11px] shrink-0">
+                      {lang === 'bn' ? 'চাকরির স্থান / লোকেশন:' : 'WORK LOCATION:'}
+                    </span>
+                    <span className="text-[#1C1917] dark:text-[#EDE8DF] font-medium text-right">
+                      {selectedProfile.workLocation || selectedProfile.location || 'Bangladesh'}
+                    </span>
                   </div>
                 </div>
 
                 {selectedProfile.bio && (
-                  <div className="mb-5">
-                    <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#A89884] mb-1.5">
-                      {lang === 'bn' ? 'সংক্ষিপ্ত জীবনী' : 'EXECUTIVE BIOGRAPHY'}
+                  <div className="mb-5 p-4 rounded-xl bg-[#FAF8F5] dark:bg-[#141311]/70 border border-[#C5A880]/20">
+                    <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#854D0E] dark:text-[#DFCA9E] mb-1.5 font-bold">
+                      {lang === 'bn' ? 'সংক্ষিপ্ত জীবনী ও বিবরণ' : 'BIOGRAPHY & CAREER SUMMARY'}
                     </h4>
-                    <p className="text-xs text-[#DCD3C1] leading-relaxed font-sans">
+                    <p className="text-xs text-[#292524] dark:text-[#DCD3C1] leading-relaxed font-sans whitespace-pre-line">
                       {selectedProfile.bio}
                     </p>
                   </div>
@@ -432,14 +452,14 @@ export default function AlumniDirectory() {
 
                 {selectedProfile.skills && selectedProfile.skills.length > 0 && (
                   <div className="mb-6">
-                    <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#A89884] mb-2">
+                    <h4 className="text-[10px] font-mono-tech uppercase tracking-wider text-[#57534E] dark:text-[#A89884] mb-2 font-bold">
                       {lang === 'bn' ? 'কারিগরি দক্ষতা ও স্পেশালাইজেশন' : 'TECHNICAL SPECIALIZATION & SKILLS'}
                     </h4>
                     <div className="flex flex-wrap gap-1.5 font-mono-tech text-xs">
                       {selectedProfile.skills.map((s, idx) => (
                         <span
                           key={idx}
-                          className="px-2.5 py-1 rounded bg-[#141311] text-[#DFCA9E] border border-[#C5A880]/20 text-[11px]"
+                          className="px-2.5 py-1 rounded bg-[#F4EFE6] dark:bg-[#141311] text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/25 text-[11px] font-semibold"
                         >
                           {s}
                         </span>

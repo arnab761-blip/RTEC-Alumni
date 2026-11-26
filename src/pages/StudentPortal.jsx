@@ -393,8 +393,27 @@ export default function StudentPortal() {
   const emailIsDuplicate = isEmailTaken(effectiveFormEmail);
   const regNoIsDuplicate = Boolean(regNoConflict);
 
+  const localPhoneDigits = String(formData.phone || '')
+    .replace(/\D/g, '')
+    .replace(/^88/, '')
+    .slice(0, 11);
+  const phoneIsInvalid = localPhoneDigits.length > 0 && localPhoneDigits.length < 11;
+
+  const handlePhoneDigitsChange = (raw) => {
+    const cleaned = String(raw || '').replace(/\D/g, '').replace(/^88/, '').slice(0, 11);
+    setFormData({
+      ...formData,
+      phone: cleaned ? `+88${cleaned}` : ''
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (phoneIsInvalid) {
+      triggerToast(lang === 'bn' ? 'ইনভ্যালিড ফোন নম্বর! +88 এর পর ঠিক ১১টি ডিজিট দিন।' : 'Invalid phone number! Please enter all 11 digits after +88.');
+      return;
+    }
 
     const finalEmail = effectiveFormEmail || (gmailInput.trim() ? (gmailInput.includes('@') ? gmailInput.trim() : `${gmailInput.trim()}@gmail.com`) : '');
     const finalRegNo = formData.regNo?.trim();
@@ -1225,21 +1244,52 @@ export default function StudentPortal() {
                       </AnimatePresence>
                     </div>
 
-                    {/* Mobile Number */}
+                    {/* Mobile Number (+88 Bangladesh Prefix + Fixed 11-Digit Numpad) */}
                     <div>
-                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'মোবাইল নম্বর' : 'Mobile Phone'}
+                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5 flex items-center justify-between">
+                        <span>{lang === 'bn' ? 'মোবাইল নম্বর (+88 বাংলাদেশ)' : 'Mobile Phone (+88 BD)'}</span>
+                        <span className={`text-[10px] font-mono-tech font-bold ${
+                          phoneIsInvalid
+                            ? 'text-rose-500'
+                            : localPhoneDigits.length === 11
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-[#57534E] dark:text-[#A89884]'
+                        }`}>
+                          {localPhoneDigits.length}/11
+                        </span>
                       </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                      <div
+                        className={`flex items-center rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border transition overflow-hidden ${
+                          phoneIsInvalid
+                            ? 'border-rose-500 ring-1 ring-rose-500/50'
+                            : 'border-[#C5A880]/30 focus-within:border-[#C5A880]'
+                        }`}
+                      >
+                        <span className="px-3 py-2.5 bg-[#F0EAE0] dark:bg-[#1E1C18] border-r border-[#C5A880]/30 text-xs font-mono-tech font-extrabold text-[#1C1917] dark:text-[#DFCA9E] flex items-center gap-1.5 shrink-0 select-none">
+                          <Phone className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DE644E]" />
+                          <span>+88</span>
+                        </span>
                         <input
-                          type="text"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="01712-XXXXXX"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-mono-tech"
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={11}
+                          value={localPhoneDigits}
+                          onChange={(e) => handlePhoneDigitsChange(e.target.value)}
+                          placeholder="017XXXXXXXX"
+                          className="w-full px-3.5 py-2.5 bg-transparent text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none font-mono-tech font-bold tracking-wide"
                         />
                       </div>
+                      {phoneIsInvalid && (
+                        <p className="text-[11px] text-rose-500 font-bold mt-1.5 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>
+                            {lang === 'bn'
+                              ? `ইনভ্যালিড ফোন নম্বর (১১টি ডিজিট পূর্ণ করুন: ${localPhoneDigits.length}/১১)`
+                              : `Invalid phone number (must be 11 digits: ${localPhoneDigits.length}/11)`}
+                          </span>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

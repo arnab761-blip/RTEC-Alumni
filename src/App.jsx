@@ -14,7 +14,6 @@ import Home from './pages/Home.jsx';
 const Teachers = lazy(() => import('./pages/Teachers.jsx'));
 const Students = lazy(() => import('./pages/Students.jsx'));
 const AlumniDirectory = lazy(() => import('./pages/AlumniDirectory.jsx'));
-const Events = lazy(() => import('./pages/Events.jsx'));
 const Jobs = lazy(() => import('./pages/Jobs.jsx'));
 const Mentorship = lazy(() => import('./pages/Mentorship.jsx'));
 const Gallery = lazy(() => import('./pages/Gallery.jsx'));
@@ -110,7 +109,6 @@ function AnimatedRoutes() {
           <Route path="/student-portal" element={<LazyPage component={StudentPortal} />} />
           <Route path="/student-id" element={<LazyPage component={StudentPortal} />} />
           <Route path="/directory" element={<LazyPage component={AlumniDirectory} />} />
-          <Route path="/events" element={<LazyPage component={Events} />} />
           <Route path="/jobs" element={<LazyPage component={Jobs} />} />
           <Route path="/mentorship" element={<LazyPage component={Mentorship} />} />
           <Route path="/gallery" element={<LazyPage component={Gallery} />} />
