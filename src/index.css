@@ -1617,41 +1617,39 @@ html[data-theme="dark"] .system-toast * {
   font-weight: 700 !important;
 }
 
-/* Global Animated Auth Popup (100% Crisp White Text on Solid Dark Surface in Light, Dark & Dim Modes) */
-.auth-status-popup,
-html:not(.dark) .auth-status-popup,
-html.dark .auth-status-popup,
-html[data-theme="light"] .auth-status-popup,
-html[data-theme="dark"] .auth-status-popup {
+/* Global Animated Auth Popup (Theme-Aware Crisp Contrast in Light & Dark Modes) */
+.auth-status-popup {
   opacity: 1 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  color: #FFFFFF !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
 }
 
-.auth-status-popup-login,
 html:not(.dark) .auth-status-popup-login,
-html.dark .auth-status-popup-login {
-  background-color: #064E3B !important;
+html[data-theme="light"] .auth-status-popup-login {
+  background-color: #FFFFFF !important;
+  border-color: #10B981 !important;
+  color: #0F172A !important;
 }
 
-.auth-status-popup-logout,
 html:not(.dark) .auth-status-popup-logout,
-html.dark .auth-status-popup-logout {
-  background-color: #18181B !important;
+html[data-theme="light"] .auth-status-popup-logout {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
 }
 
-.auth-status-popup h4,
-.auth-status-popup p,
-.auth-status-popup span,
-html:not(.dark) .auth-status-popup h4,
-html:not(.dark) .auth-status-popup p,
-html:not(.dark) .auth-status-popup span,
-html[data-theme="light"] .auth-status-popup h4,
-html[data-theme="light"] .auth-status-popup p,
-html[data-theme="light"] .auth-status-popup span {
+html.dark .auth-status-popup-login,
+html[data-theme="dark"] .auth-status-popup-login {
+  background-color: #064E3B !important;
+  border-color: #34D399 !important;
   color: #FFFFFF !important;
-  opacity: 1 !important;
+}
+
+html.dark .auth-status-popup-logout,
+html[data-theme="dark"] .auth-status-popup-logout {
+  background-color: #1E293B !important;
+  border-color: #475569 !important;
+  color: #FFFFFF !important;
 }
 
 /* Universal Emerald/Green/Teal Text Contrast in Light Mode (excludes dark media overlays & white/emerald badges) */
