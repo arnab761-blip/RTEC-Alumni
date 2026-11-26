@@ -64,6 +64,13 @@ export default function Home() {
   const { teachers, students, alumni, jobs, campaigns, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const recentNotices = useMemo(() => [...news].reverse().slice(0, 3), [news]);
+  const graduatedStudentsCount = useMemo(() => {
+    const count = (students || []).filter((s) => {
+      const b = String(s?.batch || '').toLowerCase();
+      return b.includes('1st') || b.includes('2nd') || b.includes('3rd') || b.includes('১ম') || b.includes('২য়') || b.includes('৩য়');
+    }).length;
+    return count || 320;
+  }, [students]);
 
   return (
     <motion.div
@@ -487,11 +494,11 @@ export default function Home() {
                 subEn: 'From 2018-19 to 2025-26 Session'
               },
               {
-                num: `${alumni.length}+`,
-                labelBn: 'গ্র্যাজুয়েট প্রকৌশলী',
-                labelEn: 'Graduated Engineers',
-                subBn: 'দেশ-বিদেশের শীর্ষ স্পিনিং, উইভিং ও অ্যাপারেল সেক্টরে কর্মরত',
-                subEn: 'Leading global textile & garment industries'
+                num: `${graduatedStudentsCount}`,
+                labelBn: 'গ্র্যাজুয়েট শিক্ষার্থী',
+                labelEn: 'Graduated Students',
+                subBn: '১ম, ২য় ও ৩য় ব্যাচের মোট উত্তীর্ণ শিক্ষার্থী',
+                subEn: 'Total graduates across 1st, 2nd & 3rd Batches'
               },
               {
                 num: '120',
