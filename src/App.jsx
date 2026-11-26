@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext.jsx';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
+import AuthStatusPopup from './components/AuthStatusPopup.jsx';
 import BackgroundWatermark from './components/BackgroundWatermark.jsx';
 import { forceUnlockScroll } from './utils/useScrollLock.js';
 import { GraduationCap } from 'lucide-react';
@@ -141,6 +142,7 @@ function AppLayout() {
       <BackgroundWatermark />
 
       <Navbar />
+      <AuthStatusPopup />
       <main className="flex-1 flex flex-col w-full max-w-full overflow-x-clip pb-24 sm:pb-28 relative z-10 bg-transparent">
         <AnimatedRoutes />
       </main>

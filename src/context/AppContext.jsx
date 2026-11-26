@@ -124,6 +124,22 @@ export function AppProvider({ children }) {
     throw lastError || new Error('Network request failed');
   };
 
+  // Global Auth Feedback Popup State (Login Successful / Logged Out)
+  const [authFeedback, setAuthFeedback] = useState(null);
+  const triggerAuthFeedback = (type, info = {}) => {
+    const id = Date.now();
+    setAuthFeedback({
+      id,
+      type,
+      name: info?.name || info?.nameBn || info?.email || 'RTEC Member',
+      email: info?.email || ''
+    });
+    setTimeout(() => {
+      setAuthFeedback(prev => (prev?.id === id ? null : prev));
+    }, 3500);
+  };
+  const dismissAuthFeedback = () => setAuthFeedback(null);
+
   // 1. Current Authenticated User (Defaults to a regular guest visitor)
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('rtec_user');
@@ -804,10 +820,12 @@ export function AppProvider({ children }) {
     };
     setUser(newUser);
     syncUserToMongo(newUser);
+    triggerAuthFeedback('login', newUser);
     return newUser;
   };
 
   const logout = () => {
+    const prevInfo = user;
     untrackSubmission();
     setUser({
       id: 'guest',
@@ -816,6 +834,7 @@ export function AppProvider({ children }) {
       role: 'guest',
       isVerified: false
     });
+    triggerAuthFeedback('logout', prevInfo);
   };
 
   // ============================================
@@ -1506,6 +1525,7 @@ export function AppProvider({ children }) {
   // ============================================
   const addForumPost = (title, body, category = 'Career Advice', tags = ['RTEC'], type = 'question', meta = {}) => {
     const nowLabel = lang === 'bn' ? 'এইমাত্র' : 'Just now';
+    const autoApprove = isAdminEmail(user?.email);
     const newPost = {
       id: `frm-${Date.now()}`,
       title,
@@ -1517,6 +1537,8 @@ export function AppProvider({ children }) {
       authorRole: user?.role === 'alumni' ? 'Alumni Engineer' : (user?.role === 'admin' ? 'Administrator' : 'Student Engineer'),
       authorBatch: user?.batch || 'RTEC',
       type: type || 'question',
+      status: autoApprove ? 'approved' : 'pending',
+      reviewedAt: autoApprove ? nowLabel : '',
       category,
       categoryBn: category,
       date: nowLabel,
@@ -1535,6 +1557,25 @@ export function AppProvider({ children }) {
     syncEntityToMongo('/api/forum', 'POST', newPost);
     confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     return newPost;
+  };
+
+  const approveForumPost = (postId) => {
+    const reviewedAt = new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US');
+    setForumPosts(prev =>
+      prev.map(p => (p.id === postId ? { ...p, status: 'approved', reviewedAt } : p))
+    );
+    syncEntityToMongo('/api/forum', 'POST', { id: postId, status: 'approved', reviewedAt });
+    confetti({ particleCount: 60, spread: 60 });
+    return true;
+  };
+
+  const declineForumPost = (postId) => {
+    const reviewedAt = new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US');
+    setForumPosts(prev =>
+      prev.map(p => (p.id === postId ? { ...p, status: 'declined', reviewedAt } : p))
+    );
+    syncEntityToMongo('/api/forum', 'POST', { id: postId, status: 'declined', reviewedAt });
+    return true;
   };
 
   const updateForumPost = (postId, updatedData) => {
@@ -1749,12 +1790,26 @@ export function AppProvider({ children }) {
            (cleanEmail && s.email && s.email.toLowerCase().trim() === cleanEmail)
     );
 
+    const composedJob =
+      data.designation && data.company
+        ? `${data.designation}, ${data.company}`
+        : (data.currentJob || data.designation || data.company || '');
+    const composedLocation = data.workLocation || data.currentLocation || '';
+
     let updatedOrNew;
     if (existingIndex >= 0) {
       const existing = studentSubmissions[existingIndex];
       updatedOrNew = {
         ...existing,
         ...data,
+        currentJob: composedJob || existing.currentJob || '',
+        currentLocation: composedLocation || existing.currentLocation || '',
+        designation: data.designation !== undefined ? data.designation : (existing.designation || ''),
+        company: data.company !== undefined ? data.company : (existing.company || ''),
+        jobSector: data.jobSector !== undefined ? data.jobSector : (existing.jobSector || ''),
+        workLocation: data.workLocation !== undefined ? data.workLocation : (existing.workLocation || ''),
+        experienceYears: data.experienceYears !== undefined ? data.experienceYears : (existing.experienceYears || ''),
+        linkedin: data.linkedin !== undefined ? data.linkedin : (existing.linkedin || ''),
         email: cleanEmail || existing.email || '',
         regNo: cleanReg || existing.regNo || '',
         id: existing.id,
@@ -1779,8 +1834,14 @@ export function AppProvider({ children }) {
         batch: data.batch || '8th Batch (2025-26)',
         department: data.department || 'Yarn Engineering',
         deptBn: data.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
-        currentJob: data.currentJob || '',
-        currentLocation: data.currentLocation || '',
+        currentJob: composedJob,
+        designation: data.designation || '',
+        company: data.company || '',
+        jobSector: data.jobSector || '',
+        workLocation: data.workLocation || '',
+        experienceYears: data.experienceYears || '',
+        linkedin: data.linkedin || '',
+        currentLocation: composedLocation,
         bloodGroup: data.bloodGroup || '',
         avatar: sanitizeAvatar(data.avatar) || '',
         bio: data.bio || '',
@@ -1842,9 +1903,14 @@ export function AppProvider({ children }) {
       target.batch?.includes('1st') ||
       target.batch?.includes('2nd') ||
       target.batch?.includes('3rd') ||
+      target.batch?.includes('4th') ||
+      Boolean(target.company || target.designation) ||
       (target.currentJob && !target.currentJob.includes('শিক্ষার্থী') && !target.currentJob.includes('Student'));
 
     if (isAlumni) {
+      const resolvedRole = target.designation || target.currentJob || 'Textile Engineer';
+      const resolvedCompany = target.company || target.currentJob || 'Textile Sector';
+      const resolvedLocation = target.workLocation || target.currentLocation || 'Bangladesh';
       const newAlum = {
         id: `alm-sub-${target.id}`,
         name: target.nameEn || target.name,
@@ -1852,9 +1918,14 @@ export function AppProvider({ children }) {
         batch: target.batch,
         department: target.department,
         deptBn: target.deptBn,
-        role: target.currentJob || 'Executive Engineer',
-        company: target.currentJob || 'Textile Sector',
-        location: target.currentLocation || 'Bangladesh',
+        role: resolvedRole,
+        designation: resolvedRole,
+        company: resolvedCompany,
+        jobSector: target.jobSector || '',
+        workLocation: resolvedLocation,
+        experienceYears: target.experienceYears || '',
+        linkedin: target.linkedin || '',
+        location: resolvedLocation,
         email: target.email,
         phone: target.phone,
         avatar: target.avatar,
@@ -2037,6 +2108,7 @@ export function AppProvider({ children }) {
     };
     setUser(newUser);
     syncUserToMongo(newUser);
+    triggerAuthFeedback('login', newUser);
     return newUser;
   };
 
@@ -2445,6 +2517,8 @@ export function AppProvider({ children }) {
         forumPosts,
         setForumPosts,
         addForumPost,
+        approveForumPost,
+        declineForumPost,
         updateForumPost,
         deleteForumPost,
         addForumReply,
@@ -2493,6 +2567,9 @@ export function AppProvider({ children }) {
         apiBaseUrl,
         updateApiBaseUrl,
         bootstrapFromMongo,
+        // Auth Popup Feedback
+        authFeedback,
+        dismissAuthFeedback,
         // System
         resetAllData
       }}

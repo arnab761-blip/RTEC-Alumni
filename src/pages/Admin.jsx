@@ -224,6 +224,9 @@ export default function Admin() {
     approveSubmission,
     declineSubmission,
     deleteSubmission,
+    // Forum Approval Actions
+    approveForumPost,
+    declineForumPost,
     // ID Dispute & Complaint Management
     disputes = [],
     resolveDispute,
@@ -293,6 +296,7 @@ export default function Admin() {
   const [jobFilter, setJobFilter] = useState('all'); // 'all' | 'pending' | 'approved' | 'declined'
   const [forumSearch, setForumSearch] = useState('');
   const [forumTypeFilter, setForumTypeFilter] = useState('all'); // 'all' | 'question' | 'experience'
+  const [forumStatusFilter, setForumStatusFilter] = useState('all'); // 'all' | 'pending' | 'approved' | 'declined'
   const [expandedForumPostId, setExpandedForumPostId] = useState(null);
 
   // Modal states
@@ -545,10 +549,17 @@ export default function Admin() {
     });
   }, [disputes, disputeFilter, disputeSearch]);
 
+  const pendingForumPostsCount = useMemo(
+    () => (forumPosts || []).filter(p => p?.status === 'pending').length,
+    [forumPosts]
+  );
+
   const filteredForumPosts = useMemo(() => {
     const q = (forumSearch || '').toLowerCase().trim();
     return (forumPosts || []).filter((post) => {
       if (!post) return false;
+      const postStatus = post.status || 'approved';
+      const matchesStatus = forumStatusFilter === 'all' || postStatus === forumStatusFilter;
       const matchesType =
         forumTypeFilter === 'all' ||
         (forumTypeFilter === 'question' && post.type === 'question') ||
@@ -563,9 +574,9 @@ export default function Admin() {
         post.author?.toLowerCase().includes(q) ||
         post.category?.toLowerCase().includes(q) ||
         (post.tags && post.tags.some(t => t.toLowerCase().includes(q)));
-      return matchesType && matchesSearch;
+      return matchesStatus && matchesType && matchesSearch;
     });
-  }, [forumPosts, forumTypeFilter, forumSearch]);
+  }, [forumPosts, forumStatusFilter, forumTypeFilter, forumSearch]);
 
   // Strict Admin Authorization Guard
   if (!user || user.role !== 'admin' || !isAdminEmail?.(user.email)) {
@@ -732,7 +743,14 @@ export default function Admin() {
               isPending: pendingJobsCount > 0
             },
             { id: 'news', labelBn: 'খবর ও নোটিশ', labelEn: 'News & Notices', icon: Newspaper, count: news.length },
-            { id: 'forum', labelBn: 'অভিজ্ঞতা শেয়ার ও ফোরাম', labelEn: 'Experience Share', icon: MessageSquareQuote, count: forumPosts.length },
+            {
+              id: 'forum',
+              labelBn: 'অভিজ্ঞতা শেয়ার ও ফোরাম',
+              labelEn: 'Experience Share',
+              icon: MessageSquareQuote,
+              count: pendingForumPostsCount > 0 ? pendingForumPostsCount : forumPosts.length,
+              isPending: pendingForumPostsCount > 0
+            },
             {
               id: 'inquiries',
               labelBn: 'বার্তা ও মেন্টরশিপ',
@@ -1335,15 +1353,24 @@ export default function Admin() {
                             </td>
 
                             {/* Job & Location */}
-                            <td className="p-4 space-y-0.5 max-w-[200px]">
-                              <div className="flex items-start gap-1 text-[#DCD3C1] text-xs">
+                            <td className="p-4 space-y-0.5 max-w-[220px]">
+                              <div className="flex items-start gap-1 text-[#DCD3C1] text-xs font-semibold">
                                 <Briefcase className="w-3 h-3 text-[#DFCA9E] shrink-0 mt-0.5" />
-                                <span className="truncate">{sub.currentJob || (lang === 'bn' ? 'অধ্যয়নরত' : 'Student')}</span>
+                                <span className="truncate">
+                                  {sub.designation && sub.company
+                                    ? `${sub.designation} — ${sub.company}`
+                                    : (sub.currentJob || sub.designation || sub.company || (lang === 'bn' ? 'অধ্যয়নরত' : 'Student'))}
+                                </span>
                               </div>
-                              {sub.currentLocation && (
+                              {sub.jobSector && (
+                                <span className="inline-block text-[10px] font-mono-tech text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                  {sub.jobSector}
+                                </span>
+                              )}
+                              {(sub.workLocation || sub.currentLocation) && (
                                 <div className="flex items-center gap-1 text-[#A89884] text-[11px]">
                                   <MapPin className="w-3 h-3 text-[#DE644E] shrink-0" />
-                                  <span className="truncate">{sub.currentLocation}</span>
+                                  <span className="truncate">{sub.workLocation || sub.currentLocation}</span>
                                 </div>
                               )}
                             </td>
@@ -2761,7 +2788,15 @@ export default function Admin() {
             </div>
 
             {/* Quick Metrics */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+              <div className="p-4 rounded-2xl plaque-elevated border border-amber-500/35 bg-amber-950/15 space-y-1">
+                <span className="text-[10px] font-mono-tech text-amber-300 uppercase font-bold">
+                  {lang === 'bn' ? 'অনুমোদন বাকি (Pending)' : 'Pending Approval'}
+                </span>
+                <p className="text-2xl font-bold text-amber-400 font-mono-tech">
+                  {pendingForumPostsCount}
+                </p>
+              </div>
               <div className="p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20 space-y-1">
                 <span className="text-[10px] font-mono-tech text-[#A89884] uppercase">
                   {lang === 'bn' ? 'মোট ফোরাম পোস্ট' : 'Total Posts'}
@@ -2797,21 +2832,44 @@ export default function Admin() {
             </div>
 
             {/* Search & Filter Toolbar */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
-                <input
-                  type="text"
-                  value={forumSearch}
-                  onChange={(e) => setForumSearch(e.target.value)}
-                  placeholder={lang === 'bn' ? 'প্রশ্ন, অভিজ্ঞতা, লেখক বা ট্যাগ দিয়ে অনুসন্ধান করুন...' : 'Search questions, experiences, authors, or tags...'}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-amber-500 font-sans"
-                />
+            <div className="flex flex-col gap-3 p-4 rounded-2xl plaque-elevated border border-[#C5A880]/20">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                  <input
+                    type="text"
+                    value={forumSearch}
+                    onChange={(e) => setForumSearch(e.target.value)}
+                    placeholder={lang === 'bn' ? 'প্রশ্ন, অভিজ্ঞতা, লেখক বা ট্যাগ দিয়ে অনুসন্ধান করুন...' : 'Search questions, experiences, authors, or tags...'}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-amber-500 font-sans"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                  {[
+                    { id: 'all', labelBn: 'সব স্ট্যাটাস', labelEn: 'All Status' },
+                    { id: 'pending', labelBn: `অপেক্ষমাণ (${pendingForumPostsCount})`, labelEn: `Pending (${pendingForumPostsCount})` },
+                    { id: 'approved', labelBn: 'অনুমোদিত', labelEn: 'Approved' },
+                    { id: 'declined', labelBn: 'প্রত্যাখ্যাত', labelEn: 'Declined' }
+                  ].map((st) => (
+                    <button
+                      key={st.id}
+                      onClick={() => setForumStatusFilter(st.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                        forumStatusFilter === st.id
+                          ? 'bg-emerald-600 text-white shadow-md font-bold'
+                          : 'bg-[#141311] text-[#DCD3C1] hover:text-[#FDFBF7] border border-[#C5A880]/20'
+                      }`}
+                    >
+                      {lang === 'bn' ? st.labelBn : st.labelEn}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-[#C5A880]/15">
                 {[
-                  { id: 'all', labelBn: 'সকল পোস্ট', labelEn: 'All Posts' },
+                  { id: 'all', labelBn: 'সকল পোস্ট', labelEn: 'All Types' },
                   { id: 'question', labelBn: 'প্রশ্ন ও জিজ্ঞাসা', labelEn: 'Questions' },
                   { id: 'experience', labelBn: 'অভিজ্ঞতা শেয়ার', labelEn: 'Experiences' }
                 ].map((f) => (
@@ -2853,9 +2911,23 @@ export default function Admin() {
                       key={post.id}
                       className="p-5 rounded-2xl plaque-elevated border border-[#C5A880]/25 space-y-4 transition"
                     >
-                      {/* Top Row: Badges, Date, Delete Button */}
+                      {/* Top Row: Badges, Approval Status, Actions */}
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
+                          {(post.status || 'approved') === 'pending' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold uppercase bg-amber-950/80 text-amber-300 border border-amber-500/40 animate-pulse">
+                              {lang === 'bn' ? '⏳ অপেক্ষমাণ (Pending)' : '⏳ Pending Approval'}
+                            </span>
+                          ) : post.status === 'declined' ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold uppercase bg-rose-950/80 text-rose-300 border border-rose-500/40">
+                              {lang === 'bn' ? '✕ প্রত্যাখ্যাত (Declined)' : '✕ Declined'}
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold uppercase bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+                              {lang === 'bn' ? '✓ প্রকাশিত (Approved)' : '✓ Approved'}
+                            </span>
+                          )}
+
                           {post.type === 'question' ? (
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40">
                               {lang === 'bn' ? 'প্রশ্ন / জিজ্ঞাসা' : 'Question'}
@@ -2875,19 +2947,47 @@ export default function Admin() {
                           </span>
                         </div>
 
-                        {/* Admin Delete Post Button */}
-                        <button
-                          onClick={() => setDeleteConfirm({
-                            type: 'forumPost',
-                            id: post.id,
-                            name: post.titleBn || post.title
-                          })}
-                          className="btn-action-delete px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                          title={lang === 'bn' ? 'পোস্টটি স্থায়ীভাবে মুছে ফেলুন' : 'Delete this post'}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>{lang === 'bn' ? 'পোস্ট মুছুন' : 'Delete Post'}</span>
-                        </button>
+                        {/* Admin Approve / Decline / Delete Buttons */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {(post.status || 'approved') !== 'approved' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                approveForumPost(post.id);
+                                showToast(lang === 'bn' ? '✓ পোস্ট অনুমোদিত ও প্রকাশিত হয়েছে!' : '✓ Post approved & published!');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>{lang === 'bn' ? 'অনুমোদন দিন' : 'Approve'}</span>
+                            </button>
+                          )}
+                          {(post.status || 'approved') === 'pending' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                declineForumPost(post.id);
+                                showToast(lang === 'bn' ? 'পোস্ট প্রত্যাখ্যান করা হয়েছে' : 'Post declined');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600 hover:text-white text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>{lang === 'bn' ? 'প্রত্যাখ্যান' : 'Decline'}</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setDeleteConfirm({
+                              type: 'forumPost',
+                              id: post.id,
+                              name: post.titleBn || post.title
+                            })}
+                            className="btn-action-delete px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                            title={lang === 'bn' ? 'পোস্টটি স্থায়ীভাবে মুছে ফেলুন' : 'Delete this post'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>{lang === 'bn' ? 'পোস্ট মুছুন' : 'Delete Post'}</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Author Header */}

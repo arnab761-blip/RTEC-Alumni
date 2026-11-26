@@ -290,7 +290,7 @@ export default function Forum() {
     e.preventDefault();
     if (!newTitle.trim() || !newBody.trim()) return;
     const tagArray = newTags.split(',').map(t => t.trim()).filter(Boolean);
-    addForumPost(newTitle, newBody, newCategory, tagArray, postType, {
+    const created = addForumPost(newTitle, newBody, newCategory, tagArray, postType, {
       targetAudience: postType === 'question' ? newTargetAudience : '',
       roleAndCompany: postType === 'experience' ? newRoleAndCompany.trim() : '',
       keyTakeaways: postType === 'experience' ? newKeyTakeaways.trim() : ''
@@ -300,7 +300,15 @@ export default function Forum() {
     setNewRoleAndCompany('');
     setNewKeyTakeaways('');
     setNewPostModalOpen(false);
-    showToast(lang === 'bn' ? 'আপনার পোস্টটি সফলভাবে প্রকাশ করা হয়েছে!' : 'Your post has been published!');
+    if (created?.status === 'pending') {
+      showToast(
+        lang === 'bn'
+          ? 'আপনার পোস্টটি জমা হয়েছে! অ্যাডমিনের অনুমোদনের (Approve) পর সবার সামনে প্রকাশিত হবে।'
+          : 'Submitted! Your post is awaiting Admin approval before appearing in the public feed.'
+      );
+    } else {
+      showToast(lang === 'bn' ? 'আপনার পোস্টটি সফলভাবে প্রকাশ করা হয়েছে!' : 'Your post has been published!');
+    }
   };
 
   // Anyone can reply/comment without approval
@@ -318,6 +326,10 @@ export default function Forum() {
   };
 
   const filteredPosts = useMemo(() => forumPosts.filter(p => {
+    if (!p) return false;
+    const postStatus = p.status || 'approved';
+    const canSee = postStatus === 'approved' || isAdmin || isPostAuthor(p);
+    if (!canSee) return false;
     const matchType = typeFilter === 'all' || (p.type || 'experience') === typeFilter;
     const matchCat = activeCategory === 'All' || p.category === activeCategory || p.categoryBn === activeCategory;
     const bodyText = p.body || p.content || p.description || '';
@@ -328,7 +340,7 @@ export default function Forum() {
       (p.author && p.author.toLowerCase().includes(search.toLowerCase())) ||
       (p.tags && p.tags.some(t => t.toLowerCase().includes(search.toLowerCase())));
     return matchType && matchCat && matchSearch;
-  }), [forumPosts, typeFilter, activeCategory, search]);
+  }), [forumPosts, typeFilter, activeCategory, search, isAdmin, user?.email, user?.id]);
 
   return (
     <motion.div
@@ -482,6 +494,18 @@ export default function Forum() {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
+                    {/* Approval Status Indicator for Pending / Declined (visible to author or admin) */}
+                    {post.status === 'pending' && (
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] font-mono-tech font-bold border border-amber-500/40">
+                        {lang === 'bn' ? '⏳ অ্যাডমিনের অনুমোদনের অপেক্ষায়' : '⏳ Pending Admin Approval'}
+                      </span>
+                    )}
+                    {post.status === 'declined' && (
+                      <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-mono-tech font-bold border border-rose-500/40">
+                        {lang === 'bn' ? '✕ প্রত্যাখ্যাত' : '✕ Declined'}
+                      </span>
+                    )}
+
                     {/* Post Type Badge */}
                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-mono-tech font-bold border ${
                       post.type === 'experience'
@@ -1186,6 +1210,12 @@ export default function Forum() {
                   placeholder={lang === 'bn' ? 'যেমন: স্পিনিং, ইন্টারভিউ, উচ্চশিক্ষা' : 'e.g., Spinning, Interview, HigherStudies'}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
                 />
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/35 border border-amber-300 dark:border-amber-500/35 text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
+                {lang === 'bn'
+                  ? '🔒 আপনার পোস্টটি জমা দেওয়ার পর অ্যাডমিন প্যানেলে পর্যালোচনার জন্য যাবে। অ্যাডমিন অনুমোদন (Approve) করলে এটি সবার জন্য প্রকাশিত হবে।'
+                  : '🔒 Submitted posts enter Admin review first and appear in the public feed once approved by an administrator.'}
               </div>
 
               <div className="pt-2 flex items-center gap-3">

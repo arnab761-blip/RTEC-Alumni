@@ -342,18 +342,6 @@ export default function Navbar() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsGoogleModalOpen(true);
-                            setUserDropdownOpen(false);
-                          }}
-                          className="dropdown-menu-item w-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 border-1.5 border-blue-300 dark:border-blue-700/60 shadow-sm cursor-pointer"
-                        >
-                          <GoogleLogo className="w-4 h-4 shrink-0" />
-                          <span>{lang === 'bn' ? 'গুগল দিয়ে সাইন ইন / পরিবর্তন' : 'Continue with Google / Switch'}</span>
-                        </button>
-
                         {isAuthorizedAdmin && (
                           <Link
                             to="/admin"
@@ -627,17 +615,31 @@ export default function Navbar() {
 
                   {/* Action buttons inside Hub */}
                   <div className="grid grid-cols-2 gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDrawerOpen(false);
-                        setIsGoogleModalOpen(true);
-                      }}
-                      className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 hover:bg-slate-50 dark:hover:bg-[#25221E] text-xs font-bold text-[#0C0A09] dark:text-[#FDFBF7] transition shadow-sm cursor-pointer"
-                    >
-                      <GoogleLogo className="w-3.5 h-3.5 shrink-0" />
-                      <span>{lang === 'bn' ? 'গুগল সাইন ইন' : 'Google Login'}</span>
-                    </button>
+                    {(!user || user.role === 'guest') ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDrawerOpen(false);
+                          setIsGoogleModalOpen(true);
+                        }}
+                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 hover:bg-slate-50 dark:hover:bg-[#25221E] text-xs font-bold text-[#0C0A09] dark:text-[#FDFBF7] transition shadow-sm cursor-pointer"
+                      >
+                        <GoogleLogo className="w-3.5 h-3.5 shrink-0" />
+                        <span>{lang === 'bn' ? 'গুগল সাইন ইন' : 'Google Login'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          logout();
+                          setDrawerOpen(false);
+                        }}
+                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl bg-rose-100 dark:bg-rose-500/20 border border-rose-300 dark:border-rose-500/40 hover:bg-rose-200 dark:hover:bg-rose-500/35 text-xs font-bold text-rose-800 dark:text-rose-200 transition shadow-sm cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5 shrink-0" />
+                        <span>{lang === 'bn' ? 'লগআউট' : 'Logout'}</span>
+                      </button>
+                    )}
 
                     {isAuthorizedAdmin ? (
                       <Link

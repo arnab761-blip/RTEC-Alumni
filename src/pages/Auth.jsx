@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Sparkles,
   Hash,
-  CheckCircle2
+  CheckCircle2,
+  LogOut
 } from 'lucide-react';
 
 const BATCH_OPTIONS = [
@@ -37,7 +38,7 @@ const DEPARTMENT_OPTIONS = [
 ];
 
 export default function Auth() {
-  const { login, students = [], lang } = useApp();
+  const { user, logout, login, students = [], lang } = useApp();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -149,6 +150,40 @@ export default function Auth() {
           ))}
         </div>
 
+        {/* 1-Click Google Sign In (Hidden when already signed in) */}
+        {user && user.role !== 'guest' ? (
+          <div className="p-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/35 border border-emerald-400/50 text-center space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#0C0A09] dark:text-white">
+                {lang === 'bn' ? `আপনি বর্তমানে লগইন আছেন` : 'You Are Currently Signed In'}
+              </h3>
+              <p className="text-xs text-[#374151] dark:text-[#DCD3C1] font-mono mt-1">
+                {user.name} • {user.email}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+              <Link
+                to={user.role === 'admin' ? '/admin' : '/profile'}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition"
+              >
+                <ArrowRight className="w-4 h-4" />
+                <span>{user.role === 'admin' ? (lang === 'bn' ? 'অ্যাডমিন প্যানেল' : 'Admin Panel') : (lang === 'bn' ? 'আমার প্রোফাইল' : 'My Profile')}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{lang === 'bn' ? 'লগআউট' : 'Logout'}</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* 1-Click Google Sign In */}
         <div className="mb-5">
           <GoogleSignInButton
@@ -361,6 +396,8 @@ export default function Auth() {
               : (lang === 'bn' ? 'ইতোমধ্যে অ্যাকাউন্ট আছে? লগইন করুন' : 'Already have an account? Sign in')}
           </button>
         </div>
+        </>
+        )}
 
         {/* Student Self-Registration Gateway */}
         <div className="mt-5 p-4 rounded-2xl bg-[#141311] border border-[#C5A880]/30 text-center space-y-2">

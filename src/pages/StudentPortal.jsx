@@ -131,6 +131,12 @@ export default function StudentPortal() {
     department: 'Yarn Engineering',
     deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
     currentJob: '',
+    designation: '',
+    company: '',
+    jobSector: '',
+    workLocation: '',
+    experienceYears: '',
+    linkedin: '',
     currentLocation: '',
     bloodGroup: 'B+',
     avatar: '',
@@ -172,6 +178,12 @@ export default function StudentPortal() {
         department: activeSubmission.department || 'Yarn Engineering',
         deptBn: activeSubmission.deptBn || 'ইয়ার্ন ইঞ্জিনিয়ারিং',
         currentJob: activeSubmission.currentJob || '',
+        designation: activeSubmission.designation || '',
+        company: activeSubmission.company || '',
+        jobSector: activeSubmission.jobSector || '',
+        workLocation: activeSubmission.workLocation || '',
+        experienceYears: activeSubmission.experienceYears || '',
+        linkedin: activeSubmission.linkedin || '',
         currentLocation: activeSubmission.currentLocation || '',
         bloodGroup: activeSubmission.bloodGroup || 'B+',
         avatar: activeSubmission.avatar || '',
@@ -196,6 +208,12 @@ export default function StudentPortal() {
         avatar: matchedStd?.avatar || user.avatar || '',
         bio: matchedStd?.activities || '',
         currentJob: matchedStd?.currentJob || user.currentJob || '',
+        designation: matchedStd?.designation || '',
+        company: matchedStd?.company || '',
+        jobSector: matchedStd?.jobSector || '',
+        workLocation: matchedStd?.workLocation || '',
+        experienceYears: '',
+        linkedin: matchedStd?.linkedin || '',
         currentLocation: matchedStd?.currentLocation || user.currentLocation || ''
       });
     }
@@ -434,6 +452,12 @@ export default function StudentPortal() {
       department: 'Yarn Engineering',
       deptBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
       currentJob: '',
+      designation: '',
+      company: '',
+      jobSector: '',
+      workLocation: '',
+      experienceYears: '',
+      linkedin: '',
       currentLocation: '',
       bloodGroup: 'B+',
       avatar: '',
@@ -529,14 +553,16 @@ export default function StudentPortal() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5 w-full sm:w-auto shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsGoogleModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-md transition cursor-pointer"
-            >
-              <GoogleLogo className="w-4 h-4 bg-white rounded-full p-0.5" />
-              <span>{user && user.role !== 'guest' ? (lang === 'bn' ? 'গুগল লগইন / পরিবর্তন' : 'Switch Google Account') : (lang === 'bn' ? 'গুগল দিয়ে প্রবেশ' : 'Sign in with Google')}</span>
-            </button>
+            {(!user || user.role === 'guest') && (
+              <button
+                type="button"
+                onClick={() => setIsGoogleModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-md transition cursor-pointer"
+              >
+                <GoogleLogo className="w-4 h-4 bg-white rounded-full p-0.5" />
+                <span>{lang === 'bn' ? 'গুগল দিয়ে প্রবেশ' : 'Sign in with Google'}</span>
+              </button>
+            )}
 
             {user && user.role !== 'guest' && (
               <button
@@ -995,6 +1021,138 @@ export default function StudentPortal() {
 
               <form onSubmit={handleSubmit} className="space-y-6">
 
+                {/* STEP 0: Registration Number & Instant Official Directory Autofill (At the very top!) */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311]/90 border border-[#C5A880]/40 space-y-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <label className="text-xs font-mono-tech font-bold text-[#854D0E] dark:text-[#DFCA9E] uppercase tracking-wider flex items-center gap-2">
+                      <Hash className="w-4 h-4 text-[#BD452F] dark:text-[#DE644E]" />
+                      <span>{lang === 'bn' ? 'ধাপ ১: রেজিস্ট্রেশন নম্বর লিখুন (সবার আগে)' : 'Step 1: Enter Registration Number First'}</span>
+                    </label>
+                    <span className="text-[10px] font-sans text-[#57534E] dark:text-[#A89884]">
+                      {lang === 'bn' ? 'নম্বর লিখলেই অটো-ফিল অপশন চলে আসবে' : 'Official profile autofill triggers automatically'}
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                    <input
+                      type="text"
+                      value={formData.regNo}
+                      onChange={(e) => setFormData({ ...formData, regNo: e.target.value })}
+                      placeholder={lang === 'bn' ? 'আপনার রেজিস্ট্রেশন নম্বর লিখুন (উদা: 8025102)' : 'Enter Registration No (e.g. 8025102)'}
+                      className={`w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-[#1A1916] border text-sm text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/70 focus:outline-none transition font-mono-tech font-bold ${
+                        regNoIsDuplicate ? 'border-rose-500 ring-1 ring-rose-500/50' : 'border-[#C5A880]/40 focus:border-[#C5A880]'
+                      }`}
+                    />
+                  </div>
+
+                  <AnimatePresence>
+                    {regNoIsDuplicate && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-1.5 mt-1.5">
+                          <p className="text-xs text-rose-500 font-bold flex items-center gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>
+                              {regNoConflict?.ownerEmail
+                                ? (lang === 'bn'
+                                    ? `এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যেই ${maskEmail(regNoConflict.ownerEmail)} দ্বারা সংরক্ষিত`
+                                    : `Already claimed by ${maskEmail(regNoConflict.ownerEmail)}`)
+                                : (lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists')}
+                            </span>
+                          </p>
+                          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
+                            <div className="flex items-center gap-1.5 font-bold mb-1">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                              <span>{lang === 'bn' ? 'এটি কি আপনারই রেজিস্ট্রেশন নম্বর?' : 'Is this your actual registration number?'}</span>
+                            </div>
+                            <span>
+                              {lang === 'bn' ? (
+                                <>
+                                  অন্য কেউ যদি আপনার নম্বর ব্যবহার করে থাকে,{' '}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDisputeRegNo(formData.regNo);
+                                      setIsDisputeModalOpen(true);
+                                    }}
+                                    className="underline font-bold text-amber-800 dark:text-amber-200 hover:text-black dark:hover:text-white cursor-pointer"
+                                  >
+                                    'কমপ্লেইন ও রিপোর্ট'
+                                  </button>{' '}
+                                  উইন্ডোতে ক্লিক করে অ্যাডমিনকে জানান। অ্যাডমিন যাচাই করে ১-ক্লিকে ভুয়া আইডি মুছে আপনার নম্বর উন্মুক্ত করে দেবেন।
+                                </>
+                              ) : (
+                                <>
+                                  If someone else falsely used your registration number, click{' '}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setDisputeRegNo(formData.regNo);
+                                      setIsDisputeModalOpen(true);
+                                    }}
+                                    className="underline font-bold text-amber-800 dark:text-amber-200 hover:text-black dark:hover:text-white cursor-pointer"
+                                  >
+                                    'Dispute & Report'
+                                  </button>{' '}
+                                  to notify the administrator. Admin will verify and reset the number for you.
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <AnimatePresence>
+                    {matchedStudentFromList && !regNoIsDuplicate && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-1 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/45 border border-emerald-400/60 text-xs text-emerald-900 dark:text-emerald-200 flex flex-wrap items-center justify-between gap-2.5 shadow-sm">
+                          <div className="flex items-center gap-2 font-bold">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span>
+                              {matchedStudentFromList.name} ({matchedStudentFromList.batch} • {lang === 'bn' ? (matchedStudentFromList.deptBn || matchedStudentFromList.department) : matchedStudentFromList.department})
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                name: matchedStudentFromList.nameBn || matchedStudentFromList.name || prev.name,
+                                nameEn: matchedStudentFromList.name || prev.nameEn,
+                                batch: matchedStudentFromList.batch || prev.batch,
+                                department: matchedStudentFromList.department || prev.department,
+                                deptBn: matchedStudentFromList.deptBn || prev.deptBn,
+                                bloodGroup: matchedStudentFromList.bloodGroup || prev.bloodGroup,
+                                phone: matchedStudentFromList.phone || prev.phone,
+                                currentLocation: matchedStudentFromList.address || matchedStudentFromList.currentLocation || prev.currentLocation
+                              }));
+                              triggerToast(lang === 'bn' ? '✓ আপনার নাম, ব্যাচ ও বিভাগের তথ্য অটো-ফিল করা হয়েছে!' : '✓ Your name, cohort & department details auto-filled!');
+                            }}
+                            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 cursor-pointer shadow-sm transition flex items-center gap-1.5"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>{lang === 'bn' ? '১-ক্লিকে তথ্য অটো-ফিল করুন' : 'Auto-fill Official Details'}</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* SECTION 1: Personal & Identification */}
                 <div>
                   <h3 className="text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -1093,127 +1251,7 @@ export default function StudentPortal() {
                     <span>{lang === 'bn' ? 'শিক্ষা ও ব্যাচ সংক্রান্ত তথ্য' : 'Academic Credentials & Cohort'}</span>
                   </h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {/* Registration Number */}
-                    <div>
-                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'রেজিস্ট্রেশন নম্বর (স্টুডেন্ট আইডি)' : 'Registration No (Student ID)'}
-                      </label>
-                      <div className="relative">
-                        <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
-                        <input
-                          type="text"
-                          value={formData.regNo}
-                          onChange={(e) => setFormData({ ...formData, regNo: e.target.value })}
-                          placeholder="8025102"
-                          className={`w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none transition font-mono-tech ${
-                            regNoIsDuplicate ? 'border-rose-500 ring-1 ring-rose-500/50' : 'border-[#C5A880]/30 focus:border-[#C5A880]'
-                          }`}
-                        />
-                      </div>
-                      <AnimatePresence>
-                        {regNoIsDuplicate && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="space-y-1.5 mt-1.5">
-                              <p className="text-xs text-rose-500 font-bold flex items-center gap-1.5">
-                                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                <span>
-                                  {regNoConflict?.ownerEmail
-                                    ? (lang === 'bn'
-                                        ? `এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যেই ${maskEmail(regNoConflict.ownerEmail)} দ্বারা সংরক্ষিত`
-                                        : `Already claimed by ${maskEmail(regNoConflict.ownerEmail)}`)
-                                    : (lang === 'bn' ? 'এই রেজিস্ট্রেশন নম্বরটি ইতিমধ্যে ব্যবহৃত হয়েছে' : 'This registration number already exists')}
-                                </span>
-                              </p>
-                          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
-                            <div className="flex items-center gap-1.5 font-bold mb-1">
-                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                              <span>{lang === 'bn' ? 'এটি কি আপনারই রেজিস্ট্রেশন নম্বর?' : 'Is this your actual registration number?'}</span>
-                            </div>
-                            <span>
-                              {lang === 'bn' ? (
-                                <>
-                                  অন্য কেউ যদি আপনার নম্বর ব্যবহার করে থাকে,{' '}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setDisputeRegNo(formData.regNo);
-                                      setIsDisputeModalOpen(true);
-                                    }}
-                                    className="underline font-bold text-amber-800 dark:text-amber-200 hover:text-black dark:hover:text-white cursor-pointer"
-                                  >
-                                    'কমপ্লেইন ও রিপোর্ট'
-                                  </button>{' '}
-                                  উইন্ডোতে ক্লিক করে অ্যাডমিনকে জানান। অ্যাডমিন যাচাই করে ১-ক্লিকে ভুয়া আইডি মুছে আপনার নম্বর উন্মুক্ত করে দেবেন।
-                                </>
-                              ) : (
-                                <>
-                                  If someone else falsely used your registration number, click{' '}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setDisputeRegNo(formData.regNo);
-                                      setIsDisputeModalOpen(true);
-                                    }}
-                                    className="underline font-bold text-amber-800 dark:text-amber-200 hover:text-black dark:hover:text-white cursor-pointer"
-                                  >
-                                    'Dispute & Report'
-                                  </button>{' '}
-                                  to notify the administrator. Admin will verify and reset the number for you.
-                                </>
-                              )}
-                            </span>
-                          </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <AnimatePresence>
-                        {matchedStudentFromList && !regNoIsDuplicate && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 text-xs text-emerald-900 dark:text-emerald-200 flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5 font-bold">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span>{matchedStudentFromList.name} ({matchedStudentFromList.batch})</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                name: matchedStudentFromList.name || prev.name,
-                                nameEn: matchedStudentFromList.nameEn || matchedStudentFromList.name || prev.nameEn,
-                                batch: matchedStudentFromList.batch || prev.batch,
-                                department: matchedStudentFromList.department || prev.department,
-                                deptBn: matchedStudentFromList.deptBn || prev.deptBn,
-                                bloodGroup: matchedStudentFromList.bloodGroup || prev.bloodGroup,
-                                phone: matchedStudentFromList.phone || prev.phone
-                              }));
-                              triggerToast(lang === 'bn' ? '✓ আপনার ব্যাচ ও বিভাগের তথ্য অটো-ফিল করা হয়েছে!' : '✓ Cohort and department details auto-filled!');
-                            }}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shrink-0 cursor-pointer shadow-sm transition"
-                          >
-                            {lang === 'bn' ? 'তথ্য অটো-ফিল করুন' : 'Auto-fill Details'}
-                          </button>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Batch */}
                     <div>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
@@ -1259,35 +1297,123 @@ export default function StudentPortal() {
                   </div>
                 </div>
 
-                {/* SECTION 3: Current Job & Location */}
-                <div className="pt-4 border-t border-[#C5A880]/20">
-                  <h3 className="text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Briefcase className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E]" />
-                    <span>{lang === 'bn' ? 'বর্তমান চাকরি ও অবস্থান' : 'Current Job & Location'}</span>
-                  </h3>
+                {/* SECTION 3: Elaborated Career, Job Designation, Company & Location */}
+                <div className="pt-4 border-t border-[#C5A880]/20 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <h3 className="text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] uppercase tracking-wider flex items-center gap-2">
+                      <Briefcase className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E]" />
+                      <span>{lang === 'bn' ? 'কর্মসংস্থান, পদবী ও ক্যারিয়ার বিবরণ (গ্র্যাজুয়েটদের জন্য বিস্তারিত)' : 'Career, Designation, Company & Location'}</span>
+                    </h3>
+                    <span className="text-[10px] font-sans text-[#854D0E] dark:text-[#DFCA9E]">
+                      {lang === 'bn' ? 'বর্তমান শিক্ষার্থী হলে নিচে প্রযোজ্য ঘরগুলো খালি রাখতে পারেন' : 'Optional for current undergraduate students'}
+                    </span>
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Current Job / Workplace */}
+                    {/* Job Title / Designation */}
                     <div>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'এখন কোথায় চাকরি করে (Current Job / Workplace)' : 'Current Workplace & Role'}
+                        {lang === 'bn' ? 'চাকরির পদবী / ডেজিগনেশন (Designation)' : 'Job Title / Designation'}
                       </label>
                       <div className="relative">
                         <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
                         <input
                           type="text"
-                          value={formData.currentJob}
-                          onChange={(e) => setFormData({ ...formData, currentJob: e.target.value })}
-                          placeholder={lang === 'bn' ? 'উদা: Assistant Merchandiser, Beximco Textiles (বা শিক্ষার্থী)' : 'e.g. Intern at Square / Student at RTEC'}
+                          value={formData.designation}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            designation: e.target.value,
+                            currentJob: e.target.value && formData.company ? `${e.target.value}, ${formData.company}` : (e.target.value || formData.company || '')
+                          })}
+                          placeholder={lang === 'bn' ? 'উদা: Senior Merchandiser / Production Officer / Quality Engineer' : 'e.g. Senior Merchandiser / Production Officer'}
                           className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
                         />
                       </div>
                     </div>
 
-                    {/* Current Location / Address */}
+                    {/* Company / Mill Name */}
                     <div>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'ঠিকানা / বর্তমান অবস্থান (Address / Location)' : 'Address / Current Location'}
+                        {lang === 'bn' ? 'কোম্পানি / মিল / প্রতিষ্ঠানের নাম (Company Name)' : 'Company / Mill / Organization Name'}
+                      </label>
+                      <div className="relative">
+                        <GraduationCap className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                        <input
+                          type="text"
+                          value={formData.company}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            company: e.target.value,
+                            currentJob: formData.designation && e.target.value ? `${formData.designation}, ${e.target.value}` : (formData.designation || e.target.value || '')
+                          })}
+                          placeholder={lang === 'bn' ? 'উদা: বেক্সিমকো / স্কয়ার ফ্যাশনস / ডিবিএল গ্রুপ' : 'e.g. Beximco Textiles / Square Fashions / DBL'}
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Industry Sector */}
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
+                        {lang === 'bn' ? 'ইন্ডাস্ট্রি সেক্টর / পেশার ধরন (Sector)' : 'Industry Sector / Field'}
+                      </label>
+                      <select
+                        value={formData.jobSector}
+                        onChange={(e) => setFormData({ ...formData, jobSector: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#C5A880] transition font-sans"
+                      >
+                        <option value="">{lang === 'bn' ? '— সেক্টর নির্বাচন করুন (ঐচ্ছিক) —' : '— Select Sector (Optional) —'}</option>
+                        <option value="Apparel & Merchandising">{lang === 'bn' ? 'অ্যাপারেল ও মার্চেন্ডাইজিং (Apparel / Buying House)' : 'Apparel & Merchandising / Buying House'}</option>
+                        <option value="Yarn / Spinning">{lang === 'bn' ? 'ইয়ার্ন ও স্পিনিং মিলস (Spinning)' : 'Yarn / Spinning Mills'}</option>
+                        <option value="Fabric / Weaving & Knitting">{lang === 'bn' ? 'ফ্যাব্রিক (উইভিং ও নিটিং)' : 'Fabric (Weaving & Knitting)'}</option>
+                        <option value="Wet Processing / Dyeing">{lang === 'bn' ? 'ওয়েট প্রসেস / ডাইং ও ফিনিশিং' : 'Wet Processing / Dyeing & Finishing'}</option>
+                        <option value="Quality Assurance / Testing Lab">{lang === 'bn' ? 'কোয়ালিটি অ্যাসুরেন্স ও টেস্টিং ল্যাব (QA/QC)' : 'Quality Assurance & Testing Lab'}</option>
+                        <option value="Higher Studies / Research">{lang === 'bn' ? 'উচ্চশিক্ষা ও গবেষণা (M.Sc. / Ph.D.)' : 'Higher Studies & Research'}</option>
+                        <option value="Govt. / Academic Service">{lang === 'bn' ? 'সরকারি চাকরি / শিক্ষকতা' : 'Government / Academic Service'}</option>
+                        <option value="Entrepreneur / Business">{lang === 'bn' ? 'উদ্যোক্তা / নিজস্ব ব্যবসা' : 'Entrepreneur / Business'}</option>
+                        <option value="Currently Studying / Seeking">{lang === 'bn' ? 'অধ্যয়নরত / ফ্রেশার (ইন্টার্ন)' : 'Current Student / Fresh Graduate'}</option>
+                      </select>
+                    </div>
+
+                    {/* Job Location */}
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
+                        {lang === 'bn' ? 'চাকরির লোকেশন / কর্মস্থল (Job Location)' : 'Work / Job Location'}
+                      </label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
+                        <input
+                          type="text"
+                          value={formData.workLocation}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            workLocation: e.target.value,
+                            currentLocation: formData.currentLocation || e.target.value
+                          })}
+                          placeholder={lang === 'bn' ? 'উদা: গাজীপুর / সাভার / নারায়ণগঞ্জ / ঢাকা / বিদেশ' : 'e.g. Gazipur / Savar / Narayanganj / Dhaka'}
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Experience Duration */}
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
+                        {lang === 'bn' ? 'অভিজ্ঞতা / চাকরির মেয়াদ (Experience)' : 'Work Experience / Tenure'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.experienceYears}
+                        onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
+                        placeholder={lang === 'bn' ? 'উদা: ২ বছর / ২০২৩ থেকে চলমান / ফ্রেশার' : 'e.g. 2+ Years / Since 2023 / Fresher'}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
+                      />
+                    </div>
+
+                    {/* Current Address / Hometown */}
+                    <div>
+                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
+                        {lang === 'bn' ? 'বর্তমান ঠিকানা / নিজ জেলা (Home / Address)' : 'Current Address / Hometown'}
                       </label>
                       <div className="relative">
                         <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A89884]" />
@@ -1295,10 +1421,24 @@ export default function StudentPortal() {
                           type="text"
                           value={formData.currentLocation}
                           onChange={(e) => setFormData({ ...formData, currentLocation: e.target.value, address: e.target.value })}
-                          placeholder={lang === 'bn' ? 'উদা: পীরগঞ্জ, রংপুর / উত্তরা, ঢাকা' : 'e.g. Pirganj, Rangpur / Dhaka'}
+                          placeholder={lang === 'bn' ? 'উদা: পীরগঞ্জ, রংপুর / উত্তরা, ঢাকা' : 'e.g. Pirganj, Rangpur / Uttara, Dhaka'}
                           className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
                         />
                       </div>
+                    </div>
+
+                    {/* LinkedIn / Professional Profile */}
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
+                        {lang === 'bn' ? 'LinkedIn প্রোফাইল লিংক (ঐচ্ছিক)' : 'LinkedIn / Portfolio URL (Optional)'}
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.linkedin}
+                        onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                        placeholder="https://www.linkedin.com/in/..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-mono-tech"
+                      />
                     </div>
                   </div>
                 </div>

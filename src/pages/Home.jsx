@@ -162,43 +162,57 @@ export default function Home() {
               <motion.div
                 variants={fadeInUp}
                 custom={3}
-                className="flex flex-wrap items-center gap-3 pt-2"
+                className="space-y-3 pt-2"
               >
-                <Link
-                  to="/directory"
-                  className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-                >
-                  <Users className="w-4 h-4 text-[#DFCA9E]" />
-                  <span>{lang === 'bn' ? 'অ্যালামনাই ডিরেক্টরি' : 'Alumni Register'}</span>
-                  <ArrowRight className="w-4 h-4 text-[#DFCA9E]" />
-                </Link>
-
-                <Link
-                  to="/forum"
-                  className="btn-agency btn-agency-terracotta px-5 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-                >
-                  <MessageSquareQuote className="w-4 h-4" />
-                  <span>{lang === 'bn' ? 'সিনিয়র অভিজ্ঞতা বিনিময়' : 'Experience Share & Insights'}</span>
-                </Link>
-
-                <Link
-                  to="/teachers"
-                  className="px-4 py-3 rounded bg-white dark:bg-[#1A1916] hover:bg-[#F5EFE6] dark:hover:bg-[#201E1A] border border-[#C5A880]/35 text-xs text-[#1A1612] dark:text-[#EDE8DF] hover:border-[#C5A880] transition font-mono-tech flex items-center gap-1.5 shadow-sm"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DFCA9E]" />
-                  <span>{lang === 'bn' ? `অনুষদ (${teachers.length})` : `Faculty (${teachers.length})`}</span>
-                </Link>
-
-                {isAuthorizedAdmin && (
+                <div className="flex flex-wrap items-center gap-3">
                   <Link
-                    to="/admin"
-                    className="px-3.5 py-3 rounded bg-[#BD452F]/10 dark:bg-[#BD452F]/20 hover:bg-[#BD452F]/20 dark:hover:bg-[#BD452F]/30 border border-[#BD452F]/40 text-xs text-[#BD452F] dark:text-[#DE644E] transition font-mono-tech flex items-center gap-1.5 font-bold"
-                    title={lang === 'bn' ? 'অ্যাডমিনিস্ট্রেটিভ কনসোল' : 'Administrative Console'}
+                    to="/directory"
+                    className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">{lang === 'bn' ? 'এডমিন' : 'Admin'}</span>
+                    <Users className="w-4 h-4 text-[#DFCA9E]" />
+                    <span>{lang === 'bn' ? 'অ্যালামনাই ডিরেক্টরি' : 'Alumni Register'}</span>
+                    <ArrowRight className="w-4 h-4 text-[#DFCA9E]" />
                   </Link>
-                )}
+
+                  <Link
+                    to="/forum"
+                    className="btn-agency btn-agency-terracotta px-5 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
+                  >
+                    <MessageSquareQuote className="w-4 h-4" />
+                    <span>{lang === 'bn' ? 'সিনিয়র অভিজ্ঞতা বিনিময়' : 'Experience Share & Insights'}</span>
+                  </Link>
+
+                  <Link
+                    to="/teachers"
+                    className="px-4 py-3 rounded bg-white dark:bg-[#1A1916] hover:bg-[#F5EFE6] dark:hover:bg-[#201E1A] border border-[#C5A880]/35 text-xs text-[#1A1612] dark:text-[#EDE8DF] hover:border-[#C5A880] transition font-mono-tech flex items-center gap-1.5 shadow-sm"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DFCA9E]" />
+                    <span>{lang === 'bn' ? '৪টি বিভাগ (Departments)' : '4 Departments'}</span>
+                  </Link>
+
+                  {isAuthorizedAdmin && (
+                    <Link
+                      to="/admin"
+                      className="px-3.5 py-3 rounded bg-[#BD452F]/10 dark:bg-[#BD452F]/20 hover:bg-[#BD452F]/20 dark:hover:bg-[#BD452F]/30 border border-[#BD452F]/40 text-xs text-[#BD452F] dark:text-[#DE644E] transition font-mono-tech flex items-center gap-1.5 font-bold"
+                      title={lang === 'bn' ? 'অ্যাডমিনিস্ট্রেটিভ কনসোল' : 'Administrative Console'}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{lang === 'bn' ? 'এডমিন' : 'Admin'}</span>
+                    </Link>
+                  )}
+                </div>
+
+                {/* Direct Student Portal Entry Button directly below Alumni Register & Experience Share */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    to="/student-portal"
+                    className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/40 text-xs sm:text-sm font-bold shadow-md hover:-translate-y-0.5 transition font-sans"
+                  >
+                    <GraduationCap className="w-4 h-4 shrink-0" />
+                    <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টাল (নিবন্ধন ও আইডি)' : 'Student Portal'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </motion.div>
 
               {/* Quick Latest Notice Alert Ticker */}
@@ -290,9 +304,15 @@ export default function Home() {
                       </strong>
                     </div>
                     <div className="flex items-center justify-between text-[#EDE8DF]">
-                      <span className="text-[#A89884]">{lang === 'bn' ? 'অনুষদ ও শিক্ষক মণ্ডলী:' : 'Faculty & HODs:'}</span>
+                      <span className="text-[#A89884]">{lang === 'bn' ? 'একাডেমিক বিভাগ:' : 'Departments:'}</span>
                       <strong className="text-[#DFCA9E] font-mono-tech">
-                        {teachers.length} {lang === 'bn' ? 'জন সদস্য' : 'Members'}
+                        {lang === 'bn' ? '৪টি বিভাগ' : '4 Departments'}
+                      </strong>
+                    </div>
+                    <div className="flex items-center justify-between text-[#EDE8DF]">
+                      <span className="text-[#A89884]">{lang === 'bn' ? 'শিক্ষকমণ্ডলী:' : 'Teaching Faculty:'}</span>
+                      <strong className="text-[#DFCA9E] font-mono-tech">
+                        {teachers.length} {lang === 'bn' ? 'জন শিক্ষক' : 'Teachers'}
                       </strong>
                     </div>
                     <div className="flex items-center justify-between text-[#EDE8DF]">
@@ -536,7 +556,7 @@ export default function Home() {
 
           {/* Grid of Featured Senior Posts */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {forumPosts.slice(0, 3).map((post) => (
+            {forumPosts.filter(p => p && p.status !== 'pending' && p.status !== 'declined').slice(0, 3).map((post) => (
               <div
                 key={post.id}
                 className="plaque-elevated rounded-xl p-6 border border-[#C5A880]/25 flex flex-col justify-between hover:border-[#C5A880]/60 transition-all duration-200 hover:-translate-y-1 group"

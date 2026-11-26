@@ -30,6 +30,9 @@ const ForumPostSchema = new mongoose.Schema(
     authorRole: { type: String, default: 'Student Engineer' },
     authorBatch: { type: String, default: 'RTEC' },
     type: { type: String, default: 'question' }, // 'question' | 'experience'
+    status: { type: String, default: 'pending' }, // 'pending' | 'approved' | 'declined'
+    reviewedAt: { type: String, default: '' },
+    reviewNotes: { type: String, default: '' },
     category: { type: String, default: 'Career Advice' },
     categoryBn: { type: String, default: '' },
     date: { type: String, default: '' },
