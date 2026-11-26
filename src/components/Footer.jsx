@@ -41,11 +41,6 @@ export default function Footer() {
                 <h3 className="font-serif-regal font-bold text-sm sm:text-base text-[#0C0A09] dark:text-[#FDFBF7] tracking-wide uppercase truncate">
                   {lang === 'bn' ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ' : 'Rangpur Textile Engineering College'}
                 </h3>
-                <p className="text-[10px] sm:text-[11px] text-[#854D0E] dark:text-[#DFCA9E] font-mono-tech font-bold">
-                  {lang === 'bn'
-                    ? 'বস্ত্র ও পাট মন্ত্রণালয় • বুটেক্স অধিভুক্ত • স্থাপিত ২০১৮'
-                    : 'Affiliated with BUTEX & Min. of Textiles and Jute • Estd. 2018'}
-                </p>
               </div>
             </div>
 
