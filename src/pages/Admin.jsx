@@ -45,7 +45,8 @@ import {
   ChevronUp,
   FileText,
   FileSpreadsheet,
-  RefreshCw
+  RefreshCw,
+  Database
 } from 'lucide-react';
 import UserAvatar from '../components/UserAvatar.jsx';
 import ExcelImportModal from '../components/ExcelImportModal.jsx';
@@ -223,6 +224,10 @@ export default function Admin() {
     isAdminEmail,
     googleClientId = '',
     updateGoogleClientId,
+    apiBaseUrl = '',
+    updateApiBaseUrl,
+    mongoStatus,
+    checkMongoHealth,
     // System
     resetAllData
   } = useApp();
@@ -234,6 +239,7 @@ export default function Admin() {
   const [newAdminEmailInput, setNewAdminEmailInput] = useState('');
   const [newAdminNoteInput, setNewAdminNoteInput] = useState('');
   const [googleClientIdInput, setGoogleClientIdInput] = useState(googleClientId || '');
+  const [apiBaseUrlInput, setApiBaseUrlInput] = useState(apiBaseUrl || '');
 
   // Footer Contact State
   const [footerPhone, setFooterPhone] = useState(footerContact?.phone || '+880 521-55421');
@@ -3298,6 +3304,53 @@ export default function Admin() {
                   <Download className="w-4 h-4" />
                   <span>{lang === 'bn' ? 'সম্পূর্ণ ডেটাবেজ ডাউনলোড করুন (Export JSON)' : 'Export Full JSON Backup'}</span>
                 </button>
+              </div>
+
+              <div className="pt-6 border-t border-[#C5A880]/20 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="text-sm font-bold text-[#FDFBF7] flex items-center gap-2">
+                    <Database className="w-4 h-4 text-emerald-400" />
+                    <span>{lang === 'bn' ? 'লাইভ ব্যাকএন্ড সার্ভার (Render + MongoDB Atlas)' : 'Live Backend Server URL (Render + MongoDB Atlas)'}</span>
+                  </h4>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono-tech font-bold ${
+                    mongoStatus?.isConnected
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                  }`}>
+                    {mongoStatus?.isConnected
+                      ? (lang === 'bn' ? '✓ সংযুক্ত (Connected)' : '✓ Connected')
+                      : (lang === 'bn' ? '✗ অফলাইন / অপেক্ষমাণ' : '✗ Offline / Unreachable')}
+                  </span>
+                </div>
+                <p className="text-xs text-[#A89884]">
+                  {lang === 'bn'
+                    ? 'Render-এ আপনার Node সার্ভার ডিপ্লয় করার পর প্রাপ্ত লাইভ URL (যেমন: https://rtec-alumni-api.onrender.com) এখানে দিয়ে টেস্ট ও সেভ করুন। UptimeRobot-এ এই URL-এর শেষে /api/health বসিয়ে পিং সেট করবেন।'
+                    : 'Enter your deployed Render Web Service URL (e.g., https://rtec-alumni-api.onrender.com) to connect MongoDB Atlas live across all devices. Point UptimeRobot to <URL>/api/health.'}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="url"
+                    value={apiBaseUrlInput}
+                    onChange={(e) => setApiBaseUrlInput(e.target.value)}
+                    placeholder="https://rtec-alumni-api.onrender.com"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#141311] border border-[#C5A880]/30 text-xs text-[#FDFBF7] font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const clean = updateApiBaseUrl?.(apiBaseUrlInput);
+                      const health = await checkMongoHealth?.(clean);
+                      if (health?.status === 'connected') {
+                        showToast(lang === 'bn' ? '✓ লাইভ Render + MongoDB Atlas সফলভাবে কানেক্ট হয়েছে!' : '✓ Live Render + MongoDB Atlas connected!');
+                      } else {
+                        showToast(lang === 'bn' ? 'সার্ভার URL সেভ হয়েছে, তবে এখনো রেসপন্স আসেনি (Render চালু থাকলে ৩০ সেকেন্ড পরে টেস্ট করুন)।' : 'Backend URL saved, waiting for Render server response.');
+                      }
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition cursor-pointer shrink-0"
+                  >
+                    {lang === 'bn' ? 'সেভ ও কানেকশন টেস্ট' : 'Save & Test Connection'}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-6 border-t border-[#C5A880]/20 space-y-3">

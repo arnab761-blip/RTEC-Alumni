@@ -16,6 +16,8 @@ import { Submission } from './models/Submission.js';
 import { Dispute } from './models/Dispute.js';
 import { AdminEmail } from './models/AdminEmail.js';
 import { SiteSetting } from './models/SiteSetting.js';
+import { ForumPost } from './models/ForumPost.js';
+import { Memory } from './models/Memory.js';
 import fs from 'fs';
 import {
   masterExcelPath,
@@ -34,7 +36,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://megasonic298_db_user:JiL9RSbbYUbUaxgP@cluster0.4blztie.mongodb.net/rtec_alumni?retryWrites=true&w=majority&appName=Cluster0';
 
-app.use(cors());
+// Process-level resilience guards so transient async/file-system glitches don't crash the Node server
+process.on('uncaughtException', (err) => {
+  console.error('[Process] Uncaught Exception:', err?.message || err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Process] Unhandled Rejection:', reason);
+});
+
+app.use(cors({
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -85,22 +99,24 @@ const connectToMongoDB = async () => {
       await syncDbStudentsToExcel();
     }
 
-    // Start 2-way Excel File Watcher
-    startExcelWatcher(async (updatedList) => {
-      if (isWritingExcel) return;
-      console.log(`[Excel 2-Way Sync] Detected external change in Excel! Syncing ${updatedList.length} students to MongoDB...`);
-      const bulkOps = updatedList.map(s => ({
-        updateOne: {
-          filter: { regNo: s.regNo },
-          update: { $set: s },
-          upsert: true
+    // Start 2-way Excel File Watcher in local dev (disabled on cloud containers unless explicitly enabled)
+    if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_EXCEL_WATCH === 'true') {
+      startExcelWatcher(async (updatedList) => {
+        if (isWritingExcel) return;
+        console.log(`[Excel 2-Way Sync] Detected external change in Excel! Syncing ${updatedList.length} students to MongoDB...`);
+        const bulkOps = updatedList.map(s => ({
+          updateOne: {
+            filter: { regNo: s.regNo },
+            update: { $set: s },
+            upsert: true
+          }
+        }));
+        if (bulkOps.length > 0) {
+          await Student.bulkWrite(bulkOps, { ordered: false });
+          console.log(`[Excel 2-Way Sync] ✓ Database updated successfully from Excel file.`);
         }
-      }));
-      if (bulkOps.length > 0) {
-        await Student.bulkWrite(bulkOps, { ordered: false });
-        console.log(`[Excel 2-Way Sync] ✓ Database updated successfully from Excel file.`);
-      }
-    });
+      });
+    }
 
   } catch (err) {
     isDbConnected = false;
@@ -134,6 +150,17 @@ const requireDb = (req, res, next) => {
   next();
 };
 
+// Root endpoint for Render & UptimeRobot ping
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'RTEC Alumni Backend API',
+    database: isDbConnected ? 'connected' : 'connecting',
+    uptimeSeconds: Math.round(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
+});
+
 // ==========================================================
 // 1. HEALTH CHECK & STATS
 // ==========================================================
@@ -144,13 +171,14 @@ app.get('/api/health', async (req, res) => {
   let stats = {};
   if (isDbConnected) {
     try {
-      const [studentsCount, alumniCount, teachersCount, eventsCount, jobsCount, usersCount] = await Promise.all([
+      const [studentsCount, alumniCount, teachersCount, eventsCount, jobsCount, usersCount, forumCount] = await Promise.all([
         Student.countDocuments(),
         Alumni.countDocuments(),
         Teacher.countDocuments(),
         Event.countDocuments(),
         Job.countDocuments(),
-        User.countDocuments()
+        User.countDocuments(),
+        ForumPost.countDocuments()
       ]);
       stats = {
         students: studentsCount,
@@ -158,7 +186,8 @@ app.get('/api/health', async (req, res) => {
         teachers: teachersCount,
         events: eventsCount,
         jobs: jobsCount,
-        users: usersCount
+        users: usersCount,
+        forumPosts: forumCount
       };
     } catch (e) {}
   }
@@ -170,6 +199,7 @@ app.get('/api/health', async (req, res) => {
     host: isDbConnected ? mongoose.connection.host : null,
     error: dbConnectionError,
     stats,
+    uptimeSeconds: Math.round(process.uptime()),
     timestamp: new Date().toISOString()
   });
 });
@@ -198,7 +228,7 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
       );
     }
 
-    const [students, alumni, teachers, events, jobs, news, submissions, disputes, adminEmailDocs, settingsDocs] = await Promise.all([
+    const [students, alumni, teachers, events, jobs, news, submissions, disputes, adminEmailDocs, settingsDocs, forumPosts, memories] = await Promise.all([
       Student.find({}).sort({ batch: 1, regNo: 1 }).lean(),
       Alumni.find({}).sort({ batch: 1, name: 1 }).lean(),
       Teacher.find({}).sort({ order: 1 }).lean(),
@@ -208,7 +238,9 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
       Submission.find({}).sort({ createdAt: -1 }).lean(),
       Dispute.find({}).sort({ createdAt: -1 }).lean(),
       AdminEmail.find({}).lean(),
-      SiteSetting.find({}).lean()
+      SiteSetting.find({}).lean(),
+      ForumPost.find({}).sort({ createdAt: -1 }).lean(),
+      Memory.find({}).sort({ createdAt: -1 }).lean()
     ]);
 
     const settingsMap = {};
@@ -230,6 +262,8 @@ app.get('/api/bootstrap', requireDb, async (req, res) => {
         news,
         submissions,
         disputes,
+        forumPosts,
+        memories,
         adminEmails,
         contact: settingsMap['footerContact'] || null,
         settings: settingsMap
@@ -604,6 +638,76 @@ app.delete('/api/news/:id', requireDb, async (req, res) => {
 });
 
 // ==========================================================
+// 9B. FORUM POSTS & EXPERIENCE SHARE
+// ==========================================================
+app.get('/api/forum', requireDb, async (req, res) => {
+  try {
+    const posts = await ForumPost.find({}).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: posts.length, forumPosts: posts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/forum', requireDb, async (req, res) => {
+  try {
+    const data = req.body;
+    const post = await ForumPost.findOneAndUpdate(
+      { id: data.id || `frm-${Date.now()}` },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, post });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/forum/:id', requireDb, async (req, res) => {
+  try {
+    await ForumPost.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true, message: 'Forum post removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================================
+// 9C. GALLERY MEMORIES
+// ==========================================================
+app.get('/api/memories', requireDb, async (req, res) => {
+  try {
+    const list = await Memory.find({}).sort({ createdAt: -1 }).lean();
+    res.json({ success: true, count: list.length, memories: list });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/memories', requireDb, async (req, res) => {
+  try {
+    const data = req.body;
+    const item = await Memory.findOneAndUpdate(
+      { id: data.id || `mem-${Date.now()}` },
+      { $set: data },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, memory: item });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/memories/:id', requireDb, async (req, res) => {
+  try {
+    await Memory.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true, message: 'Memory removed' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================================
 // 10. STUDENT SUBMISSIONS & APPLICATIONS
 // ==========================================================
 app.get('/api/submissions', requireDb, async (req, res) => {
@@ -824,6 +928,6 @@ app.post('/api/settings/contact', requireDb, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`[RTEC API Server] Running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[RTEC API Server] Running on port ${PORT}`);
 });

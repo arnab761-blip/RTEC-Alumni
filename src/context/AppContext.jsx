@@ -70,6 +70,59 @@ export function AppProvider({ children }) {
     return clean;
   };
 
+  // Backend API Base URL (local dev uses Vite '/api' proxy; production uses Render URL)
+  const DEFAULT_API_BASE = import.meta.env.VITE_API_URL
+    ? String(import.meta.env.VITE_API_URL).replace(/\/+$/, '')
+    : (import.meta.env.PROD ? 'https://rtec-alumni-api.onrender.com' : '');
+
+  const [apiBaseUrl, setApiBaseUrlState] = useState(() => {
+    const saved = localStorage.getItem('rtec_api_url');
+    return saved ? String(saved).replace(/\/+$/, '') : DEFAULT_API_BASE;
+  });
+
+  const updateApiBaseUrl = (url) => {
+    const clean = String(url || '').trim().replace(/\/+$/, '');
+    setApiBaseUrlState(clean);
+    if (clean) {
+      localStorage.setItem('rtec_api_url', clean);
+    } else {
+      localStorage.removeItem('rtec_api_url');
+    }
+    return clean;
+  };
+
+  const resolveApiUrl = (endpoint) => {
+    if (!endpoint) return endpoint;
+    if (/^https?:\/\//i.test(endpoint)) return endpoint;
+    const base = (apiBaseUrl || '').replace(/\/+$/, '');
+    return base ? `${base}${endpoint}` : endpoint;
+  };
+
+  const apiFetch = async (endpoint, options = {}, retries = 2) => {
+    const url = resolveApiUrl(endpoint);
+    let lastError;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.status >= 500 && attempt < retries) {
+          await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+          continue;
+        }
+        return res;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        lastError = err;
+        if (attempt < retries) {
+          await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+        }
+      }
+    }
+    throw lastError || new Error('Network request failed');
+  };
+
   // 1. Current Authenticated User (Defaults to a regular guest visitor)
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('rtec_user');
@@ -640,11 +693,11 @@ export function AppProvider({ children }) {
   // ============================================
   const syncEntityToMongo = async (endpoint, method = 'POST', payload = null) => {
     try {
-      await fetch(endpoint, {
+      await apiFetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: payload ? JSON.stringify(payload) : undefined
-      });
+      }, 2);
     } catch (e) {
       // offline silent fallback
     }
@@ -777,7 +830,7 @@ export function AppProvider({ children }) {
 
   const bootstrapFromMongo = async () => {
     try {
-      const res = await fetch('/api/bootstrap');
+      const res = await apiFetch('/api/bootstrap', {}, 2);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
@@ -789,7 +842,9 @@ export function AppProvider({ children }) {
             jobs: dbJobs,
             news: dbNews,
             submissions: dbSubs,
-            disputes: dbDisputes
+            disputes: dbDisputes,
+            forumPosts: dbForumPosts,
+            memories: dbMemories
           } = json.data;
 
           if (Array.isArray(dbStudents) && dbStudents.length > 0) {
@@ -817,6 +872,12 @@ export function AppProvider({ children }) {
           if (Array.isArray(dbDisputes) && dbDisputes.length > 0) {
             setDisputes(dbDisputes);
           }
+          if (Array.isArray(dbForumPosts) && dbForumPosts.length > 0) {
+            setForumPosts(dbForumPosts);
+          }
+          if (Array.isArray(dbMemories) && dbMemories.length > 0) {
+            setMemories(dbMemories);
+          }
           if (Array.isArray(json.data.adminEmails) && json.data.adminEmails.length > 0) {
             const list = Array.from(new Set([...SUPER_ADMIN_EMAILS, ...json.data.adminEmails.map(e => e.toLowerCase().trim())]));
             setAdminEmails(list);
@@ -833,10 +894,13 @@ export function AppProvider({ children }) {
     }
   };
 
-  const checkMongoHealth = async () => {
+  const checkMongoHealth = async (overrideBaseUrl) => {
     try {
       setMongoStatus(prev => ({ ...prev, checking: true }));
-      const res = await fetch('/api/health');
+      const healthUrl = overrideBaseUrl !== undefined
+        ? `${String(overrideBaseUrl).replace(/\/+$/, '')}/api/health`
+        : '/api/health';
+      const res = await apiFetch(healthUrl, {}, 1);
       if (res.ok) {
         const data = await res.json();
         const connected = data.status === 'connected';
@@ -853,6 +917,7 @@ export function AppProvider({ children }) {
         }
         return data;
       }
+      setMongoStatus(prev => ({ ...prev, isConnected: false, checking: false, error: `HTTP ${res.status}` }));
     } catch (e) {
       setMongoStatus({
         isConnected: false,
@@ -862,6 +927,7 @@ export function AppProvider({ children }) {
         checking: false
       });
     }
+    return null;
   };
 
   useEffect(() => {
@@ -947,11 +1013,11 @@ export function AppProvider({ children }) {
     let mongoError = null;
 
     try {
-      const res = await fetch('/api/students/bulk', {
+      const res = await apiFetch('/api/students/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ students: newStudents })
-      });
+      }, 1);
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
@@ -982,11 +1048,11 @@ export function AppProvider({ children }) {
 
   const syncStudentsToMongo = async () => {
     try {
-      const res = await fetch('/api/students/bulk', {
+      const res = await apiFetch('/api/students/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ students })
-      });
+      }, 1);
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
@@ -1005,7 +1071,7 @@ export function AppProvider({ children }) {
   // Live 2-way sync: Pulls latest students from server's Master Excel file
   const syncWithExcelFile = async () => {
     try {
-      const res = await fetch('/api/students/excel/sync', { method: 'POST' });
+      const res = await apiFetch('/api/students/excel/sync', { method: 'POST' }, 1);
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.students)) {
@@ -1025,7 +1091,7 @@ export function AppProvider({ children }) {
   // Direct download of the live Master Excel file
   const exportExcelFile = () => {
     const link = document.createElement('a');
-    link.href = '/api/students/excel/export';
+    link.href = resolveApiUrl('/api/students/excel/export');
     link.download = 'RTEC_Students_Master.xlsx';
     document.body.appendChild(link);
     link.click();
@@ -1318,6 +1384,7 @@ export function AppProvider({ children }) {
       replies: []
     };
     setForumPosts(prev => [newPost, ...prev]);
+    syncEntityToMongo('/api/forum', 'POST', newPost);
     confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     return newPost;
   };
@@ -1328,7 +1395,7 @@ export function AppProvider({ children }) {
       prev.map(post => {
         if (post.id === postId) {
           const body = updatedData.body !== undefined ? updatedData.body : (updatedData.content !== undefined ? updatedData.content : (updatedData.description !== undefined ? updatedData.description : post.body));
-          return {
+          const updated = {
             ...post,
             ...updatedData,
             title: updatedData.title || post.title,
@@ -1339,6 +1406,8 @@ export function AppProvider({ children }) {
             isEdited: true,
             updatedAt: editedLabel
           };
+          syncEntityToMongo('/api/forum', 'POST', updated);
+          return updated;
         }
         return post;
       })
@@ -1347,6 +1416,7 @@ export function AppProvider({ children }) {
 
   const deleteForumPost = (postId) => {
     setForumPosts(prev => prev.filter(post => post.id !== postId));
+    syncEntityToMongo(`/api/forum/${postId}`, 'DELETE');
   };
 
   const addForumReply = (postId, replyText) => {
@@ -1368,10 +1438,16 @@ export function AppProvider({ children }) {
       prev.map(post => {
         if (post.id === postId) {
           const currentReplies = post.replies || [];
+          const nextReplies = [...currentReplies, newReply];
+          syncEntityToMongo('/api/forum', 'POST', {
+            id: postId,
+            repliesCount: nextReplies.length,
+            replies: nextReplies
+          });
           return {
             ...post,
-            repliesCount: currentReplies.length + 1,
-            replies: [...currentReplies, newReply]
+            repliesCount: nextReplies.length,
+            replies: nextReplies
           };
         }
         return post;
@@ -1394,6 +1470,10 @@ export function AppProvider({ children }) {
               };
             }
             return reply;
+          });
+          syncEntityToMongo('/api/forum', 'POST', {
+            id: postId,
+            replies: updatedReplies
           });
           return {
             ...post,
@@ -1421,6 +1501,10 @@ export function AppProvider({ children }) {
             }
             return reply;
           });
+          syncEntityToMongo('/api/forum', 'POST', {
+            id: postId,
+            replies: updatedReplies
+          });
           return {
             ...post,
             replies: updatedReplies
@@ -1433,13 +1517,27 @@ export function AppProvider({ children }) {
 
   const upvoteForumPost = (postId) => {
     setForumPosts(prev =>
-      prev.map(post => (post.id === postId ? { ...post, upvotes: post.upvotes + 1 } : post))
+      prev.map(post => {
+        if (post.id === postId) {
+          const nextVotes = (post.upvotes || 0) + 1;
+          syncEntityToMongo('/api/forum', 'POST', { id: postId, upvotes: nextVotes });
+          return { ...post, upvotes: nextVotes };
+        }
+        return post;
+      })
     );
   };
 
   const likeMemory = (id) => {
     setMemories(prev =>
-      prev.map(mem => (mem.id === id ? { ...mem, likes: mem.likes + 1 } : mem))
+      prev.map(mem => {
+        if (mem.id === id) {
+          const nextLikes = (mem.likes || 0) + 1;
+          syncEntityToMongo('/api/memories', 'POST', { id, likes: nextLikes });
+          return { ...mem, likes: nextLikes };
+        }
+        return mem;
+      })
     );
   };
 
@@ -1450,6 +1548,7 @@ export function AppProvider({ children }) {
       ...memoryData
     };
     setMemories([newMem, ...memories]);
+    syncEntityToMongo('/api/memories', 'POST', newMem);
     confetti({ particleCount: 70, spread: 60 });
   };
 
@@ -2137,6 +2236,9 @@ export function AppProvider({ children }) {
         isAdminEmail,
         googleClientId,
         updateGoogleClientId,
+        apiBaseUrl,
+        updateApiBaseUrl,
+        bootstrapFromMongo,
         // System
         resetAllData
       }}
