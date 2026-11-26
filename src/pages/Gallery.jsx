@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { formatDriveImageUrl } from '../utils/driveImage.js';
 import { useScrollLock } from '../utils/useScrollLock.js';
+import CloudinaryImageInput from '../components/CloudinaryImageInput.jsx';
 import {
   Image as ImageIcon,
   Heart,
@@ -13,11 +14,12 @@ import {
 } from 'lucide-react';
 
 export default function Gallery() {
-  const { memories, likeMemory, addMemory, user, lang } = useApp();
+  const { memories, likeMemory, addMemory, user, lang, apiBaseUrl = '' } = useApp();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [lightboxImage, setLightboxImage] = useState(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   // Lock background scroll when lightbox or upload modal is open
   useScrollLock(Boolean(lightboxImage || uploadModalOpen));
@@ -54,6 +56,15 @@ export default function Gallery() {
 
   const handleUploadSubmit = (e) => {
     e.preventDefault();
+    if (!newMemory.image) {
+      setUploadError(
+        lang === 'bn'
+          ? 'দয়া করে গ্যালারি থেকে একটি ছবি সিলেক্ট ও আপলোড করুন।'
+          : 'Please select and upload a photo from your gallery.'
+      );
+      return;
+    }
+    setUploadError('');
     addMemory(newMemory);
     setUploadSuccess(true);
     setTimeout(() => {
@@ -349,20 +360,23 @@ export default function Gallery() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#1C1917] dark:text-[#FDFBF7] mb-1">
-                    {lang === 'bn' ? 'ছবির সরাসরি ওয়েব বা Google Drive লিংক' : 'Direct Image or Google Drive URL'}
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    placeholder={lang === 'bn' ? 'https://drive.google.com/file/d/... বা সরাসরি লিংক' : 'https://drive.google.com/file/d/... or direct link'}
+                  <CloudinaryImageInput
+                    label={lang === 'bn' ? 'ছবি আপলোড করুন (গ্যালারি থেকে) *' : 'Upload Photo (From Gallery) *'}
                     value={newMemory.image}
-                    onChange={(e) => setNewMemory({ ...newMemory, image: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#141311] border border-slate-300 dark:border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-white focus:outline-none focus:border-emerald-500"
+                    onChange={(val) => {
+                      setUploadError('');
+                      setNewMemory({ ...newMemory, image: val });
+                    }}
+                    lang={lang}
+                    fallbackIcon={ImageIcon}
+                    apiBaseUrl={apiBaseUrl}
+                    folder="rtec-alumni/gallery"
                   />
-                  <span className="text-[10px] text-[#44403C] dark:text-[#DCD3C1] mt-0.5 block">
-                    {lang === 'bn' ? '(Google Drive শেয়ার লিংক বা যেকোনো সরাসরি ছবির লিংক দিন)' : '(Google Drive share link or any direct image URL)'}
-                  </span>
+                  {uploadError && (
+                    <p className="text-[11px] text-red-600 dark:text-red-400 mt-1.5 font-medium">
+                      {uploadError}
+                    </p>
+                  )}
                 </div>
 
                 <button

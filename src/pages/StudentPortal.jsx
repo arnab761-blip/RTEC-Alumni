@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
-import DriveImageInput from '../components/DriveImageInput.jsx';
+import CloudinaryImageInput from '../components/CloudinaryImageInput.jsx';
 import { formatDriveImageUrl } from '../utils/driveImage.js';
 import GoogleSignInModal, { GoogleSignInButton, GoogleLogo } from '../components/GoogleSignInModal.jsx';
 import {
@@ -74,7 +74,8 @@ export default function StudentPortal() {
     loginWithGmail,
     logout,
     submitDispute,
-    isAdminEmail
+    isAdminEmail,
+    apiBaseUrl
   } = useApp();
 
   const maskEmail = (emailStr) => {
@@ -1519,15 +1520,16 @@ export default function StudentPortal() {
                       </select>
                     </div>
 
-                    {/* Avatar / Photo with Drive Support */}
+                    {/* Avatar / Photo with Direct Gallery Upload & Cloudinary */}
                     <div className="sm:col-span-2">
-                      <DriveImageInput
-                        label={lang === 'bn' ? 'প্রোফাইল ছবি (Google Drive লিঙ্ক বা URL)' : 'Profile Photo (Drive Link or Image URL)'}
+                      <CloudinaryImageInput
+                        label={lang === 'bn' ? 'প্রোফাইল ছবি (গ্যালারি থেকে আপলোড)' : 'Profile Photo (Upload from Gallery)'}
                         value={formData.avatar}
                         onChange={(val) => setFormData({ ...formData, avatar: val })}
                         lang={lang}
                         fallbackIcon={ImageIcon}
-                        placeholder="https://drive.google.com/file/d/.../view"
+                        apiBaseUrl={apiBaseUrl}
+                        folder="rtec-alumni/students"
                       />
                     </div>
                   </div>

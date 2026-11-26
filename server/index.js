@@ -23,6 +23,7 @@ import { MentorshipRequest } from './models/MentorshipRequest.js';
 import { EventRegistration } from './models/EventRegistration.js';
 import { JobApplication } from './models/JobApplication.js';
 import fs from 'fs';
+import crypto from 'crypto';
 import {
   masterExcelPath,
   publicExcelPath,
@@ -1116,6 +1117,43 @@ app.delete('/api/job-applications/:id', requireDb, async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// ==========================================================
+// 17. CLOUDINARY SIGNED UPLOAD SIGNATURE
+// ==========================================================
+app.post('/api/cloudinary-signature', (req, res) => {
+  const cloudName = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
+  const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim();
+  const apiSecret = (process.env.CLOUDINARY_API_SECRET || '').trim();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    return res.status(503).json({
+      success: false,
+      error: 'Cloudinary credentials are not configured on the server.'
+    });
+  }
+
+  const folder = String(req.body?.folder || 'rtec-alumni/students')
+    .replace(/[^a-zA-Z0-9/_-]/g, '')
+    .slice(0, 100) || 'rtec-alumni/students';
+  const timestamp = Math.round(Date.now() / 1000);
+
+  // Parameters must be signed in alphabetical order
+  const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
+  const signature = crypto
+    .createHash('sha1')
+    .update(`${paramsToSign}${apiSecret}`)
+    .digest('hex');
+
+  res.json({
+    success: true,
+    cloudName,
+    apiKey,
+    timestamp,
+    signature,
+    folder
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

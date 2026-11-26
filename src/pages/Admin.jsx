@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext.jsx';
-import { formatDriveImageUrl } from '../utils/driveImage.js';
+import CloudinaryImageInput from '../components/CloudinaryImageInput.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -63,91 +63,6 @@ const BATCH_OPTIONS = [
   '7th Batch (2024-25)',
   '8th Batch (2025-26)'
 ];
-
-/**
- * Reusable Google Drive image input with live preview and professional instruction guidelines
- */
-function DriveImageInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-  lang,
-  fallbackIcon: FallbackIcon = Sparkles
-}) {
-  const [imgError, setImgError] = useState(false);
-  const formattedUrl = formatDriveImageUrl(value);
-
-  return (
-    <div className="space-y-2">
-      <label className="text-slate-300 font-semibold block text-xs">
-        {label}
-      </label>
-
-      <div className="flex items-start gap-3">
-        {/* Live Preview Box */}
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-950 border-2 border-emerald-500/40 overflow-hidden shrink-0 flex items-center justify-center shadow-md">
-          {value && !imgError ? (
-            <img
-              src={formattedUrl}
-              alt="Preview"
-              className="w-full h-full object-cover"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="text-center p-2 text-slate-500">
-              <FallbackIcon className="w-5 h-5 mx-auto text-emerald-400/50 mb-1" />
-              <span className="text-[9px] block leading-tight font-mono">
-                {lang === 'bn' ? 'ছবির প্রিভিউ' : 'Preview'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* URL Input & Professional Guide Box */}
-        <div className="flex-1 min-w-0 space-y-2">
-          <input
-            type="text"
-            value={value || ''}
-            onChange={(e) => {
-              setImgError(false);
-              onChange(e.target.value);
-            }}
-            placeholder={placeholder || (lang === 'bn' ? 'গুগল ড্রাইভ লিংক বা ছবির URL পেস্ট করুন...' : 'Paste Google Drive link or image URL...')}
-            className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-emerald-500 focus:outline-none"
-          />
-
-          {/* Professional Google Drive Instruction Box */}
-          <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-200 leading-relaxed shadow-sm">
-            <p className="font-bold flex items-center gap-1.5 text-emerald-300 mb-1.5">
-              <span>💡</span>
-              <span>
-                {lang === 'bn'
-                  ? 'গুগল ড্রাইভ (Google Drive) দিয়ে ছবি দেওয়ার সহজ নিয়ম:'
-                  : 'How to use Google Drive photo link:'}
-              </span>
-            </p>
-            <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-300">
-              {lang === 'bn' ? (
-                <>
-                  <li>আপনার ছবিটি <strong>Google Drive</strong>-এ আপলোড করুন।</li>
-                  <li>ছবিতে রাইট-ক্লিক করে <strong>Share</strong> নির্বাচন করুন এবং General access-এ <strong>"Anyone with the link"</strong> সিলেক্ট করুন।</li>
-                  <li>এরপর <strong>"Copy link"</strong> করে সেই লিংকটি উপরের বক্সে পেস্ট করে দিন। কোনো অতিরিক্ত সার্ভার স্টোরেজ ছাড়াই সরাসরি ছবি প্রদর্শিত হবে!</li>
-                </>
-              ) : (
-                <>
-                  <li>Upload the image to your <strong>Google Drive</strong>.</li>
-                  <li>Right click the file, select <strong>Share</strong>, and set General access to <strong>"Anyone with the link"</strong>.</li>
-                  <li>Click <strong>"Copy link"</strong> and paste the link into the box above. The image will render directly without backend storage!</li>
-                </>
-              )}
-            </ol>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function Admin() {
   const {
@@ -3214,18 +3129,20 @@ export default function Admin() {
                 </h4>
                 <p className="text-xs text-[#A89884] mt-1">
                   {lang === 'bn'
-                    ? 'ওয়েবসাইটের সবার উপরে বামপাশে কলেজের নামের সাথে প্রদর্শিত অফিসিয়াল লোগোটি পরিবর্তন বা সেট করুন। গুগল ড্রাইভের শেয়ার লিংক দিলে স্বয়ংক্রিয়ভাবে সরাসরি লোড হবে।'
-                    : 'Set custom college logo displayed in the top navbar next to college name. Direct Drive links are automatically supported.'}
+                    ? 'ওয়েবসাইটের সবার উপরে বামপাশে কলেজের নামের সাথে প্রদর্শিত অফিসিয়াল লোগোটি পরিবর্তন বা সেট করুন। গ্যালারি থেকে সরাসরি ছবি আপলোড করলে তা স্বয়ংক্রিয়ভাবে কম্প্রেস হয়ে Cloudinary-তে সেভ হবে।'
+                    : 'Set custom college logo displayed in the top navbar next to college name. Upload directly from your gallery to save on Cloudinary.'}
                 </p>
               </div>
 
-              <DriveImageInput
-                label={lang === 'bn' ? 'কলেজ লোগোর Google Drive লিংক বা URL' : 'College Logo Drive Link or Image URL'}
+              <CloudinaryImageInput
+                label={lang === 'bn' ? 'কলেজ লোগো (গ্যালারি থেকে আপলোড)' : 'College Logo (Upload from Gallery)'}
                 value={customLogoUrl}
                 onChange={setCustomLogoUrl}
                 lang={lang}
                 fallbackIcon={ImageIcon}
-                placeholder="https://drive.google.com/file/d/.../view"
+                apiBaseUrl={apiBaseUrl}
+                folder="rtec-alumni/branding"
+                darkSurface
               />
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -3841,13 +3758,15 @@ export default function Admin() {
                       />
                     </div>
 
-                    <DriveImageInput
-                      label={lang === 'bn' ? 'শিক্ষকের ছবি (Google Drive লিংক বা Photo URL)' : 'Faculty Photo (Google Drive Link or Photo URL)'}
+                    <CloudinaryImageInput
+                      label={lang === 'bn' ? 'শিক্ষকের ছবি (গ্যালারি থেকে আপলোড)' : 'Faculty Photo (Upload from Gallery)'}
                       value={formData.photo || ''}
                       onChange={(val) => setFormData({ ...formData, photo: val })}
                       lang={lang}
                       fallbackIcon={GraduationCap}
-                      placeholder="https://drive.google.com/file/d/.../view"
+                      apiBaseUrl={apiBaseUrl}
+                      folder="rtec-alumni/teachers"
+                      darkSurface
                     />
 
                     <div className="flex items-center gap-2 pt-2">
@@ -4039,13 +3958,15 @@ export default function Admin() {
                       />
                     </div>
 
-                    <DriveImageInput
-                      label={lang === 'bn' ? 'শিক্ষার্থীর ছবি (Google Drive লিংক বা Photo URL)' : 'Student Photo (Google Drive Link or Photo URL)'}
+                    <CloudinaryImageInput
+                      label={lang === 'bn' ? 'শিক্ষার্থীর ছবি (গ্যালারি থেকে আপলোড)' : 'Student Photo (Upload from Gallery)'}
                       value={formData.avatar || ''}
                       onChange={(val) => setFormData({ ...formData, avatar: val })}
                       lang={lang}
                       fallbackIcon={Users}
-                      placeholder="https://drive.google.com/file/d/.../view"
+                      apiBaseUrl={apiBaseUrl}
+                      folder="rtec-alumni/students"
+                      darkSurface
                     />
                   </>
                 )}
@@ -4206,13 +4127,15 @@ export default function Admin() {
                       </div>
                     </div>
 
-                    <DriveImageInput
-                      label={lang === 'bn' ? 'অ্যালামনাই ছবি (Google Drive লিংক বা Photo URL)' : 'Alumni Photo (Google Drive Link or Photo URL)'}
+                    <CloudinaryImageInput
+                      label={lang === 'bn' ? 'অ্যালামনাই ছবি (গ্যালারি থেকে আপলোড)' : 'Alumni Photo (Upload from Gallery)'}
                       value={formData.avatar || ''}
                       onChange={(val) => setFormData({ ...formData, avatar: val })}
                       lang={lang}
                       fallbackIcon={Award}
-                      placeholder="https://drive.google.com/file/d/.../view"
+                      apiBaseUrl={apiBaseUrl}
+                      folder="rtec-alumni/alumni"
+                      darkSurface
                     />
 
                     <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -4390,13 +4313,15 @@ export default function Admin() {
                       />
                     </div>
 
-                    <DriveImageInput
-                      label={lang === 'bn' ? 'সার্কুলার ব্যানার বা ছবি (Google Drive লিংক বা Photo URL)' : 'Job Circular Banner / Image (Drive Link or Photo URL)'}
+                    <CloudinaryImageInput
+                      label={lang === 'bn' ? 'সার্কুলার ব্যানার বা ছবি (গ্যালারি থেকে আপলোড)' : 'Job Circular Banner / Image (Upload from Gallery)'}
                       value={formData.image || ''}
                       onChange={(val) => setFormData({ ...formData, image: val })}
                       lang={lang}
                       fallbackIcon={Briefcase}
-                      placeholder="https://drive.google.com/file/d/.../view"
+                      apiBaseUrl={apiBaseUrl}
+                      folder="rtec-alumni/jobs"
+                      darkSurface
                     />
 
                     {/* PDF Circular Link */}
@@ -4518,13 +4443,15 @@ export default function Admin() {
                       />
                     </div>
 
-                    <DriveImageInput
-                      label={lang === 'bn' ? 'নোটিশ ব্যানার বা ছবি (Google Drive লিংক বা Photo URL)' : 'Notice Banner / Image (Drive Link or Photo URL)'}
+                    <CloudinaryImageInput
+                      label={lang === 'bn' ? 'নোটিশ ব্যানার বা ছবি (গ্যালারি থেকে আপলোড)' : 'Notice Banner / Image (Upload from Gallery)'}
                       value={formData.image || ''}
                       onChange={(val) => setFormData({ ...formData, image: val })}
                       lang={lang}
                       fallbackIcon={Newspaper}
-                      placeholder="https://drive.google.com/file/d/.../view"
+                      apiBaseUrl={apiBaseUrl}
+                      folder="rtec-alumni/notices"
+                      darkSurface
                     />
 
                     {/* PDF Circular Link */}
