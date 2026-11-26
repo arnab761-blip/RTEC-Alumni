@@ -27,19 +27,14 @@ import { LinkedinIcon } from '../components/SocialIcons.jsx';
 import UserAvatar from '../components/UserAvatar.jsx';
 
 export default function AlumniDirectory() {
-  const { alumni, user, lang, submitContactMessage } = useApp();
+  const { alumni, lang } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('All');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedProfile, setSelectedProfile] = useState(null);
-  const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [messageSent, setMessageSent] = useState(false);
-  const [senderName, setSenderName] = useState(user?.name || '');
-  const [senderContact, setSenderContact] = useState(user?.email || '');
-  const [messageBody, setMessageBody] = useState('');
 
-  // Lock background scroll when any alumni modal is open
-  useScrollLock(Boolean(selectedProfile || contactModalOpen));
+  // Lock background scroll when alumni details modal is open
+  useScrollLock(Boolean(selectedProfile));
 
   // Batches list (1st Batch: 2018-19 to 8th Batch: 2025-26)
   const batches = [
@@ -99,26 +94,6 @@ export default function AlumniDirectory() {
       return matchSearch && matchBatch && matchDept;
     });
   }, [alumni, searchQuery, selectedBatch, selectedDept]);
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    submitContactMessage({
-      name: senderName || user?.name || 'RTEC Visitor',
-      email: senderContact.includes('@') ? senderContact : '',
-      phone: senderContact.includes('@') ? '' : senderContact,
-      subject: selectedProfile ? `Direct Message to ${selectedProfile.name}` : 'Alumni Directory Message',
-      message: messageBody,
-      recipientName: selectedProfile?.name || '',
-      recipientId: selectedProfile?.id || '',
-      source: 'alumni-directory'
-    });
-    setMessageSent(true);
-    setTimeout(() => {
-      setMessageSent(false);
-      setContactModalOpen(false);
-      setMessageBody('');
-    }, 2000);
-  };
 
   return (
     <motion.div
@@ -437,6 +412,20 @@ export default function AlumniDirectory() {
                       {selectedProfile.workLocation || selectedProfile.location || 'Bangladesh'}
                     </span>
                   </div>
+
+                  {selectedProfile.email && (
+                    <div className="flex items-start justify-between gap-4 pt-1 border-t border-[#C5A880]/15">
+                      <span className="text-[#57534E] dark:text-[#A89884] font-mono-tech uppercase text-[11px] shrink-0">
+                        {lang === 'bn' ? 'ইমেইল:' : 'EMAIL:'}
+                      </span>
+                      <a
+                        href={`mailto:${selectedProfile.email}`}
+                        className="text-[#BD452F] dark:text-[#DE644E] hover:underline font-mono-tech text-[11px] font-bold text-right break-all"
+                      >
+                        {selectedProfile.email}
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {selectedProfile.bio && (
@@ -469,13 +458,23 @@ export default function AlumniDirectory() {
                 )}
 
                 <div className="pt-4 border-t border-[#C5A880]/20 flex items-center gap-3">
-                  <button
-                    onClick={() => setContactModalOpen(true)}
-                    className="btn-agency btn-agency-terracotta flex-1 py-2.5 rounded text-xs font-sans uppercase tracking-wider"
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>{lang === 'bn' ? 'বার্তা প্রেরণ করুন' : 'Dispatch Message'}</span>
-                  </button>
+                  {selectedProfile.email ? (
+                    <a
+                      href={`mailto:${selectedProfile.email}?subject=${encodeURIComponent(
+                        lang === 'bn'
+                          ? 'RTEC অ্যালামনাই ডিরেক্টরি থেকে যোগাযোগ'
+                          : 'Connecting via RTEC Alumni Directory'
+                      )}`}
+                      className="btn-agency btn-agency-terracotta flex-1 py-2.5 rounded text-xs font-sans uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>{lang === 'bn' ? 'ইমেইল পাঠান (Email)' : 'Send Email'}</span>
+                    </a>
+                  ) : (
+                    <div className="flex-1 py-2.5 px-3 rounded bg-stone-100 dark:bg-[#141311] border border-[#C5A880]/20 text-[#57534E] dark:text-[#A89884] text-xs font-sans text-center">
+                      {lang === 'bn' ? 'ইমেইল সংযুক্ত নেই' : 'Email Not Provided'}
+                    </div>
+                  )}
                   {selectedProfile.linkedin && (
                     <a
                       href={selectedProfile.linkedin}
@@ -488,103 +487,6 @@ export default function AlumniDirectory() {
                     </a>
                   )}
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-
-      {/* Direct Contact Form Modal mounted via Portal */}
-      {typeof document !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {contactModalOpen && selectedProfile && (
-            <motion.div 
-              key="alumni-contact-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setContactModalOpen(false);
-              }}
-            >
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="plaque-elevated w-full max-w-md rounded-2xl p-6 border border-[#C5A880]/40 relative my-auto overscroll-contain"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => setContactModalOpen(false)}
-                  className="absolute top-4 right-4 text-[#A89884] hover:text-[#EDE8DF]"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-
-                <h3 className="font-serif-regal font-bold text-base text-[#FDFBF7] mb-1">
-                  {lang === 'bn' ? `${selectedProfile.name}-কে বার্তা পাঠান` : `Dispatch Message to ${selectedProfile.name}`}
-                </h3>
-                <p className="text-xs text-[#A89884] mb-4 font-sans">
-                  {lang === 'bn' ? 'বার্তাটি সরাসরি আরটেক অভ্যন্তরীণ ডাক মাধ্যমে প্রেরিত হবে।' : 'Dispatched via institutional communication channel.'}
-                </p>
-
-                {messageSent ? (
-                  <div className="p-6 text-center text-[#DFCA9E] font-mono-tech text-xs bg-[#141311] rounded-xl border border-[#C5A880]/40">
-                    ✓ {lang === 'bn' ? 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে!' : 'Message dispatched successfully!'}
-                  </div>
-                ) : (
-                  <form onSubmit={handleSendMessage} className="space-y-3 font-sans">
-                    <div>
-                      <label className="block text-xs font-mono-tech text-[#A89884] mb-1">
-                        {lang === 'bn' ? 'আপনার নাম' : 'YOUR NAME'}
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={senderName}
-                        onChange={(e) => setSenderName(e.target.value)}
-                        placeholder={lang === 'bn' ? 'আপনার পূর্ণ নাম লিখুন' : 'Your full name'}
-                        className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-mono-tech text-[#A89884] mb-1">
-                        {lang === 'bn' ? 'ইমেইল বা ফোন নম্বর' : 'CONTACT EMAIL / PHONE'}
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={senderContact}
-                        onChange={(e) => setSenderContact(e.target.value)}
-                        placeholder={lang === 'bn' ? 'ইমেইল বা ০১৭XXXXXXXX' : 'Email or phone number'}
-                        className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-mono-tech text-[#A89884] mb-1">
-                        {lang === 'bn' ? 'বার্তা' : 'MESSAGE'}
-                      </label>
-                      <textarea
-                        rows="3"
-                        required
-                        value={messageBody}
-                        onChange={(e) => setMessageBody(e.target.value)}
-                        placeholder={lang === 'bn' ? 'আপনার বার্তা লিখুন...' : 'Write your message...'}
-                        className="w-full px-3 py-2 rounded bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] focus:outline-none focus:border-[#C5A880]"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="btn-agency btn-agency-terracotta w-full py-2.5 rounded text-xs font-sans uppercase tracking-wider"
-                    >
-                      {lang === 'bn' ? 'বার্তা প্রেরণ সম্পন্ন করুন' : 'Confirm & Send'}
-                    </button>
-                  </form>
-                )}
               </motion.div>
             </motion.div>
           )}

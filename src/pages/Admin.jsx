@@ -739,8 +739,8 @@ export default function Admin() {
               labelBn: 'বার্তা ও মেন্টরশিপ',
               labelEn: 'Inbox & Mentorship',
               icon: MessageSquare,
-              count: contactMessages.filter(m => m.status !== 'resolved').length + mentorshipRequests.filter(r => r.status === 'pending').length,
-              isPending: (contactMessages.filter(m => m.status !== 'resolved').length + mentorshipRequests.filter(r => r.status === 'pending').length) > 0
+              count: contactMessages.filter(m => m.source !== 'alumni-directory' && m.status !== 'resolved').length + mentorshipRequests.filter(r => r.status === 'pending').length,
+              isPending: (contactMessages.filter(m => m.source !== 'alumni-directory' && m.status !== 'resolved').length + mentorshipRequests.filter(r => r.status === 'pending').length) > 0
             },
             { id: 'settings', labelBn: 'সিস্টেম সেটিংস', labelEn: 'Settings', icon: RotateCcw, count: null }
           ].map((tab) => {
@@ -3112,26 +3112,26 @@ export default function Admin() {
                 )}
               </div>
 
-              {/* Contact Inquiries */}
+              {/* Contact Page Inquiries */}
               <div className="space-y-4 pt-6 border-t border-[#C5A880]/20">
                 <div>
                   <h3 className="text-xl font-bold text-[#FDFBF7]">
-                    {lang === 'bn' ? 'যোগাযোগ ও সরাসরি বার্তা ইনবক্স' : 'Contact Inquiries & Direct Messages'}
+                    {lang === 'bn' ? 'যোগাযোগ পেজের বার্তা ইনবক্স' : 'Contact Page Inquiries'}
                   </h3>
                   <p className="text-xs text-[#A89884] mt-0.5">
                     {lang === 'bn'
-                      ? 'যোগাযোগ পেজ এবং অ্যালামনাই ডিরেক্টরি থেকে ব্যবহারকারীদের পাঠানো সকল বার্তা।'
-                      : 'All messages submitted through the Contact desk and Alumni Directory messaging forms.'}
+                      ? 'ওয়েবসাইটের যোগাযোগ (Contact) পেজ থেকে ব্যবহারকারীদের পাঠানো বার্তাসমূহ।'
+                      : 'Messages submitted through the official Contact Us page.'}
                   </p>
                 </div>
 
-                {contactMessages.length === 0 ? (
+                {contactMessages.filter(m => m.source !== 'alumni-directory').length === 0 ? (
                   <div className="p-8 text-center rounded-2xl plaque-elevated border border-[#C5A880]/20 text-xs text-[#A89884]">
                     {lang === 'bn' ? 'কোনো বার্তা এখনো জমা হয়নি।' : 'Inbox is empty — no contact messages yet.'}
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {contactMessages.map((msg) => (
+                    {contactMessages.filter(m => m.source !== 'alumni-directory').map((msg) => (
                       <div key={msg.id} className="p-5 rounded-2xl plaque-elevated border border-[#C5A880]/25 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="space-y-1.5 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
