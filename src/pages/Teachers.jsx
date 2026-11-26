@@ -403,7 +403,7 @@ export default function Teachers() {
                 value={staffSearch}
                 onChange={(e) => setStaffSearch(e.target.value)}
                 placeholder={lang === 'bn' ? 'কর্মচারীর নাম, পদবি বা নম্বর...' : 'Search staff name, role, phone...'}
-                className="w-full pl-9 pr-8 py-2 rounded-lg bg-[#141311] border border-[#C5A880]/25 text-xs text-[#FDFBF7] placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
+                className="w-full pl-9 pr-8 py-2 rounded-lg bg-white dark:bg-[#141311] border border-stone-300 dark:border-[#C5A880]/25 text-xs text-stone-900 dark:text-[#FDFBF7] placeholder-stone-400 dark:placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] transition font-sans"
               />
               {staffSearch && (
                 <button
@@ -424,7 +424,7 @@ export default function Teachers() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-[#C5A880]/20 bg-[#141311]/70 text-[11px] font-mono-tech uppercase text-[#DFCA9E]">
+                      <tr className="border-b border-[#C5A880]/30 bg-[#EFE8DA] dark:bg-[#1E1C18] text-[11px] font-mono-tech uppercase font-bold text-[#2C241B] dark:text-[#DFCA9E]">
                         <th className="py-3 px-4 w-14 text-center">{lang === 'bn' ? 'নং' : 'SL'}</th>
                         <th className="py-3 px-4">{lang === 'bn' ? 'নাম' : 'Name'}</th>
                         <th className="py-3 px-4">{lang === 'bn' ? 'পদবি' : 'Designation'}</th>
@@ -440,7 +440,16 @@ export default function Teachers() {
                             {String(staff.serialNo).padStart(2, '0')}
                           </td>
                           <td className="py-2.5 px-4 font-semibold text-[#FDFBF7]">
-                            {lang === 'bn' ? staff.nameBn : staff.name}
+                            <div className="flex items-center gap-2.5">
+                              <UserAvatar
+                                src={staff.photo}
+                                name={staff.name}
+                                role="staff"
+                                className="w-9 h-9 rounded-lg object-cover border border-[#C5A880]/35 shrink-0 bg-stone-200 dark:bg-[#141311]"
+                                iconClassName="w-4 h-4"
+                              />
+                              <span>{lang === 'bn' ? staff.nameBn : staff.name}</span>
+                            </div>
                           </td>
                           <td className="py-2.5 px-4 text-[#DE644E] font-medium">
                             {lang === 'bn' ? staff.designationBn : staff.designation}
@@ -495,29 +504,38 @@ export default function Teachers() {
                     key={staff.id}
                     className="plaque-elevated rounded-lg border border-[#C5A880]/20 p-3.5 flex items-start justify-between gap-3"
                   >
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-[#141311] text-[#DFCA9E] border border-[#C5A880]/25 shrink-0">
-                          #{String(staff.serialNo).padStart(2, '0')}
-                        </span>
-                        <h3 className="text-sm font-bold text-[#FDFBF7] truncate">
-                          {lang === 'bn' ? staff.nameBn : staff.name}
-                        </h3>
-                      </div>
-                      <p className="text-xs font-medium text-[#DE644E]">
-                        {lang === 'bn' ? staff.designationBn : staff.designation}
-                      </p>
-                      <div className="pt-1 space-y-0.5 text-[11px] font-mono-tech">
-                        <a href={`tel:${staff.phone}`} className="flex items-center gap-1.5 text-[#DCD3C1] hover:text-[#DFCA9E]">
-                          <Phone className="w-3 h-3 text-[#DFCA9E] shrink-0" />
-                          <span>{staff.phone}</span>
-                        </a>
-                        {staff.email && (
-                          <a href={`mailto:${staff.email}`} className="flex items-center gap-1.5 text-[#A89884] hover:text-[#DFCA9E] truncate">
-                            <Mail className="w-3 h-3 text-[#DFCA9E] shrink-0" />
-                            <span className="truncate">{staff.email}</span>
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      <UserAvatar
+                        src={staff.photo}
+                        name={staff.name}
+                        role="staff"
+                        className="w-11 h-11 rounded-lg object-cover border border-[#C5A880]/35 shrink-0 bg-stone-200 dark:bg-[#141311]"
+                        iconClassName="w-5 h-5"
+                      />
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono-tech px-1.5 py-0.5 rounded bg-[#EFE8DA] dark:bg-[#141311] text-[#2C241B] dark:text-[#DFCA9E] border border-[#C5A880]/30 font-semibold shrink-0">
+                            #{String(staff.serialNo).padStart(2, '0')}
+                          </span>
+                          <h3 className="text-sm font-bold text-[#FDFBF7] truncate">
+                            {lang === 'bn' ? staff.nameBn : staff.name}
+                          </h3>
+                        </div>
+                        <p className="text-xs font-medium text-[#DE644E]">
+                          {lang === 'bn' ? staff.designationBn : staff.designation}
+                        </p>
+                        <div className="pt-1 space-y-0.5 text-[11px] font-mono-tech">
+                          <a href={`tel:${staff.phone}`} className="flex items-center gap-1.5 text-[#DCD3C1] hover:text-[#DFCA9E]">
+                            <Phone className="w-3 h-3 text-[#DFCA9E] shrink-0" />
+                            <span>{staff.phone}</span>
                           </a>
-                        )}
+                          {staff.email && (
+                            <a href={`mailto:${staff.email}`} className="flex items-center gap-1.5 text-[#A89884] hover:text-[#DFCA9E] truncate">
+                              <Mail className="w-3 h-3 text-[#DFCA9E] shrink-0" />
+                              <span className="truncate">{staff.email}</span>
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
 

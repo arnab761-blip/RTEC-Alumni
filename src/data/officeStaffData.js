@@ -7,7 +7,8 @@ export const OFFICE_STAFF = [
     designation: 'Assistant Instructor',
     designationBn: 'এ্যাসিসটেন্ট ইন্সট্রাক্টর',
     email: 'sonjitkumar251@gmail.com',
-    phone: '01755442251'
+    phone: '01755442251',
+    photo: '/images/staff/staff-01.png'
   },
   {
     id: 'staff-02',
@@ -17,7 +18,8 @@ export const OFFICE_STAFF = [
     designation: 'Assistant Instructor',
     designationBn: 'এ্যাসিসটেন্ট ইন্সট্রাক্টর',
     email: 'md.sahedulislam.dot.sahedul@gmail.com',
-    phone: '01729451448'
+    phone: '01729451448',
+    photo: '/images/staff/staff-02.jpg'
   },
   {
     id: 'staff-03',
@@ -27,7 +29,8 @@ export const OFFICE_STAFF = [
     designation: 'Tailor Master',
     designationBn: 'টেইলার মাস্টার',
     email: 'mdm583487@gmail.com',
-    phone: '01715651130'
+    phone: '01715651130',
+    photo: '/images/staff/staff-03.jpeg'
   },
   {
     id: 'staff-04',
@@ -37,7 +40,8 @@ export const OFFICE_STAFF = [
     designation: 'Computer Operator',
     designationBn: 'কম্পিউটার অপারেটর',
     email: 'aiaminulislam1994@gmail.com',
-    phone: '01796901694'
+    phone: '01796901694',
+    photo: '/images/staff/staff-04.png'
   },
   {
     id: 'staff-05',
@@ -47,7 +51,8 @@ export const OFFICE_STAFF = [
     designation: 'Cashier',
     designationBn: 'ক্যাশিয়ার',
     email: 'mamunorrashid4747@gmail.com',
-    phone: '01723674747'
+    phone: '01723674747',
+    photo: '/images/staff/staff-05.png'
   },
   {
     id: 'staff-06',
@@ -57,7 +62,8 @@ export const OFFICE_STAFF = [
     designation: 'Pattern Designer',
     designationBn: 'প্যাটার্ণ ডিজাইনার',
     email: 'hasanjakaria551@gmail.com',
-    phone: '01314247689'
+    phone: '01314247689',
+    photo: '/images/staff/staff-06.jpeg'
   },
   {
     id: 'staff-07',
@@ -67,7 +73,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Assistant cum Computer Typist',
     designationBn: 'অফিস সহকারী কাম কম্পিউটার মুদ্রাক্ষরিক',
     email: 'mamun.tk825@gmail.com',
-    phone: '01303020502'
+    phone: '01303020502',
+    photo: '/images/staff/staff-07.png'
   },
   {
     id: 'staff-08',
@@ -77,7 +84,8 @@ export const OFFICE_STAFF = [
     designation: 'Technical Assistant',
     designationBn: 'টেকনিক্যাল এসিসট্যান্ট',
     email: 'ahmedmdkazul@gmail.com',
-    phone: '01771095008'
+    phone: '01771095008',
+    photo: '/images/staff/staff-08.jpeg'
   },
   {
     id: 'staff-09',
@@ -87,7 +95,8 @@ export const OFFICE_STAFF = [
     designation: 'Technical Assistant',
     designationBn: 'টেকনিক্যাল এ্যাসিসটেস্ট',
     email: 'kamrulhassan7876@gmail.com',
-    phone: '01767367366'
+    phone: '01767367366',
+    photo: '/images/staff/staff-09.jpeg'
   },
   {
     id: 'staff-10',
@@ -97,7 +106,8 @@ export const OFFICE_STAFF = [
     designation: 'Technical Assistant',
     designationBn: 'টেকনিক্যাল এসিসট্যান্ট',
     email: '',
-    phone: '+8801721010901'
+    phone: '+8801721010901',
+    photo: '/images/staff/staff-10.jpg'
   },
   {
     id: 'staff-11',
@@ -107,7 +117,8 @@ export const OFFICE_STAFF = [
     designation: 'Boiler Operator',
     designationBn: 'বয়লার অপারেটর',
     email: 'shahadatroni2@gmail.com',
-    phone: '01838029418'
+    phone: '01838029418',
+    photo: '/images/staff/staff-11.jpeg'
   },
   {
     id: 'staff-12',
@@ -117,7 +128,8 @@ export const OFFICE_STAFF = [
     designation: 'Laboratory Assistant',
     designationBn: 'ল্যাবরেটরী এ্যাসিসটেন্ট',
     email: 'ku0788423@gamil.com',
-    phone: '01739595131'
+    phone: '01739595131',
+    photo: '/images/staff/staff-12.jpeg'
   },
   {
     id: 'staff-13',
@@ -127,7 +139,8 @@ export const OFFICE_STAFF = [
     designation: 'Pump Operator',
     designationBn: 'পাম্প অপারেটর',
     email: 'hamidmiah580@gmail.com',
-    phone: '01727853010'
+    phone: '01727853010',
+    photo: '/images/staff/staff-13.jpeg'
   },
   {
     id: 'staff-14',
@@ -137,7 +150,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'rafique041987@gmail.com',
-    phone: '01735708116'
+    phone: '01735708116',
+    photo: '/images/staff/staff-14.png'
   },
   {
     id: 'staff-15',
@@ -147,7 +161,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'shoriful041976@gmail.com',
-    phone: '01732635626'
+    phone: '01732635626',
+    photo: ''
   },
   {
     id: 'staff-16',
@@ -157,7 +172,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'ziaruli549@gmail.com',
-    phone: '01761314949'
+    phone: '01761314949',
+    photo: '/images/staff/staff-16.jpeg'
   },
   {
     id: 'staff-17',
@@ -167,7 +183,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'hashemkhan286@gmail.com',
-    phone: '01744602668'
+    phone: '01744602668',
+    photo: '/images/staff/staff-17.jpeg'
   },
   {
     id: 'staff-18',
@@ -177,7 +194,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'hafijurjnu6381@gmai.com',
-    phone: '01722934081'
+    phone: '01722934081',
+    photo: '/images/staff/staff-18.jpeg'
   },
   {
     id: 'staff-19',
@@ -187,7 +205,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'aminulislam9226@gmail.com',
-    phone: '01756279042'
+    phone: '01756279042',
+    photo: '/images/staff/staff-19.jpeg'
   },
   {
     id: 'staff-20',
@@ -197,7 +216,8 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'jaslam69@gmail.com',
-    phone: '01751-129454'
+    phone: '01751-129454',
+    photo: '/images/staff/staff-20.jpg'
   },
   {
     id: 'staff-21',
@@ -207,6 +227,7 @@ export const OFFICE_STAFF = [
     designation: 'Office Support Staff',
     designationBn: 'অফিস সহায়ক',
     email: 'palashhossain7878@gmail.com',
-    phone: '01762-780478'
+    phone: '01762-780478',
+    photo: '/images/staff/staff-21.jpeg'
   }
 ];
