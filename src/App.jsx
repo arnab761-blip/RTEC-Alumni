@@ -6,6 +6,7 @@ import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
 import AuthStatusPopup from './components/AuthStatusPopup.jsx';
 import BackgroundWatermark from './components/BackgroundWatermark.jsx';
+import SupportTreatModal from './components/SupportTreatModal.jsx';
 import { forceUnlockScroll } from './utils/useScrollLock.js';
 import { GraduationCap } from 'lucide-react';
 
@@ -280,7 +281,7 @@ function AnimatedRoutes() {
 }
 
 function AppLayout() {
-  const { theme } = useApp();
+  const { theme, supportModalState, closeSupportModal } = useApp();
   const isDark = theme === 'dark';
 
   return (
@@ -294,6 +295,11 @@ function AppLayout() {
 
       <Navbar />
       <AuthStatusPopup />
+      <SupportTreatModal
+        isOpen={Boolean(supportModalState?.isOpen)}
+        initialTreat={supportModalState?.initialTreat || 'coffee'}
+        onClose={closeSupportModal}
+      />
       <main className="flex-1 flex flex-col w-full max-w-full overflow-x-clip pb-24 sm:pb-28 relative z-10 bg-transparent">
         <AnimatedRoutes />
       </main>

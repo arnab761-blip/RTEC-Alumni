@@ -154,6 +154,15 @@ export function AppProvider({ children }) {
   };
   const dismissAuthFeedback = () => setAuthFeedback(null);
 
+  // Global Support Treat Modal State (Offer a Coffee / Offer a Biryani)
+  const [supportModalState, setSupportModalState] = useState({ isOpen: false, initialTreat: 'coffee' });
+  const openSupportModal = (treat = 'coffee') => {
+    setSupportModalState({ isOpen: true, initialTreat: treat === 'biryani' ? 'biryani' : 'coffee' });
+  };
+  const closeSupportModal = () => {
+    setSupportModalState((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // 1. Current Authenticated User (Defaults to a regular guest visitor)
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('rtec_user');
@@ -2615,6 +2624,10 @@ export function AppProvider({ children }) {
         // Auth Popup Feedback
         authFeedback,
         dismissAuthFeedback,
+        // Support Treat Modal
+        supportModalState,
+        openSupportModal,
+        closeSupportModal,
         // System
         resetAllData
       }}

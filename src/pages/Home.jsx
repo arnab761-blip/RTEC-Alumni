@@ -20,7 +20,11 @@ import {
   FileText,
   ExternalLink,
   Spool,
-  Shirt
+  Shirt,
+  Coffee,
+  UtensilsCrossed,
+  Heart,
+  Sparkles
 } from 'lucide-react';
 import UserAvatar from '../components/UserAvatar.jsx';
 
@@ -68,7 +72,7 @@ const staggerContainer = {
 };
 
 export default function Home() {
-  const { teachers, students, alumni, jobs, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
+  const { teachers, students, alumni, jobs, forumPosts = [], news = [], lang, user, isAdminEmail, openSupportModal } = useApp();
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const recentNotices = useMemo(() => [...news].reverse().slice(0, 3), [news]);
   const principal = useMemo(() => {
@@ -1104,6 +1108,96 @@ export default function Home() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* 10. HIGHLIGHTED SUPPORT SEGMENT: OFFER A COFFEE OR BIRYANI */}
+      <section id="support-treat" className="py-12 sm:py-16 bg-transparent">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-amber-50 via-orange-50/90 to-rose-50 dark:from-[#231B13] dark:via-[#1B1714] dark:to-[#241413] border-2 border-amber-400/75 dark:border-[#C5A880]/45 shadow-xl relative overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+              <div className="lg:col-span-6 space-y-3 text-center lg:text-left">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#BD452F] text-white keep-white text-[10px] font-mono-tech uppercase tracking-wider font-bold shadow-sm">
+                  <Sparkles className="w-3 h-3" />
+                  <span>{lang === 'bn' ? 'প্ল্যাটফর্ম সাপোর্ট ও ভালোবাসা' : 'SUPPORT THE PLATFORM'}</span>
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7] leading-snug">
+                  {lang === 'bn'
+                    ? 'ওয়েবসাইটটি ভালো লাগলে কফি বা বিরিয়ানি অফার করুন!'
+                    : 'Enjoying RTEC Alumni? Offer a Coffee or Biryani!'}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#44403C] dark:text-[#DCD3C1] font-sans leading-relaxed max-w-xl mx-auto lg:mx-0">
+                  {lang === 'bn'
+                    ? 'দেশের ভেতর (bKash / Nagad / Rocket) কিংবা দেশের বাইরে থেকেও যে কেউ চাইলে প্ল্যাটফর্মটির উন্নয়ন ও পরিচালনায় অনুপ্রেরণা হিসেবে ছোট একটি ট্রিট অফার করতে পারেন।'
+                    : 'Whether in Bangladesh (bKash, Nagad, Rocket) or abroad, anyone can send a quick treat to support ongoing maintenance and new features.'}
+                </p>
+              </div>
+
+              <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Offer a Coffee Card */}
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => openSupportModal('coffee')}
+                  className="p-5 rounded-2xl bg-white dark:bg-[#141311] border-2 border-amber-400/70 dark:border-[#C5A880]/40 hover:border-[#854D0E] dark:hover:border-[#DFCA9E] text-left shadow-md hover:shadow-xl transition-all cursor-pointer group flex flex-col justify-between gap-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 aspect-square shrink-0 rounded-xl bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/35 flex items-center justify-center text-amber-800 dark:text-[#DFCA9E] group-hover:rotate-6 transition-transform">
+                      <Coffee className="w-5 h-5" />
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-[#DFCA9E] text-[11px] font-mono-tech font-bold">
+                      ৳100 / $2
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-serif-regal font-bold text-base sm:text-lg text-[#0C0A09] dark:text-[#FDFBF7] flex items-center gap-1.5">
+                      <span>{lang === 'bn' ? 'কফি অফার করুন' : 'Offer a Coffee'}</span>
+                      <span aria-hidden="true">☕</span>
+                    </h3>
+                    <p className="text-xs text-[#57534E] dark:text-[#A89884] font-sans mt-1">
+                      {lang === 'bn' ? 'এক কাপ গরম কফির সাথে উৎসাহ দিন' : 'Send a warm coffee treat in 1 click'}
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#854D0E] dark:text-[#DFCA9E] group-hover:translate-x-1 transition-transform">
+                    <Heart className="w-3.5 h-3.5" />
+                    <span>{lang === 'bn' ? 'এখনই অফার করুন →' : 'Send Coffee →'}</span>
+                  </div>
+                </motion.button>
+
+                {/* Offer a Biryani Card */}
+                <motion.button
+                  type="button"
+                  whileHover={{ y: -5, scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => openSupportModal('biryani')}
+                  className="p-5 rounded-2xl bg-gradient-to-br from-[#BD452F] to-[#9C3320] border-2 border-[#DE644E] text-left shadow-lg hover:shadow-2xl transition-all cursor-pointer group flex flex-col justify-between gap-4 text-white"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 aspect-square shrink-0 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center text-white keep-white group-hover:-rotate-6 transition-transform">
+                      <UtensilsCrossed className="w-5 h-5" />
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white keep-white text-[11px] font-mono-tech font-bold">
+                      ৳350 / $5
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-serif-regal font-bold text-base sm:text-lg text-white keep-white flex items-center gap-1.5">
+                      <span>{lang === 'bn' ? 'বিরিয়ানি অফার করুন' : 'Offer a Biryani'}</span>
+                      <span aria-hidden="true">🍛</span>
+                    </h3>
+                    <p className="text-xs text-rose-100 keep-white font-sans mt-1">
+                      {lang === 'bn' ? 'স্পেশাল বিরিয়ানি ট্রিট পাঠান!' : 'Celebrate with a special Biryani treat!'}
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 text-xs font-bold text-white keep-white group-hover:translate-x-1 transition-transform">
+                    <Heart className="w-3.5 h-3.5 fill-current" />
+                    <span>{lang === 'bn' ? 'এখনই অফার করুন →' : 'Send Biryani →'}</span>
+                  </div>
+                </motion.button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
