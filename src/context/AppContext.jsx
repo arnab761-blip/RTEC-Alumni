@@ -846,7 +846,7 @@ export function AppProvider({ children }) {
       phone: phone || existingSub?.phone || verifiedStudent?.phone || '',
       regNo: regNo || existingSub?.regNo || verifiedStudent?.regNo || '',
       avatar: sanitizeAvatar(existingSub?.avatar || verifiedStudent?.avatar) || '',
-      isVerified: effectiveRole === 'admin' || effectiveRole === 'alumni' || Boolean(verifiedStudent) || existingSub?.status === 'approved',
+      isVerified: isAuthorizedAdmin || Boolean(verifiedStudent) || Boolean(verifiedAlumni) || existingSub?.status === 'approved',
       googleVerified: Boolean(extra.googleVerified),
       submissionStatus: existingSub?.status || 'none',
       submissionId: existingSub?.id || null
@@ -2144,7 +2144,7 @@ export function AppProvider({ children }) {
       department: existingSub?.department || verifiedStudent?.department || verifiedAlumni?.department || additional.department || '',
       company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || verifiedAlumni?.company || 'Student at RTEC'),
       avatar: sanitizeAvatar(additional.avatar || existingSub?.avatar || verifiedStudent?.avatar || verifiedAlumni?.avatar) || '',
-      isVerified: isMasterAdmin || Boolean(additional.googleVerified) || existingSub?.status === 'approved' || Boolean(verifiedStudent || verifiedAlumni),
+      isVerified: isMasterAdmin || existingSub?.status === 'approved' || Boolean(verifiedStudent || verifiedAlumni),
       googleVerified: Boolean(additional.googleVerified),
       regNo: existingSub?.regNo || verifiedStudent?.regNo || verifiedAlumni?.regNo || '',
       phone: existingSub?.phone || verifiedStudent?.phone || verifiedAlumni?.phone || additional.phone || '',

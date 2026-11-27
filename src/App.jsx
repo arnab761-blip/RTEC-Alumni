@@ -32,6 +32,8 @@ function lazyWithRetry(importer) {
 import Home from './pages/Home.jsx';
 import About from './pages/About.jsx';
 import Auth from './pages/Auth.jsx';
+import Forum from './pages/Forum.jsx';
+import Gallery from './pages/Gallery.jsx';
 
 // Lazy-loaded pages with automatic retry
 const Teachers = lazyWithRetry(() => import('./pages/Teachers.jsx'));
@@ -39,8 +41,6 @@ const Students = lazyWithRetry(() => import('./pages/Students.jsx'));
 const AlumniDirectory = lazyWithRetry(() => import('./pages/AlumniDirectory.jsx'));
 const Jobs = lazyWithRetry(() => import('./pages/Jobs.jsx'));
 const Mentorship = lazyWithRetry(() => import('./pages/Mentorship.jsx'));
-const Gallery = lazyWithRetry(() => import('./pages/Gallery.jsx'));
-const Forum = lazyWithRetry(() => import('./pages/Forum.jsx'));
 const News = lazyWithRetry(() => import('./pages/News.jsx'));
 const Profile = lazyWithRetry(() => import('./pages/Profile.jsx'));
 const Admin = lazyWithRetry(() => import('./pages/Admin.jsx'));
@@ -265,8 +265,8 @@ function AnimatedRoutes() {
           <Route path="/directory" element={<LazyPage component={AlumniDirectory} />} />
           <Route path="/jobs" element={<LazyPage component={Jobs} />} />
           <Route path="/mentorship" element={<LazyPage component={Mentorship} />} />
-          <Route path="/gallery" element={<LazyPage component={Gallery} />} />
-          <Route path="/forum" element={<LazyPage component={Forum} />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/forum" element={<Forum />} />
           <Route path="/news" element={<LazyPage component={News} />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/profile" element={<LazyPage component={Profile} />} />

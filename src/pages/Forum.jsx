@@ -106,24 +106,27 @@ export default function Forum() {
     };
   }, [newPostModalOpen, approvalGateModalOpen, editPostModalOpen]);
 
-  // Strict gate: ONLY Admin, approved Students, or verified Alumni can post/reply.
-  // Guests and pending users can view only.
+  // Strict gate: ONLY Admin, approved Students (Student Portal approved or in students list), or verified Alumni can post/reply.
+  // Random Gmails without Student Portal approval, pending users, and guests can view only.
   const isPendingUser = Boolean(
     user?.submissionStatus === 'pending' ||
     mySubmission?.status === 'pending'
+  );
+  const userEmailLower = (user?.email || '').toLowerCase().trim();
+  const hasApprovedRecord = Boolean(
+    user?.role === 'admin' ||
+    mySubmission?.status === 'approved' ||
+    user?.submissionStatus === 'approved' ||
+    (userEmailLower && students.some(s => s.email?.toLowerCase().trim() === userEmailLower)) ||
+    (userEmailLower && alumni.some(a => a.email?.toLowerCase().trim() === userEmailLower && a.isVerified !== false)) ||
+    (mySubmission?.email && alumni.some(a => a.email?.toLowerCase().trim() === mySubmission.email.toLowerCase().trim() && a.isVerified !== false))
   );
   const isApprovedToShareExperience = Boolean(
     user &&
     user.role &&
     user.role !== 'guest' &&
-    !isPendingUser && (
-      user.role === 'admin' ||
-      user.isVerified === true ||
-      mySubmission?.status === 'approved' ||
-      user.submissionStatus === 'approved' ||
-      (user.email && alumni.some(a => a.email?.toLowerCase() === user.email?.toLowerCase() && a.isVerified !== false)) ||
-      (mySubmission?.email && alumni.some(a => a.email?.toLowerCase() === mySubmission.email?.toLowerCase() && a.isVerified !== false))
-    )
+    !isPendingUser &&
+    hasApprovedRecord
   );
 
   const handleOpenPostModal = (desiredType = 'experience') => {
@@ -1496,14 +1499,25 @@ export default function Forum() {
         document.body
       )}
 
-      {/* 1-Click Google Sign-In Modal for seamless community posting */}
+      {/* 1-Click Google Sign-In Modal for community verification */}
       <GoogleSignInModal
         isOpen={isGoogleModalOpen}
         onClose={() => setIsGoogleModalOpen(false)}
-        onSuccess={() => {
-          setApprovalGateModalOpen(false);
-          handleSwitchPostType(pendingDesiredPostType);
-          setNewPostModalOpen(true);
+        onSuccess={(loggedUser) => {
+          const loggedEmail = (loggedUser?.email || '').toLowerCase().trim();
+          const verifiedNow = Boolean(
+            loggedUser?.role === 'admin' ||
+            loggedUser?.submissionStatus === 'approved' ||
+            (loggedEmail && students.some(s => s.email?.toLowerCase().trim() === loggedEmail)) ||
+            (loggedEmail && alumni.some(a => a.email?.toLowerCase().trim() === loggedEmail && a.isVerified !== false))
+          );
+          if (verifiedNow) {
+            setApprovalGateModalOpen(false);
+            handleSwitchPostType(pendingDesiredPostType);
+            setNewPostModalOpen(true);
+          } else {
+            setApprovalGateModalOpen(true);
+          }
         }}
       />
 

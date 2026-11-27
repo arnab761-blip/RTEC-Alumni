@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function Gallery() {
-  const { memories, likeMemory, addMemory, user, mySubmission, alumni = [], lang, apiBaseUrl = '' } = useApp();
+  const { memories, likeMemory, addMemory, user, mySubmission, students = [], alumni = [], lang, apiBaseUrl = '' } = useApp();
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -27,16 +27,17 @@ export default function Gallery() {
     user?.submissionStatus === 'pending' ||
     mySubmission?.status === 'pending'
   );
+  const userEmailLower = (user?.email || '').toLowerCase().trim();
   const canShareMemory = Boolean(
     user &&
     user.role &&
     user.role !== 'guest' &&
     !isPendingUser && (
       user.role === 'admin' ||
-      user.isVerified === true ||
       mySubmission?.status === 'approved' ||
       user.submissionStatus === 'approved' ||
-      (user.email && alumni.some(a => a.email?.toLowerCase() === user.email?.toLowerCase() && a.isVerified !== false))
+      (userEmailLower && students.some(s => s.email?.toLowerCase().trim() === userEmailLower)) ||
+      (userEmailLower && alumni.some(a => a.email?.toLowerCase().trim() === userEmailLower && a.isVerified !== false))
     )
   );
 
