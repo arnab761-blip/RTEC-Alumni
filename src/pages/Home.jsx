@@ -352,9 +352,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. JOIN THE CENTRAL RTEC ENGINEERING REGISTER (Prominent Top Onboarding CTA) */}
+      {/* 3. WHY WE BUILT THIS PORTAL + JOIN THE CENTRAL RTEC ENGINEERING REGISTER */}
       <section className="py-12 sm:py-16 bg-transparent border-b border-[#C5A880]/15">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
+        <div className="max-w-5xl mx-auto px-4 space-y-10">
+          {/* Purpose & Overview Card (Avoids duplicating "About RTEC") */}
+          <div className="plaque-elevated rounded-2xl p-6 sm:p-8 border border-[#C5A880]/30 shadow-md">
+            <div className="flex flex-col md:flex-row md:items-start gap-5">
+              <div className="w-11 h-11 aspect-square shrink-0 rounded-xl bg-[#C5A880]/15 border border-[#C5A880]/35 flex items-center justify-center text-[#854D0E] dark:text-[#DFCA9E]">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-2.5 flex-1">
+                <span className="inline-block text-[10px] font-mono-tech uppercase tracking-widest text-[#BD452F] dark:text-[#DE644E] font-bold">
+                  {lang === 'bn' ? 'অ্যালামনাই ওয়েবসাইট কী ও আমাদের উদ্দেশ্য' : 'WHAT IS RTEC ALUMNI WEBSITE • OUR PURPOSE'}
+                </span>
+                <h3 className="text-lg sm:text-2xl font-serif-regal font-bold text-[#0C0A09] dark:text-[#FDFBF7]">
+                  {lang === 'bn'
+                    ? 'কেন এই কেন্দ্রীয় আরটেক অ্যালামনাই প্ল্যাটফর্ম?'
+                    : 'Why We Built the RTEC Alumni Portal'}
+                </h3>
+                <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] font-sans leading-relaxed">
+                  {lang === 'bn'
+                    ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ (আরটেক) অ্যালামনাই ওয়েবসাইট হলো ১ম থেকে ৮ম ব্যাচের প্রাক্তন ও বর্তমান শিক্ষার্থী এবং সম্মানিত শিক্ষকমণ্ডলীর জন্য একটি কেন্দ্রীয় ডিজিটাল সেতুবন্ধন। দেশ-বিদেশের টেক্সটাইল মিল, বায়িং হাউস ও গবেষণা প্রতিষ্ঠানে কর্মরত আমাদের প্রকৌশলীদের সাথে ক্যাম্পাসের স্থায়ী যোগাযোগ রক্ষা করা, ব্যাচভিত্তিক তথ্য ও ডিরেক্টরি সংরক্ষণ, সিনিয়র-জুনিয়র মেন্টরশিপ এবং জুনিয়রদের জন্য চাকরি ও ক্যারিয়ার রেফারেল সহজ করাই এই ওয়েবসাইট তৈরির মূল উদ্দেশ্য।'
+                    : 'The RTEC Alumni Website is a central digital bridge uniting graduates, current students (1st to 8th Batch), and faculty members of Rangpur Textile Engineering College. We built this platform to maintain lifelong connections across textile mills, buying houses, and research institutions worldwide, preserve verified batch records, foster senior-junior mentorship, and unlock real industry job referrals for emerging textile engineers.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto text-center space-y-5">
           <span className="inline-block px-3 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] text-[11px] font-mono-tech tracking-wider uppercase border border-[#C5A880]/25">
             {lang === 'bn' ? 'কেন্দ্রীয় অ্যালামনাই নেটওয়ার্ক' : 'CENTRAL ALUMNI NETWORK'}
           </span>
@@ -382,6 +407,7 @@ export default function Home() {
             >
               <span>{lang === 'bn' ? 'ডিরেক্টরি ডাটাবেজ সার্চ' : 'Search Directory'}</span>
             </Link>
+          </div>
           </div>
         </div>
       </section>

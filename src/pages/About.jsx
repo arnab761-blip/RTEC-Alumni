@@ -139,6 +139,18 @@ export default function About() {
                 : 'Established under the Department of Textiles (DoT), Ministry of Textiles and Jute, and affiliated with Bangladesh University of Textiles (BUTEX), RTEC is a public textile engineering college in northern Bangladesh. Since the 2018–19 academic year, it has offered 4-year B.Sc. in Textile Engineering degrees across four specialized departments. In February 2025, the institution was officially designated as "Rangpur Textile Engineering College" (RTEC).'}
             </p>
 
+            {/* Purpose of the Alumni Website */}
+            <div className="mt-5 p-4 rounded-xl bg-[#141311]/70 border border-[#C5A880]/20 space-y-1.5">
+              <span className="text-[10px] font-mono-tech uppercase tracking-wider text-[#DFCA9E] font-bold block">
+                {lang === 'bn' ? 'অ্যালামনাই ওয়েবসাইট কী ও আমাদের উদ্দেশ্য' : 'WHAT IS THIS ALUMNI PORTAL & OUR PURPOSE'}
+              </span>
+              <p className="text-xs text-[#DCD3C1] font-sans leading-relaxed">
+                {lang === 'bn'
+                  ? 'এই কেন্দ্রীয় ওয়েবসাইটটি আরটেকের ১ম থেকে ৮ম ব্যাচের প্রাক্তন ও বর্তমান শিক্ষার্থী এবং শিক্ষকমণ্ডলীকে এক প্ল্যাটফর্মে যুক্ত করার জন্য তৈরি করা হয়েছে—যাতে প্রাক্তনদের নির্ভুল ডিরেক্টরি সংরক্ষণ, ইন্ডাস্ট্রি অভিজ্ঞতা বিনিময়, সিনিয়র মেন্টরশিপ এবং টেক্সটাইল সেক্টরে চাকরির রেফারেল সহজতর হয়।'
+                  : 'We built this central portal to unite RTEC graduates, current students across all batches, and faculty members—making it effortless to preserve verified alumni records, exchange real textile industry experiences, provide senior mentorship, and share career opportunities.'}
+              </p>
+            </div>
+
             <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex flex-wrap gap-4 text-xs font-mono-tech text-[#A89884]">
               <span>
                 {lang === 'bn' ? 'অধ্যক্ষ:' : 'Principal:'}{' '}

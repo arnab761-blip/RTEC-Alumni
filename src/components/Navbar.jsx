@@ -161,12 +161,15 @@ export default function Navbar() {
         
         {/* TIER 1: OFFICIAL COLLEGE CREST & FULL INSTITUTIONAL TITLE */}
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5">
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 sm:gap-3.5 group focus:outline-none w-full min-w-0"
-          >
-            {/* College Official Crest / Seal */}
-            <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg bg-white dark:bg-[#1E1C18] border border-[#C5A880]/50 dark:border-[#C5A880]/40 p-0.5 sm:p-1 flex items-center justify-center shadow-md group-hover:border-[#854D0E] dark:group-hover:border-[#DFCA9E] transition-colors overflow-hidden shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 w-full min-w-0">
+            {/* College Official Crest / Seal -> Direct link to Campus Introduction (/about) */}
+            <Link
+              to="/about"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg bg-white dark:bg-[#1E1C18] border border-[#C5A880]/50 dark:border-[#C5A880]/40 p-0.5 sm:p-1 flex items-center justify-center shadow-md hover:border-[#854D0E] dark:hover:border-[#DFCA9E] hover:scale-105 transition-all overflow-hidden shrink-0 focus:outline-none"
+              title={lang === 'bn' ? 'ক্যাম্পাসের পরিচিতি ও ইতিহাস দেখুন' : 'View Campus Introduction & History'}
+              aria-label={lang === 'bn' ? 'ক্যাম্পাস পরিচিতি পেজে যান' : 'Go to Campus Introduction Page'}
+            >
               <img
                 src={collegeLogo ? formatDriveImageUrl(collegeLogo) : '/images/rtec-logo.png'}
                 alt="RTEC Seal"
@@ -175,10 +178,15 @@ export default function Navbar() {
                   e.currentTarget.src = '/images/rtec-logo.png';
                 }}
               />
-            </div>
+            </Link>
 
-            {/* College Full Title & Heritage Accreditation */}
-            <div className="min-w-0 flex-1">
+            {/* College Full Title Header -> Redirects to Home (first page / top) */}
+            <Link
+              to="/"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="min-w-0 flex-1 group focus:outline-none"
+              title={lang === 'bn' ? 'প্রথম পেজ (হোম)-এ ফিরে যান' : 'Return to Home Page'}
+            >
               <h1 className="font-serif-regal font-bold text-xs xs:text-[13px] sm:text-base lg:text-lg text-[#0C0A09] dark:text-[#FDFBF7] tracking-wide uppercase group-hover:text-[#854D0E] dark:group-hover:text-[#DFCA9E] transition-colors leading-tight">
                 {lang === 'bn'
                   ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ, পীরগঞ্জ, রংপুর'
@@ -189,8 +197,8 @@ export default function Navbar() {
                   {lang === 'bn' ? 'প্রতিষ্ঠিত ২০১৮' : 'ESTD. 2018'}
                 </span>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </div>
 
         {/* TIER 2: UTILITY & ACTION CONTROLS BAR (Language, Theme, Login/Profile, Admin, Index) */}

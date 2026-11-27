@@ -9,7 +9,7 @@ import {
   ShieldCheck,
   ExternalLink
 } from 'lucide-react';
-import { FacebookBadge } from './SocialIcons.jsx';
+import { FacebookBadge, LinkedinIcon } from './SocialIcons.jsx';
 
 export default function Footer() {
   const { lang, collegeLogo, footerContact, user, isAdminEmail } = useApp();
@@ -33,16 +33,21 @@ export default function Footer() {
           
           {/* Left Column: Official College Identity & Direct Contacts */}
           <div className="lg:col-span-5 space-y-3.5">
-            <div className="flex items-start sm:items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1A1916] border border-[#C5A880]/40 p-1 flex items-center justify-center font-serif-regal font-extrabold text-xs text-[#854D0E] dark:text-[#DFCA9E] shadow-sm overflow-hidden shrink-0">
+            <Link
+              to="/"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="inline-flex items-start sm:items-center gap-3 group focus:outline-none"
+              title={lang === 'bn' ? 'প্রথম পেজ (হোম)-এ ফিরে যান' : 'Return to Home Page'}
+            >
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1A1916] border border-[#C5A880]/40 p-1 flex items-center justify-center font-serif-regal font-extrabold text-xs text-[#854D0E] dark:text-[#DFCA9E] shadow-sm overflow-hidden shrink-0 group-hover:border-[#854D0E] dark:group-hover:border-[#DFCA9E] group-hover:scale-105 transition-all">
                 <img src={rtecLogoSrc} alt="RTEC" className="w-full h-full object-contain" />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="font-serif-regal font-bold text-[13px] xs:text-sm sm:text-base text-[#0C0A09] dark:text-[#FDFBF7] tracking-wide uppercase whitespace-normal break-words leading-snug">
+                <h3 className="font-serif-regal font-bold text-[13px] xs:text-sm sm:text-base text-[#0C0A09] dark:text-[#FDFBF7] group-hover:text-[#BD452F] dark:group-hover:text-[#DFCA9E] tracking-wide uppercase whitespace-normal break-words leading-snug transition-colors">
                   {lang === 'bn' ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ' : 'Rangpur Textile Engineering College'}
                 </h3>
               </div>
-            </div>
+            </Link>
 
             {/* Clean Contact Details */}
             <div className="space-y-1.5 text-xs text-[#4B5563] dark:text-[#A89884] font-mono-tech pt-0.5">
@@ -96,6 +101,18 @@ export default function Footer() {
               >
                 <FacebookBadge className="w-3.5 h-3.5 shrink-0" />
                 <span>{lang === 'bn' ? 'ফেসবুক' : 'Facebook'}</span>
+                <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+              </a>
+
+              <a
+                href="https://www.linkedin.com/school/dwmtec/posts/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#0A66C2] dark:hover:text-sky-300 transition flex items-center gap-1.5 text-[11px] font-mono-tech font-bold text-[#0A66C2] dark:text-sky-400 bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 rounded-md border border-sky-300/60 dark:border-sky-700/50 shadow-sm"
+                title={lang === 'bn' ? 'আরটেক অফিসিয়াল লিঙ্কডইন পেজ' : 'RTEC Official LinkedIn Page'}
+              >
+                <LinkedinIcon className="w-3.5 h-3.5 shrink-0 text-[#0A66C2] dark:text-sky-400" />
+                <span>{lang === 'bn' ? 'লিঙ্কডইন' : 'LinkedIn'}</span>
                 <ExternalLink className="w-2.5 h-2.5 opacity-70" />
               </a>
 
@@ -175,12 +192,17 @@ export default function Footer() {
         {/* Minimal Editorial Bottom Bar: Copyright & Credits */}
         <div className="mt-8 pt-5 border-t border-[#C5A880]/25 dark:border-[#C5A880]/15 flex flex-col lg:flex-row items-center justify-between gap-y-3 gap-x-6 text-[12px] sm:text-[12.5px] font-sans">
           
-          {/* Left: Copyright */}
-          <p className="text-[#57534E] dark:text-[#A89884] text-center lg:text-left">
+          {/* Left: Copyright (Redirects to Home on click) */}
+          <Link
+            to="/"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="text-[#57534E] dark:text-[#A89884] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors text-center lg:text-left hover:underline"
+            title={lang === 'bn' ? 'হোম পেজে যান' : 'Go to Home Page'}
+          >
             {lang === 'bn'
               ? '© ২০২৬ আরটেক অ্যালামনাই অ্যাসোসিয়েশন। সর্বস্বত্ব সংরক্ষিত।'
               : '© 2026 RTEC Alumni Association. All rights reserved.'}
-          </p>
+          </Link>
 
           {/* Right: Developer & QA Credits */}
           <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-end gap-y-1.5 gap-x-2 text-center lg:text-right">
@@ -192,9 +214,11 @@ export default function Footer() {
                 href="https://www.linkedin.com/in/md-tahmidul-islam-arnab-580587320/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B92ju51LVShS4kPDu0W7pLw%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                title="LinkedIn Profile"
               >
-                {lang === 'bn' ? 'মো. তাহমিদুল ইসলাম অর্ণব' : 'Md. Tahmidul Islam Arnab'}
+                <span>{lang === 'bn' ? 'মো. তাহমিদুল ইসলাম অর্ণব' : 'Md. Tahmidul Islam Arnab'}</span>
+                <LinkedinIcon className="w-3 h-3 text-[#0A66C2] dark:text-sky-400 shrink-0" />
               </a>
               <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
                 {lang === 'bn' ? '(৫ম ব্যাচ)' : '(5th Batch)'}
@@ -205,15 +229,17 @@ export default function Footer() {
 
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
               <span className="text-[#57534E] dark:text-[#C9C0B3]">
-                {lang === 'bn' ? 'কনসেপ্ট ও ইউএক্স ফিডব্যাক:' : 'Concept & UX Feedback by'}
+                {lang === 'bn' ? 'কনসেপ্ট ডেভেলপমেন্ট ও ইউআই/ইউএক্স ফিডব্যাক:' : 'Concept Developed & UI/UX Feedback by'}
               </span>
               <a
                 href="https://www.linkedin.com/in/abdur-rouf-87a449338/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BzfHUWGZzQbuZmJ8vRBe6Bg%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                title="LinkedIn Profile"
               >
-                {lang === 'bn' ? 'আব্দুর রউফ চৌধুরী' : 'Abdur Rouf Chowdhury'}
+                <span>{lang === 'bn' ? 'আব্দুর রউফ চৌধুরী' : 'Abdur Rouf Chowdhury'}</span>
+                <LinkedinIcon className="w-3 h-3 text-[#0A66C2] dark:text-sky-400 shrink-0" />
               </a>
               <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
                 {lang === 'bn' ? '(৫ম ব্যাচ)' : '(5th Batch)'}
