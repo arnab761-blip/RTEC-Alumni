@@ -16,11 +16,47 @@ import {
 } from 'lucide-react';
 
 export default function Gallery() {
-  const { memories, likeMemory, addMemory, user, lang, apiBaseUrl = '' } = useApp();
+  const { memories, likeMemory, addMemory, user, mySubmission, alumni = [], lang, apiBaseUrl = '' } = useApp();
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [gateNotice, setGateNotice] = useState('');
+
+  const isPendingUser = Boolean(
+    user?.submissionStatus === 'pending' ||
+    mySubmission?.status === 'pending'
+  );
+  const canShareMemory = Boolean(
+    user &&
+    user.role &&
+    user.role !== 'guest' &&
+    !isPendingUser && (
+      user.role === 'admin' ||
+      user.isVerified === true ||
+      mySubmission?.status === 'approved' ||
+      user.submissionStatus === 'approved' ||
+      (user.email && alumni.some(a => a.email?.toLowerCase() === user.email?.toLowerCase() && a.isVerified !== false))
+    )
+  );
+
+  const handleOpenUploadModal = () => {
+    if (!canShareMemory) {
+      setGateNotice(
+        isPendingUser
+          ? (lang === 'bn'
+              ? 'আপনার অ্যাকাউন্টটি এখনো অ্যাডমিন অনুমোদনের অপেক্ষায় আছে। অনুমোদনের আগে আপনি শুধু সবকিছু দেখতে পারবেন।'
+              : 'Your account is pending Admin approval. You can view all memories, but cannot post yet.')
+          : (lang === 'bn'
+              ? 'পোস্ট করতে হলে অনুমোদিত শিক্ষার্থী বা অ্যালামনাই হিসেবে লগইন থাকতে হবে। লগইন ছাড়া আপনি শুধু সবকিছু দেখতে পারবেন।'
+              : 'Only approved Students and Alumni can share memories. Please sign in with a verified account to post.')
+      );
+      setTimeout(() => setGateNotice(''), 5000);
+      return;
+    }
+    setGateNotice('');
+    setUploadModalOpen(true);
+  };
 
   // Lock background scroll when lightbox or upload modal is open
   useScrollLock(Boolean(selectedMemory || uploadModalOpen));
@@ -102,13 +138,19 @@ export default function Gallery() {
           </div>
 
           <button
-            onClick={() => setUploadModalOpen(true)}
+            onClick={handleOpenUploadModal}
             className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xl shadow-emerald-950/30 transition hover:scale-105 cursor-pointer"
           >
             <Upload className="w-4 h-4 text-white" />
             <span>{lang === 'bn' ? 'স্মৃতি বা গল্প শেয়ার করুন' : 'Share Photo or Story'}</span>
           </button>
         </div>
+
+        {gateNotice && (
+          <div className="mb-6 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-xs text-amber-900 dark:text-amber-200 font-semibold">
+            {gateNotice}
+          </div>
+        )}
 
         {/* Memories Grid OR Clean Empty State */}
         {memoryList.length > 0 ? (
@@ -221,7 +263,7 @@ export default function Gallery() {
             </p>
             <div className="pt-2">
               <button
-                onClick={() => setUploadModalOpen(true)}
+                onClick={handleOpenUploadModal}
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition cursor-pointer"
               >
                 <Upload className="w-4 h-4" />

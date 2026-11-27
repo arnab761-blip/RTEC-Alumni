@@ -86,13 +86,19 @@ export default function Jobs() {
     matchedAlumni
   );
 
-  // Strict restriction: ONLY verified Graduate Students / Alumni can post jobs
+  // Strict restriction: ONLY verified Graduate Students / Alumni (and never pending users) can post jobs
+  const isPendingUser = Boolean(
+    user?.submissionStatus === 'pending' ||
+    mySubmission?.status === 'pending'
+  );
   const isVerifiedGraduate = Boolean(
     user &&
-    user.role !== 'guest' && (
-      user.role === 'alumni' ||
+    user.role !== 'guest' &&
+    !isPendingUser && (
+      user.role === 'admin' ||
       matchedAlumni ||
       (isApprovedAccount && (
+        user.role === 'alumni' ||
         user.studentType === 'Graduate' ||
         mySubmission?.studentType === 'Graduate' ||
         matchedStudent?.studentType === 'Graduate' ||

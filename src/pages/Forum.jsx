@@ -106,15 +106,24 @@ export default function Forum() {
     };
   }, [newPostModalOpen, approvalGateModalOpen, editPostModalOpen]);
 
-  // Anyone signed in (via Google or Student/Alumni/Admin session) or approved member can share stories & ask questions effortlessly
+  // Strict gate: ONLY Admin, approved Students, or verified Alumni can post/reply.
+  // Guests and pending users can view only.
+  const isPendingUser = Boolean(
+    user?.submissionStatus === 'pending' ||
+    mySubmission?.status === 'pending'
+  );
   const isApprovedToShareExperience = Boolean(
-    (user && user.role && user.role !== 'guest') ||
-    mySubmission?.status === 'approved' ||
-    user?.submissionStatus === 'approved' ||
-    (user?.isVerified && user?.status === 'approved') ||
-    (user?.email && alumni.some(a => a.email?.toLowerCase() === user.email?.toLowerCase() && a.isVerified)) ||
-    (mySubmission?.email && alumni.some(a => a.email?.toLowerCase() === mySubmission.email?.toLowerCase() && a.isVerified)) ||
-    (mySubmission?.regNo && students.some(s => s.regNo === mySubmission.regNo))
+    user &&
+    user.role &&
+    user.role !== 'guest' &&
+    !isPendingUser && (
+      user.role === 'admin' ||
+      user.isVerified === true ||
+      mySubmission?.status === 'approved' ||
+      user.submissionStatus === 'approved' ||
+      (user.email && alumni.some(a => a.email?.toLowerCase() === user.email?.toLowerCase() && a.isVerified !== false)) ||
+      (mySubmission?.email && alumni.some(a => a.email?.toLowerCase() === mySubmission.email?.toLowerCase() && a.isVerified !== false))
+    )
   );
 
   const handleOpenPostModal = (desiredType = 'experience') => {
@@ -293,6 +302,11 @@ export default function Forum() {
 
   const handlePostSubmit = (e) => {
     e.preventDefault();
+    if (!isApprovedToShareExperience) {
+      setNewPostModalOpen(false);
+      setApprovalGateModalOpen(true);
+      return;
+    }
     if (!newTitle.trim() || !newBody.trim()) return;
     const tagArray = newTags.split(',').map(t => t.trim()).filter(Boolean);
     const created = addForumPost(newTitle, newBody, newCategory, tagArray, postType, {
@@ -317,9 +331,13 @@ export default function Forum() {
     }
   };
 
-  // Anyone can reply/comment without approval
+  // Only approved Students, Alumni & Admin can reply/comment
   const handleReplySubmit = (e, postId) => {
     e.preventDefault();
+    if (!isApprovedToShareExperience) {
+      setApprovalGateModalOpen(true);
+      return;
+    }
     const text = replyTextMap[postId];
     if (!text || !text.trim()) return;
     addForumReply(postId, text);
@@ -807,23 +825,34 @@ export default function Forum() {
                       })}
                     </div>
 
-                    {/* Inline Reply Form (Anyone can reply/comment!) */}
-                    <form onSubmit={(e) => handleReplySubmit(e, post.id)} className="flex items-center gap-2 pt-2">
-                      <input
-                        type="text"
-                        value={replyTextMap[post.id] || ''}
-                        onChange={(e) => setReplyTextMap({ ...replyTextMap, [post.id]: e.target.value })}
-                        placeholder={lang === 'bn' ? 'আপনার অভিজ্ঞতা বা পাল্টা প্রশ্ন লিখুন...' : 'Write your response or follow-up question...'}
-                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#78716C] dark:placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] font-sans shadow-sm"
-                      />
-                      <button
-                        type="submit"
-                        className="btn-agency btn-agency-terracotta px-4 py-2.5 rounded-xl text-xs uppercase font-sans tracking-wider shrink-0 flex items-center gap-1.5 cursor-pointer text-white font-bold"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>{lang === 'bn' ? 'পাঠান' : 'Reply'}</span>
-                      </button>
-                    </form>
+                    {/* Inline Reply Form (Only for approved Students, Alumni & Admin) */}
+                    {isApprovedToShareExperience ? (
+                      <form onSubmit={(e) => handleReplySubmit(e, post.id)} className="flex items-center gap-2 pt-2">
+                        <input
+                          type="text"
+                          value={replyTextMap[post.id] || ''}
+                          onChange={(e) => setReplyTextMap({ ...replyTextMap, [post.id]: e.target.value })}
+                          placeholder={lang === 'bn' ? 'আপনার অভিজ্ঞতা বা পাল্টা প্রশ্ন লিখুন...' : 'Write your response or follow-up question...'}
+                          className="flex-1 px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] placeholder-[#78716C] dark:placeholder-[#A89884]/60 focus:outline-none focus:border-[#C5A880] font-sans shadow-sm"
+                        />
+                        <button
+                          type="submit"
+                          className="btn-agency btn-agency-terracotta px-4 py-2.5 rounded-xl text-xs uppercase font-sans tracking-wider shrink-0 flex items-center gap-1.5 cursor-pointer text-white font-bold"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{lang === 'bn' ? 'পাঠান' : 'Reply'}</span>
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="pt-2 text-[11px] text-[#57534E] dark:text-[#A89884] italic flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <span>
+                          {lang === 'bn'
+                            ? 'শুধুমাত্র অনুমোদিত শিক্ষার্থী ও অ্যালামনাইরা উত্তর বা মন্তব্য করতে পারবেন। পেন্ডিং বা গেস্ট ইউজাররা কেবল পড়তে পারবেন।'
+                            : 'Only approved Students & Alumni can reply. Pending or guest users can view only.'}
+                        </span>
+                      </div>
+                    )}
                       </div>
                     </motion.div>
                   )}
@@ -905,49 +934,57 @@ export default function Forum() {
             {/* Badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-[10px] font-mono-tech uppercase font-bold tracking-wider">
               <Lock className="w-3 h-3 text-amber-500" />
-              <span>{lang === 'bn' ? '১-ক্লিক গুগল লগইন প্রয়োজন' : 'SIGN IN TO PARTICIPATE'}</span>
+              <span>{lang === 'bn' ? 'অনুমোদন ও ভেরিফিকেশন প্রয়োজন' : 'VERIFICATION REQUIRED'}</span>
             </div>
 
             {/* Modal Heading */}
             <div>
               <h3 className="font-serif-regal font-black text-xl sm:text-2xl text-[#0C0A09] dark:text-[#FDFBF7]">
-                {lang === 'bn' ? 'প্রশ্ন বা অভিজ্ঞতা পোস্ট করতে লগইন করুন' : 'Sign In to Ask or Share'}
+                {isPendingUser
+                  ? (lang === 'bn' ? 'অ্যাকাউন্ট অনুমোদনের অপেক্ষায় রয়েছে' : 'Account Pending Admin Approval')
+                  : (lang === 'bn' ? 'প্রশ্ন বা অভিজ্ঞতা পোস্ট করতে ভেরিফায়েড লগইন প্রয়োজন' : 'Verified Sign-In Required to Post')}
               </h3>
-              <p className="text-xs text-[#57534E] dark:text-[#A89884] mt-1 font-sans">
-                {lang === 'bn'
-                  ? 'সবাই যেন স্বতঃস্ফূর্তভাবে অভিজ্ঞতা ও প্রশ্ন শেয়ার করতে পারেন, তাই গুগল অ্যাকাউন্ট দিয়ে মাত্র ১-ক্লিকে যুক্ত হয়ে সরাসরি পোস্ট করুন।'
-                  : 'Sign in with Google in one click to immediately publish questions, career stories, and plant experiences.'}
+              <p className="text-xs text-[#57534E] dark:text-[#A89884] mt-1 font-sans leading-relaxed">
+                {isPendingUser
+                  ? (lang === 'bn'
+                      ? 'আপনার অ্যাকাউন্টটি এখনো অ্যাডমিন অনুমোদনের (Pending Approval) অপেক্ষায় আছে। অনুমোদন না পাওয়া পর্যন্ত আপনি কেবল সব পোস্ট দেখতে পারবেন; কোনো প্রশ্ন, অভিজ্ঞতা বা মন্তব্য পোস্ট করতে পারবেন না।'
+                      : 'Your account is currently awaiting Admin approval. Until approved, you can view all posts and discussions, but cannot post questions, experiences, or replies.')
+                  : (lang === 'bn'
+                      ? 'লগইন ছাড়া বা পেন্ডিং ইউজাররা কোনো পোস্ট করতে পারবেন না—তারা শুধু সবকিছু দেখতে পারবেন। অনুমোদিত শিক্ষার্থী (Student) এবং অ্যালামনাইরাই কেবল প্রশ্ন ও অভিজ্ঞতা শেয়ার করতে পারবেন।'
+                      : 'Guests and pending users can view everything, but only approved Students and Alumni can post questions, experiences, or replies.')}
               </p>
             </div>
 
             {/* 1-Click Google Sign-In Box */}
-            <div className="p-4 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 space-y-3">
-              <GoogleSignInButton
-                onClick={() => setIsGoogleModalOpen(true)}
-                text={lang === 'bn' ? 'গুগল দিয়ে লগইন করে পোস্ট করুন' : 'Sign in with Google & Post Now'}
-              />
-              <div className="text-center">
-                <Link
-                  to="/student-portal"
-                  onClick={() => setApprovalGateModalOpen(false)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#854D0E] dark:text-[#DFCA9E] hover:underline"
-                >
-                  <span>{lang === 'bn' ? 'অথবা স্টুডেন্ট পোর্টালে প্রোফাইল জমা দিন →' : 'Or verify ID in Student Portal →'}</span>
-                </Link>
+            {!isPendingUser && (
+              <div className="p-4 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 space-y-3">
+                <GoogleSignInButton
+                  onClick={() => setIsGoogleModalOpen(true)}
+                  text={lang === 'bn' ? 'গুগল দিয়ে লগইন করুন' : 'Sign in with Google'}
+                />
+                <div className="text-center">
+                  <Link
+                    to="/student-portal"
+                    onClick={() => setApprovalGateModalOpen(false)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#854D0E] dark:text-[#DFCA9E] hover:underline"
+                  >
+                    <span>{lang === 'bn' ? 'অথবা স্টুডেন্ট পোর্টালে প্রোফাইল জমা দিন →' : 'Or verify ID in Student Portal →'}</span>
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Crucial Reassurance Banner: Comments & Likes are completely open to everyone! */}
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-900 dark:text-emerald-200 text-xs font-sans flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            {/* Read-only Info Banner */}
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs font-sans flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
                 <strong className="block font-bold">
-                  {lang === 'bn' ? '💡 লাইক ও কমেন্ট সকলের জন্য সম্পূর্ণ উন্মুক্ত:' : '💡 Comments & Likes are Free for Everyone:'}
+                  {lang === 'bn' ? 'শুধুমাত্র অনুমোদিত সদস্যদের জন্য:' : 'Approved Students & Alumni Only:'}
                 </strong>
-                <p className="text-[11px] leading-relaxed text-emerald-950 dark:text-emerald-100">
+                <p className="text-[11px] leading-relaxed text-amber-950 dark:text-amber-100">
                   {lang === 'bn'
-                    ? 'অনুমোদন না থাকলেও আপনি ওয়েবসাইটের প্রতিটি পোস্টে সরাসরি লাইক দিতে পারবেন এবং সিনিয়রদের উত্তরের নিচে কমেন্ট করে আলোচনা চালিয়ে যেতে পারবেন।'
-                    : 'Even without profile approval, you can freely like any senior advice post and participate in discussions by commenting.'}
+                    ? 'স্টুডেন্ট পোর্টাল থেকে অ্যাডমিন অ্যাপ্রুভাল পাওয়া শিক্ষার্থী এবং ভেরিফায়েড অ্যালামনাইরাই প্রশ্ন পোস্ট ও অভিজ্ঞতা শেয়ার করতে পারবেন।'
+                    : 'Only Admin-approved Students and verified Alumni can post questions, share experiences, or reply to discussions.'}
                 </p>
               </div>
             </div>
