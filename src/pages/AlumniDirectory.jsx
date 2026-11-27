@@ -109,18 +109,17 @@ export default function AlumniDirectory() {
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
             <span className="text-[#DFCA9E]">
-              {lang === 'bn' ? 'অফিসিয়াল অ্যালামনাই রেজিস্টার • সেকশন ০২' : 'OFFICIAL ARCHIVAL REGISTER • SECTION 02'}
+              {lang === 'bn' ? 'অফিসিয়াল অ্যালামনাই ডিরেক্টরি' : 'OFFICIAL ALUMNI DIRECTORY'}
             </span>
-            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • বুটেক্স অধিভুক্ত' : 'RTEC PIRGANJ • BUTEX AFFILIATION'}</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
-            {lang === 'bn' ? 'আরটেক অ্যালামনাই ডিরেক্টরি ও আইডি রেজিস্ট্রি' : 'RTEC Alumni Directory & Identity Register'}
+            {lang === 'bn' ? 'আরটেক অ্যালামনাই ডিরেক্টরি ও আইডি রেজিস্ট্রি' : 'RTEC Alumni Directory'}
           </h1>
           <p className="text-xs sm:text-sm text-[#DCD3C1] mt-2 max-w-3xl font-sans leading-relaxed">
             {lang === 'bn'
-              ? '১ম ব্যাচ (২০১৮-১৯) থেকে শুরু করে সকল সেশনের অনুমোদিত টেক্সটাইল প্রকৌশলীদের অফিসিয়াল প্রোফাইল আইডি ব্যাজ। সরাসরি প্রফেশনাল সংযোগ স্থাপন করুন।'
-              : 'Verified credentials and professional identities of RTEC graduates across all 8 academic sessions from 2018-19 to 2025-26.'}
+              ? '১ম ব্যাচ (২০১৮-১৯) থেকে শুরু করে সকল সেশনের অনুমোদিত টেক্সটাইল প্রকৌশলীদের অফিসিয়াল প্রোফাইল ও পরিচিতি। সরাসরি প্রফেশনাল সংযোগ স্থাপন করুন।'
+              : 'Verified profiles of RTEC graduates across academic batches from 2018-19 to 2025-26.'}
           </p>
         </div>
 

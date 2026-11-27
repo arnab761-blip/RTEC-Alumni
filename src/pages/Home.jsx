@@ -9,32 +9,39 @@ import {
   GraduationCap,
   Calendar,
   Briefcase,
-  HeartHandshake,
-  Award,
-  ChevronRight,
   ArrowRight,
   ShieldCheck,
-  TrendingUp,
-  MapPin,
-  Clock,
-  Mail,
-  Droplet,
+  Droplets,
   ArrowUpRight,
-  Layers,
-  Cpu,
-  Compass,
   Building2,
-  BookOpen,
-  Sparkles,
   MessageSquareQuote,
-  MessageCircle,
   HelpCircle,
-  CheckCircle2,
   Newspaper,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Spool,
+  Shirt
 } from 'lucide-react';
 import UserAvatar from '../components/UserAvatar.jsx';
+
+function WeaveIcon({ className = 'w-5 h-5' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2.5" />
+      <path d="M8 3v18M16 3v18M3 8h18M3 16h18" />
+      <path d="M12 3v5M12 16v5M3 12h5M16 12h5" />
+    </svg>
+  );
+}
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -61,9 +68,13 @@ const staggerContainer = {
 };
 
 export default function Home() {
-  const { teachers, students, alumni, jobs, campaigns, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
+  const { teachers, students, alumni, jobs, forumPosts = [], news = [], lang, user, isAdminEmail } = useApp();
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
   const recentNotices = useMemo(() => [...news].reverse().slice(0, 3), [news]);
+  const principal = useMemo(() => {
+    const list = Array.isArray(teachers) ? teachers : [];
+    return list.find((t) => t?.designation?.toLowerCase() === 'principal' || t?.designationBn === 'অধ্যক্ষ') || list[0] || null;
+  }, [teachers]);
   const graduatedStudentsCount = useMemo(() => {
     const count = (students || []).filter((s) => {
       const b = String(s?.batch || '').toLowerCase();
@@ -87,27 +98,6 @@ export default function Home() {
       {/* 2. INSTITUTIONAL HERO MASTHEAD */}
       <section className="relative pt-8 pb-14 sm:pt-14 sm:pb-20 border-b border-[#C5A880]/15 grid-blueprint bg-transparent w-full max-w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 relative z-10">
-          
-          {/* Masthead Header Metadata Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-8 border-b border-[#C5A880]/20 text-[11px] font-mono-tech text-[#A89884] uppercase">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#BD452F] animate-pulse" />
-              <span className="text-[#DFCA9E] font-bold">
-                {lang === 'bn' ? 'অফিসিয়াল কেন্দ্রীয় রেজিস্টার' : 'OFFICIAL CENTRAL REGISTER'}
-              </span>
-              <span>•</span>
-              <span className="hidden sm:inline">
-                {lang === 'bn' ? 'টুকুরিয়া, পীরগঞ্জ' : 'TUKURIYA, PIRGANJ'}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span>{lang === 'bn' ? 'অক্ষাংশ: ২৫.৪৩১১° উ.' : 'LAT: 25.4311° N'}</span>
-              <span>{lang === 'bn' ? 'দ্রাঘিমা: ৮৯.১৫০০° পূ.' : 'LON: 89.1500° E'}</span>
-              <span className="hidden md:inline px-1.5 py-0.5 rounded bg-[#1E1C18] border border-[#C5A880]/20 text-[#DFCA9E]">
-                {lang === 'bn' ? 'নথি-সূত্র: RTEC/ALM/২০২৬' : 'DOC-REF: RTEC/ALM/2026'}
-              </span>
-            </div>
-          </div>
 
           {/* Asymmetric 60/40 Split */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -121,8 +111,7 @@ export default function Home() {
             >
               <motion.div variants={fadeInUp} custom={0}>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-rose-50 border border-rose-300 text-rose-900 dark:bg-[#BD452F]/20 dark:border-[#BD452F]/40 dark:text-[#DE644E] text-[11px] font-mono-tech tracking-wider uppercase font-bold shadow-sm">
-                  <span>{lang === 'bn' ? 'বস্ত্র ও পাট মন্ত্রণালয় • বুটেক্স অধিভুক্ত' : 'Ministry of Textiles & Jute • BUTEX Affiliated'}</span>
-                  <span>[ ESTD. 2018 ]</span>
+                  <span>{lang === 'bn' ? 'প্রতিষ্ঠিত ২০১৮' : 'ESTD. 2018'}</span>
                 </div>
               </motion.div>
 
@@ -159,9 +148,21 @@ export default function Home() {
                 custom={2}
                 className="text-sm sm:text-base text-[#1C1917] dark:text-[#EFE9DC] font-sans leading-relaxed max-w-2xl font-medium"
               >
-                {lang === 'bn'
-                  ? 'এটি ৪ বছর মেয়াদী বিএসসি ইন টেক্সটাইল ইঞ্জিনিয়ারিং ডিগ্রি প্রদানকারী বুটেক্স (BUTEX) অধিভুক্ত একটি সরকারি ইঞ্জিনিয়ারিং কলেজ।'
-                  : "It's a BUTex affiliated public engineering college for B.Sc in Textile Engineering for 4 years."}
+                {lang === 'bn' ? (
+                  <>
+                    এটি ৪ বছর মেয়াদী বিএসসি ইন টেক্সটাইল ইঞ্জিনিয়ারিং ডিগ্রি প্রদানকারী বুটেক্স (BUTEX) অধিভুক্ত একটি সরকারি ইঞ্জিনিয়ারিং কলেজ।
+                    <span className="block mt-1">
+                      প্রতিষ্ঠানটি বস্ত্র অধিদপ্তর (Department of Textiles - DoT), বস্ত্র ও পাট মন্ত্রণালয়ের অধিভুক্ত।
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    It&apos;s a BUTEX-affiliated public engineering college offering a 4-year B.Sc. in Textile Engineering degree.
+                    <span className="block mt-1">
+                      It is operated under the Department of Textiles (DoT), Ministry of Textiles and Jute.
+                    </span>
+                  </>
+                )}
               </motion.p>
 
               {/* Bespoke Agency CTAs with Sliding Hover Fill */}
@@ -176,7 +177,7 @@ export default function Home() {
                     className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
                   >
                     <Users className="w-4 h-4 text-[#DFCA9E]" />
-                    <span>{lang === 'bn' ? 'অ্যালামনাই ডিরেক্টরি' : 'Alumni Register'}</span>
+                    <span>{lang === 'bn' ? 'অ্যালামনাই খুঁজুন' : 'Find Alumni'}</span>
                     <ArrowRight className="w-4 h-4 text-[#DFCA9E]" />
                   </Link>
 
@@ -186,14 +187,6 @@ export default function Home() {
                   >
                     <MessageSquareQuote className="w-4 h-4" />
                     <span>{lang === 'bn' ? 'সিনিয়র অভিজ্ঞতা বিনিময়' : 'Experience Share & Insights'}</span>
-                  </Link>
-
-                  <Link
-                    to="/teachers"
-                    className="px-4 py-3 rounded bg-white dark:bg-[#1A1916] hover:bg-[#F5EFE6] dark:hover:bg-[#201E1A] border border-[#C5A880]/35 text-xs text-[#1A1612] dark:text-[#EDE8DF] hover:border-[#C5A880] transition font-mono-tech flex items-center gap-1.5 shadow-sm"
-                  >
-                    <BookOpen className="w-3.5 h-3.5 text-[#BD452F] dark:text-[#DFCA9E]" />
-                    <span>{lang === 'bn' ? '৪টি বিভাগ (Departments)' : '4 Departments'}</span>
                   </Link>
 
                   {isAuthorizedAdmin && (
@@ -208,7 +201,7 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Direct Student Portal Entry Button directly below Alumni Register & Experience Share */}
+                {/* Direct Student Portal Entry Button */}
                 <div className="flex flex-wrap items-center gap-3">
                   <Link
                     to="/student-portal"
@@ -245,7 +238,7 @@ export default function Home() {
               )}
             </motion.div>
 
-            {/* Right 5 Columns: Architectural Monolith Dossier */}
+            {/* Right 5 Columns: Institute Charter Card */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -254,17 +247,16 @@ export default function Home() {
             >
               <div className="plaque-elevated rounded-xl p-6 border border-[#C5A880]/30 relative overflow-hidden">
                 
-                {/* Vintage Brass Corner Registration Stamp */}
                 <div className="flex items-center justify-between pb-4 border-b border-[#C5A880]/15 text-[10px] font-mono-tech text-[#A89884]">
                   <span className="text-[#DFCA9E]">{lang === 'bn' ? 'প্রতিষ্ঠান চার্টার' : 'INSTITUTE CHARTER'}</span>
-                  <span>{lang === 'bn' ? 'প্রতিষ্ঠিত ২০১৮' : 'ESTABLISHED 2018'}</span>
+                  <span>{lang === 'bn' ? 'বি.এসসি. ইন টেক্সটাইল ইঞ্জিনিয়ারিং' : 'B.SC. TEXTILE ENGINEERING'}</span>
                 </div>
 
                 <div className="mt-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="text-[10px] font-mono-tech uppercase text-[#A89884] block">
-                        {lang === 'bn' ? 'অ্যাকাডেমিক ব্যাচ সূচি' : 'ACADEMIC BATCH ROSTER'}
+                        {lang === 'bn' ? 'একাডেমিক ব্যাচসমূহ' : 'Academic Batches'}
                       </span>
                       <h4 className="text-base sm:text-lg font-serif-regal font-bold text-[#FDFBF7]">
                         {lang === 'bn' ? '১ম ব্যাচ — ৮ম ব্যাচ' : '1st Batch — 8th Batch'}
@@ -309,12 +301,19 @@ export default function Home() {
                         {alumni.length} {lang === 'bn' ? 'জন প্রকৌশলী' : 'Engineers'}
                       </strong>
                     </div>
-                    <div className="flex items-center justify-between text-[#EDE8DF]">
-                      <span className="text-[#A89884]">{lang === 'bn' ? 'একাডেমিক বিভাগ:' : 'Departments:'}</span>
-                      <strong className="text-[#DFCA9E] font-mono-tech">
-                        {lang === 'bn' ? '৪টি বিভাগ' : '4 Departments'}
+                    <Link
+                      to="/teachers"
+                      className="flex items-center justify-between text-[#EDE8DF] rounded-md px-2 py-1 -mx-2 hover:bg-[#141311] transition group cursor-pointer"
+                      title={lang === 'bn' ? 'বিভাগ ও শিক্ষকমণ্ডলী দেখুন' : 'View Departments & Faculty'}
+                    >
+                      <span className="text-[#A89884] group-hover:text-[#EDE8DF] transition-colors">
+                        {lang === 'bn' ? 'একাডেমিক বিভাগ:' : 'Departments:'}
+                      </span>
+                      <strong className="text-[#DFCA9E] font-mono-tech inline-flex items-center gap-1 group-hover:underline">
+                        <span>{lang === 'bn' ? '৪টি বিভাগ' : '4 Departments'}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
                       </strong>
-                    </div>
+                    </Link>
                     <div className="flex items-center justify-between text-[#EDE8DF]">
                       <span className="text-[#A89884]">{lang === 'bn' ? 'শিক্ষকমণ্ডলী:' : 'Teaching Faculty:'}</span>
                       <strong className="text-[#DFCA9E] font-mono-tech">
@@ -335,7 +334,7 @@ export default function Home() {
                       to="/directory"
                       className="w-full py-2 rounded bg-[#141311] hover:bg-[#1E1C18] border border-[#C5A880]/20 text-xs font-mono-tech text-[#DFCA9E] flex items-center justify-center gap-1.5 transition"
                     >
-                      <span>{lang === 'bn' ? 'ডিরেক্টরি ডাটাবেজ অনুসন্ধান করুন' : 'Query Directory Database'}</span>
+                      <span>{lang === 'bn' ? 'অ্যালামনাই খুঁজুন' : 'Find Alumni'}</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -346,6 +345,40 @@ export default function Home() {
 
           </div>
 
+        </div>
+      </section>
+
+      {/* 3. JOIN THE CENTRAL RTEC ENGINEERING REGISTER (Prominent Top Onboarding CTA) */}
+      <section className="py-12 sm:py-16 bg-transparent border-b border-[#C5A880]/15">
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
+          <span className="inline-block px-3 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] text-[11px] font-mono-tech tracking-wider uppercase border border-[#C5A880]/25">
+            {lang === 'bn' ? 'কেন্দ্রীয় অ্যালামনাই নেটওয়ার্ক' : 'CENTRAL ALUMNI NETWORK'}
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7]">
+            {lang === 'bn'
+              ? 'আপনি কি আরটেকের সাবেক বা বর্তমান শিক্ষার্থী?'
+              : 'Join the Central RTEC Engineering Register'}
+          </h2>
+          <p className="text-xs sm:text-sm text-[#DCD3C1] max-w-2xl mx-auto leading-relaxed font-sans">
+            {lang === 'bn'
+              ? 'আপনার ব্যাচমেটদের সাথে যুক্ত হন, অফিসিয়াল ডিরেক্টরিতে আপনার বর্তমান পদবী ও কোম্পানির তথ্য আপডেট করুন এবং প্রিয় বিদ্যাপীঠের ভবিষ্যৎ গঠনে ভূমিকা রাখুন।'
+              : 'Register your profile, link your current mill or company details, and mentor the next generation of textile engineers.'}
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link
+              to="/auth"
+              className="btn-agency btn-agency-terracotta px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
+            >
+              <span>{lang === 'bn' ? 'অ্যালামনাই একাউন্ট রেজিস্টার করুন' : 'Create Alumni Account'}</span>
+            </Link>
+            <Link
+              to="/directory"
+              className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
+            >
+              <span>{lang === 'bn' ? 'ডিরেক্টরি ডাটাবেজ সার্চ' : 'Search Directory'}</span>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -393,9 +426,12 @@ export default function Home() {
                       <span className="px-2.5 py-0.5 rounded text-[11px] font-mono-tech font-bold uppercase tracking-wide bg-[#DE644E]/20 text-[#DE644E] border border-[#DE644E]/30">
                         {lang === 'bn' ? (
                           {
+                            'Academic': 'একাডেমিক',
                             'Academic Notice': 'একাডেমিক নোটিশ',
+                            'Examination & Results': 'পরীক্ষা ও ফলাফল',
                             'Examination': 'পরীক্ষা',
                             'Admission': 'ভর্তি',
+                            'General': 'সাধারণ',
                             'General Notice': 'সাধারণ নোটিশ',
                             'Holiday': 'ছুটি',
                             'Career & Placement': 'ক্যারিয়ার',
@@ -481,50 +517,61 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. ARCHITECTURAL DIMENSION RULER & METRICS BAR */}
-      <section className="border-b border-[#C5A880]/20 bg-transparent">
+      {/* 4. KEY INSTITUTIONAL METRICS CARDS */}
+      <section className="py-10 sm:py-14 border-b border-[#C5A880]/20 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-[#C5A880]/15">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {[
               {
                 num: '08',
                 labelBn: 'সফল শিক্ষাবর্ষ ব্যাচ',
                 labelEn: 'Academic Batches',
                 subBn: '১ম সেশন (২০১৮-১৯) হতে ৮ম সেশন (২০২৫-২৬)',
-                subEn: 'From 2018-19 to 2025-26 Session'
+                subEn: 'From 2018-19 to 2025-26 Session',
+                cardClass: 'bg-amber-50/90 dark:bg-[#211C14] border-amber-300/75 dark:border-amber-500/30',
+                numClass: 'text-amber-800 dark:text-[#DFCA9E]'
               },
               {
                 num: `${graduatedStudentsCount}`,
                 labelBn: 'গ্র্যাজুয়েট শিক্ষার্থী',
                 labelEn: 'Graduated Students',
                 subBn: '১ম, ২য় ও ৩য় ব্যাচের মোট উত্তীর্ণ শিক্ষার্থী',
-                subEn: 'Total graduates across 1st, 2nd & 3rd Batches'
+                subEn: 'Total graduates across 1st, 2nd & 3rd Batches',
+                cardClass: 'bg-emerald-50/90 dark:bg-[#13201B] border-emerald-300/75 dark:border-emerald-500/30',
+                numClass: 'text-emerald-800 dark:text-emerald-300'
               },
               {
                 num: '120',
                 labelBn: 'বার্ষিক অনুমোদিত আসন',
                 labelEn: 'Approved Annual Seats',
                 subBn: '৪টি বিভাগে ৩০টি করে আসন (মোট ১২০টি আসন)',
-                subEn: '30 seats per department under BUTEX'
+                subEn: '30 seats per department under BUTEX',
+                cardClass: 'bg-rose-50/90 dark:bg-[#231615] border-rose-300/75 dark:border-rose-500/30',
+                numClass: 'text-rose-800 dark:text-[#DE644E]'
               },
               {
                 num: `${students.length || 834}`,
                 labelBn: 'মোট শিক্ষার্থী ও গবেষক',
                 labelEn: 'Undergraduate Scholars',
-                subBn: 'বস্ত্র অধিদপ্তর পরিচালিত সমন্বিত ভর্তি পরীক্ষার মাধ্যমে মনোনীত',
-                subEn: 'Admitted via Centralized DOT Admission Test'
+                subBn: 'বস্ত্র অধিদপ্তর (DoT) পরিচালিত কেন্দ্রীয় ভর্তি পরীক্ষার মাধ্যমে মনোনীত',
+                subEn: 'Admitted through the Department of Textiles (DoT) admission test',
+                cardClass: 'bg-indigo-50/90 dark:bg-[#161924] border-indigo-300/75 dark:border-indigo-500/30',
+                numClass: 'text-indigo-800 dark:text-indigo-300'
               }
             ].map((metric, idx) => (
-              <div key={idx} className="p-6 sm:p-8 flex flex-col justify-between">
+              <div
+                key={idx}
+                className={`rounded-2xl p-5 sm:p-6 border shadow-sm hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between ${metric.cardClass}`}
+              >
                 <div>
-                  <span className="font-serif-regal text-3xl sm:text-4xl font-black text-[#DFCA9E] block">
+                  <span className={`font-serif-regal text-3xl sm:text-4xl font-black block ${metric.numClass}`}>
                     {metric.num}
                   </span>
-                  <h4 className="font-sans font-bold text-sm text-[#FDFBF7] mt-1">
+                  <h4 className="font-sans font-bold text-sm sm:text-base text-[#0C0A09] dark:text-[#FDFBF7] mt-1.5">
                     {lang === 'bn' ? metric.labelBn : metric.labelEn}
                   </h4>
                 </div>
-                <p className="text-[11px] text-[#A89884] font-mono-tech mt-2 leading-relaxed">
+                <p className="text-[11px] text-[#44403C] dark:text-[#A89884] font-mono-tech mt-2.5 leading-relaxed">
                   {lang === 'bn' ? metric.subBn : metric.subEn}
                 </p>
               </div>
@@ -533,22 +580,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. SENIOR ALUMNI EXPERIENCE SHARE & CAREER STORIES */}
+      {/* 5. SENIOR ALUMNI INSIGHTS & EXPERIENCES */}
       <section className="py-14 sm:py-20 border-b border-[#C5A880]/15 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <span className="text-[10px] font-mono-tech text-[#DE644E] uppercase tracking-widest block">
-                {lang === 'bn' ? 'সিনিয়র নলেজ কমন্স • বাস্তব কর্মঅভিজ্ঞতা' : 'SENIOR KNOWLEDGE COMMONS • REAL INDUSTRY EXPERIENCE SHARE'}
+                {lang === 'bn' ? 'অভিজ্ঞতা ও দিকনির্দেশনা' : 'ALUMNI STORIES & ADVICE'}
               </span>
               <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
-                {lang === 'bn' ? 'সিনিয়র অ্যালামনাই অভিজ্ঞতা বিনিময় ও ক্যারিয়ার গল্প' : 'Senior Alumni Experience Share'}
+                {lang === 'bn' ? 'সিনিয়র অ্যালামনাইদের অভিজ্ঞতা ও ক্যারিয়ার গল্প' : 'Senior Alumni Insights & Experiences'}
               </h2>
               <p className="text-xs sm:text-sm text-[#A89884] font-sans mt-1.5 max-w-2xl">
                 {lang === 'bn'
                   ? 'চাকরি, টেক্সটাইল মিল লাইফ, উচ্চশিক্ষা ও ক্যারিয়ার বাস্তবতা নিয়ে সিনিয়র গ্র্যাজুয়েট প্রকৌশলীদের শেয়ার করা বাস্তব অভিজ্ঞতা ও দিকনির্দেশনা।'
-                  : 'Real-world insights, spinning/composite mill realities, foreign scholarships, and practical career guidance curated by verified RTEC graduates.'}
+                  : 'Real-world insights, mill experiences, scholarships, and practical career advice shared by RTEC graduates.'}
               </p>
             </div>
             <Link
@@ -636,7 +683,7 @@ export default function Home() {
               </div>
               <div>
                 <h4 className="text-sm font-serif-regal font-bold text-[#FDFBF7]">
-                  {lang === 'bn' ? 'ইন্ডাস্ট্রি বা পড়াশোনা নিয়ে আপনার কোনো প্রশ্ন আছে?' : 'Have a Question for Senior Engineers?'}
+                  {lang === 'bn' ? 'সিনিয়র গ্র্যাজুয়েট প্রকৌশলীদের কাছে কোনো প্রশ্ন আছে?' : 'Have a Question for Senior Graduate Engineers?'}
                 </h4>
                 <p className="text-xs text-[#A89884] font-sans">
                   {lang === 'bn'
@@ -658,18 +705,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. PRINCIPAL'S FOUNDATION MONOLITH (Engraved Plaque Style) */}
+      {/* 6. OUR LEADERSHIP & TEACHERS */}
       <section className="py-14 sm:py-20 border-b border-[#C5A880]/15 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
+          <div className="mb-8">
+            <span className="text-[10px] font-mono-tech uppercase text-[#DE644E] tracking-widest block">
+              {lang === 'bn' ? 'প্রশাসন ও শিক্ষকমণ্ডলী' : 'COLLEGE LEADERSHIP & FACULTY'}
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
+              {lang === 'bn' ? 'আমাদের নেতৃত্ব ও শিক্ষকমণ্ডলী' : 'Our Leadership & Teachers'}
+            </h2>
+          </div>
+
           <div className="plaque-elevated rounded-2xl p-6 sm:p-12 border border-[#C5A880]/30 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative">
             
             {/* Principal Photo with Corner Brackets */}
             <div className="lg:col-span-4 text-center lg:text-left">
               <div className="relative inline-block w-48 h-48 sm:w-60 sm:h-60 rounded-xl overflow-hidden border border-[#C5A880]/40 shadow-2xl p-1 bg-[#1A1916]">
                 <UserAvatar
-                  src={teachers[0]?.photo}
-                  name="Principal, RTEC"
+                  src={principal?.photo}
+                  name={principal?.name || 'Principal, RTEC'}
                   role="teacher"
                   className="w-full h-full rounded"
                   iconClassName="w-20 h-20"
@@ -685,25 +741,27 @@ export default function Home() {
             <div className="lg:col-span-8 space-y-4">
               <div className="inline-flex items-center gap-2 text-xs font-mono-tech text-[#DE644E] uppercase">
                 <Building2 className="w-3.5 h-3.5" />
-                <span>{lang === 'bn' ? 'কলেজ প্রশাসনের স্মারক বার্তা' : 'Institutional Address from Leadership'}</span>
+                <span>{lang === 'bn' ? 'অধ্যক্ষের বার্তা' : 'Message from the Principal'}</span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-serif-regal font-bold text-[#FDFBF7] leading-snug">
+              <h3 className="text-2xl sm:text-3xl font-serif-regal font-bold text-[#FDFBF7] leading-snug">
                 {lang === 'bn'
                   ? '"চতুর্থ শিল্প বিপ্লবের চ্যালেঞ্জ মোকাবিলায় টেকসই ও আধুনিক বস্ত্র প্রকৌশলী তৈরিই আমাদের ব্রত"'
-                  : '"Forging Ethical, Forward-Thinking Textile Engineers for the Global Industrial Vanguard"'}
-              </h2>
+                  : '"Preparing Skilled, Ethical Textile Engineers for the Global Textile Industry"'}
+              </h3>
 
               <p className="text-xs sm:text-sm text-[#DCD3C1] font-sans leading-relaxed">
                 {lang === 'bn'
                   ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ (আরটেক) শুধুমাত্র একটি বিদ্যাপীঠ নয়; এটি উত্তরবঙ্গের শিল্পায়ন ও প্রযুক্তিগত উৎকর্ষের প্রাণকেন্দ্র। ২০১৮-১৯ শিক্ষাবর্ষ থেকে যাত্রা শুরু করে আজ আমাদের গ্র্যাজুয়েটরা আন্তর্জাতিক স্পিনিং, উইভিং, ডাইং ও অ্যাপারেল সেক্টরে নেতৃত্ব দিচ্ছেন। আমাদের সম্মানিত অ্যালামনাইরা ভবিষ্যৎ শিক্ষার্থীদের আলোকবর্তিকা।'
-                  : 'Rangpur Textile Engineering College represents the benchmark of textile innovation in North Bengal. From our founding cohort to our newest engineers, RTEC alumni are driving sustainable manufacturing and executive leadership across the global textile frontier.'}
+                  : 'Rangpur Textile Engineering College is a center of textile education and innovation in northern Bangladesh. From our founding batch to our current students, RTEC graduates are contributing to sustainable manufacturing and industry leadership worldwide.'}
               </p>
 
               <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-[#C5A880]/20">
                 <div>
                   <h4 className="font-serif-regal font-bold text-base text-[#FDFBF7]">
-                    {lang === 'bn' ? teachers[0]?.nameBn || 'ইঞ্জিনিয়ার মো. রঞ্জু মিয়া' : teachers[0]?.name || 'Engineer Md. Ronju Mia'}
+                    {lang === 'bn'
+                      ? (principal?.nameBn || 'জনাব ইঞ্জিনিয়ার মোঃ সাইফুর রহমান')
+                      : (principal?.name || 'Engr. Md. Saifur Rahman')}
                   </h4>
                   <p className="text-xs text-[#DFCA9E] font-mono-tech">
                     {lang === 'bn'
@@ -717,7 +775,7 @@ export default function Home() {
                     to="/teachers"
                     className="btn-agency px-4 py-2 rounded text-xs font-sans uppercase tracking-wider"
                   >
-                    <span>{lang === 'bn' ? 'অনুষদ পরিচিতি' : 'Faculty Roster'}</span>
+                    <span>{lang === 'bn' ? 'অনুষদ পরিচিতি' : 'Faculty & Teachers'}</span>
                     <ArrowRight className="w-3.5 h-3.5 text-[#DFCA9E]" />
                   </Link>
 
@@ -737,21 +795,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. 4 CORE ENGINEERING DISCIPLINES (LOOM & SPINDLE SCHEMATICS) */}
-      <section className="py-14 sm:py-20 border-b border-[#C5A880]/15 bg-transparent">
+      {/* 7. 4 TEXTILE ENGINEERING DEPARTMENTS */}
+      <section id="departments" className="py-14 sm:py-20 border-b border-[#C5A880]/15 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="max-w-3xl mb-12">
             <span className="text-[10px] font-mono-tech uppercase text-[#DFCA9E] tracking-widest block">
-              {lang === 'bn' ? 'অনুমোদিত বুটেক্স কারিকুলাম • ৪টি বিভাগ' : 'ACCREDITED BUTEX CURRICULUM • 4 DISCIPLINES'}
+              {lang === 'bn' ? 'একাডেমিক প্রোগ্রাম • ৪টি বিভাগ' : 'ACADEMIC PROGRAMS • 4 DEPARTMENTS'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
-              {lang === 'bn' ? 'বিশেষায়িত ৪টি বস্ত্র প্রকৌশল বিভাগ' : '4 Pillars of Textile Engineering'}
+              {lang === 'bn' ? 'বিশেষায়িত ৪টি বস্ত্র প্রকৌশল বিভাগ' : '4 Textile Engineering Departments'}
             </h2>
             <p className="text-xs sm:text-sm text-[#A89884] font-sans mt-2">
               {lang === 'bn'
                 ? 'আধুনিক শিল্পমানের ল্যাবরেটরি, প্র্যাক্টিক্যাল শেড ও আন্তর্জাতিক কারিকুলাম সমৃদ্ধ চার বছর মেয়াদী বি.এসসি. ডিগ্রি।'
-                : 'Four-year Bachelor of Science degrees empowered by industrial spinning frames, rapier looms, and modern coloration labs.'}
+                : 'Four-year Bachelor of Science degrees supported by industrial spinning frames, weaving looms, coloration labs, and apparel studios.'}
             </p>
           </div>
 
@@ -763,8 +821,8 @@ export default function Home() {
                 titleBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
                 titleEn: 'Yarn Engineering',
                 descBn: 'তুলা ও ম্যান-মেড ফাইবারের স্পিনিং প্রযুক্তি, রিং, রোটর ও কমপ্যাক্ট সুতা উৎপাদন এবং টেক্সটাইল ফাইবার টেস্টিং ল্যাব।',
-                descEn: 'Natural and synthetic fiber processing, ring, rotor and air-jet spinning dynamics and fiber testing.',
-                icon: Layers,
+                descEn: 'Natural and synthetic fiber processing, ring, rotor and air-jet spinning technologies, and fiber testing.',
+                icon: Spool,
                 accent: 'border-[#BD452F]/40'
               },
               {
@@ -773,8 +831,8 @@ export default function Home() {
                 titleBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
                 titleEn: 'Fabric Engineering',
                 descBn: 'আধুনিক শাটললেস উইভিং লুম, সার্কুলার ও ফ্ল্যাট নিটিং টেকনোলজি এবং ৩ডি ফ্যাব্রিক স্ট্রাকচারাল ডিজাইন।',
-                descEn: 'High-speed shuttleless weaving, rapier and air-jet loom operations, knitting kinematics and design.',
-                icon: Building2,
+                descEn: 'High-speed shuttleless weaving, rapier and air-jet loom operations, knitting, and fabric structural design.',
+                icon: WeaveIcon,
                 accent: 'border-[#C5A880]/40'
               },
               {
@@ -783,8 +841,8 @@ export default function Home() {
                 titleBn: 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং',
                 titleEn: 'Wet Process Engineering',
                 descBn: 'টেক্সটাইল কালারেশন, ডাইং, রোটারি প্রিন্টিং, ওয়াটার-রেপেলেন্ট ন্যানো ফিনিশিং ও গ্রিন ইটিপি (ETP) প্রযুক্তি।',
-                descEn: 'Chemical coloration, continuous dyeing, rotary screen printing, nano-finishing and effluent treatment.',
-                icon: Droplet,
+                descEn: 'Textile dyeing, pretreatment, rotary screen printing, sustainable finishing chemistry, and effluent treatment.',
+                icon: Droplets,
                 accent: 'border-[#1E3A2F]/80'
               },
               {
@@ -793,8 +851,8 @@ export default function Home() {
                 titleBn: 'অ্যাপারেল ম্যানুফ্যাকচারিং',
                 titleEn: 'Apparel Manufacturing',
                 descBn: 'কম্পিউটারাইজড ক্যাড/ক্যাম প্যাটার্ন স্টুডিও, শিল্পমানের সুইং প্রোডাকশন লাইন ও গ্লোবাল মার্চেন্ডাইজিং।',
-                descEn: 'Computerized CAD/CAM grading, automated spreading and sewing production management and supply chain.',
-                icon: Cpu,
+                descEn: 'Computerized CAD/CAM pattern design, garment production line management, merchandising, and supply chain.',
+                icon: Shirt,
                 accent: 'border-[#BD452F]/40'
               }
             ].map((dept, idx) => (
@@ -812,24 +870,20 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#141311] border border-[#C5A880]/20 inline-block text-[#DFCA9E] mb-3 group-hover:scale-105 transition-transform">
+                  <div className="p-3 rounded-lg bg-[#141311] border border-[#C5A880]/20 inline-flex items-center justify-center text-[#DFCA9E] mb-3 group-hover:scale-105 transition-transform">
                     <dept.icon className="w-5 h-5" />
                   </div>
 
-                  <h3 className="font-serif-regal font-bold text-lg text-[#FDFBF7]">
+                  <h3 className="font-serif-regal font-bold text-lg text-[#FDFBF7] mb-2">
                     {lang === 'bn' ? dept.titleBn : dept.titleEn}
                   </h3>
-                  <span className="text-[11px] font-mono-tech text-[#A89884] block mb-2">
-                    {lang === 'bn' ? dept.titleEn : dept.titleBn}
-                  </span>
 
                   <p className="text-xs text-[#DCD3C1] font-sans leading-relaxed">
                     {lang === 'bn' ? dept.descBn : dept.descEn}
                   </p>
                 </div>
 
-                <div className="mt-6 pt-3 border-t border-[#C5A880]/15 flex items-center justify-between text-xs font-mono-tech">
-                  <span className="text-[#A89884]">{lang === 'bn' ? 'বুটেক্স সিলেবাস' : 'BUTEX CURRICULUM'}</span>
+                <div className="mt-6 pt-3 border-t border-[#C5A880]/15 flex items-center justify-end text-xs font-mono-tech">
                   <Link to="/teachers" className="text-[#DFCA9E] hover:underline flex items-center gap-1">
                     <span>{lang === 'bn' ? 'অনুষদ →' : 'Faculty →'}</span>
                   </Link>
@@ -838,44 +892,37 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Centralized Admission Banner from Wikipedia */}
+          {/* Centralized Admission Banner */}
           <div className="mt-8 p-4 rounded-xl plaque-espresso border border-[#C5A880]/20 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono-tech">
             <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-[#BD452F]" />
+              <span className="w-2 h-2 rounded-full bg-[#BD452F] shrink-0" />
               <span className="text-[#DCD3C1]">
                 {lang === 'bn'
-                  ? 'ভর্তি প্রক্রিয়া: বস্ত্র অধিদপ্তর (DOT) পরিচালিত ৮টি টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের কেন্দ্রীয় সমন্বিত পরীক্ষার মাধ্যমে মোট ১২০ আসনে শিক্ষার্থী নির্বাচন করা হয়।'
-                  : 'Admission: Centralized competitive exam conducted by the Department of Textiles (DOT) under BUTEX across 8 national textile colleges for 120 annual seats.'}
+                  ? 'ভর্তি প্রক্রিয়া: বস্ত্র অধিদপ্তর (DoT) পরিচালিত টেক্সটাইল ইঞ্জিনিয়ারিং কলেজগুলোর কেন্দ্রীয় সমন্বিত পরীক্ষার মাধ্যমে মোট ১২০ আসনে শিক্ষার্থী নির্বাচন করা হয়।'
+                  : 'Admission: Centralized admission test conducted by the Department of Textiles (DoT) under BUTEX for 120 annual seats.'}
               </span>
             </div>
             <span className="px-2.5 py-1 rounded bg-[#1A1916] border border-[#C5A880]/30 text-[#DFCA9E] whitespace-nowrap text-[11px]">
-              {lang === 'bn' ? '১২০ আসন / শিক্ষাবর্ষ' : '120 SEATS / ANNUM'}
+              {lang === 'bn' ? '১২০ আসন / শিক্ষাবর্ষ' : '120 SEATS / YEAR'}
             </span>
           </div>
 
         </div>
       </section>
 
-      {/* 6. CURATED EDITORIAL MAGAZINE SPREAD (ALUMNI & FACULTY SPOTLIGHT) */}
+      {/* 8. FEATURED ALUMNI & FACULTY SPOTLIGHT */}
       <section className="py-14 sm:py-20 border-b border-[#C5A880]/15 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <span className="text-[10px] font-mono-tech uppercase text-[#DFCA9E] tracking-widest block">
-                {lang === 'bn' ? 'অ্যালামনাই স্পটলাইট • বিশিষ্ট ব্যাচসমূহ' : 'ROSTER SPOTLIGHT • DISTINGUISHED COHORTS'}
+                {lang === 'bn' ? 'কমিউনিটি স্পটলাইট' : 'COMMUNITY SPOTLIGHT'}
               </span>
               <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
-                {lang === 'bn' ? 'বিশিষ্ট প্রকৌশলী ও শিক্ষক প্রোফাইল' : 'Distinguished Engineers & Faculty'}
+                {lang === 'bn' ? 'বিশিষ্ট অ্যালামনাই ও শিক্ষকমণ্ডলী' : 'Featured Alumni & Faculty'}
               </h2>
             </div>
-            <Link
-              to="/directory"
-              className="btn-agency px-5 py-2.5 rounded text-xs font-sans uppercase tracking-wider"
-            >
-              <Users className="w-4 h-4 text-[#DFCA9E]" />
-              <span>{lang === 'bn' ? 'সম্পূর্ণ ডিরেক্টরি দেখুন' : 'Full Directory'}</span>
-            </Link>
           </div>
 
           {/* Asymmetric Editorial Grid (Shown when verified alumni exist) */}
@@ -995,8 +1042,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="plaque-elevated rounded-2xl p-6 sm:p-10 border border-[#C5A880]/25 shadow-xl">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#C5A880]/15 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#BD452F]/15 text-[#DE644E] flex items-center justify-center border border-[#BD452F]/30">
+              <div className="flex items-start sm:items-center gap-3.5">
+                <div className="w-11 h-11 aspect-square shrink-0 rounded-xl bg-[#BD452F]/15 text-[#DE644E] flex items-center justify-center border border-[#BD452F]/30">
                   <Briefcase className="w-5 h-5 text-[#DE644E]" />
                 </div>
                 <div>
@@ -1057,40 +1104,6 @@ export default function Home() {
                 </p>
               </div>
             )}
-          </div>
-        </div>
-      </section>
-
-      {/* 8. COLLEGE HERITAGE REGISTRATION INVITATION */}
-      <section className="py-14 sm:py-20 bg-transparent border-b border-[#C5A880]/15">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
-          <span className="px-3 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] text-[11px] font-mono-tech tracking-wider uppercase border border-[#C5A880]/25">
-            {lang === 'bn' ? 'কেন্দ্রীয় অ্যালামনাই নেটওয়ার্ক • পীরগঞ্জ' : 'CENTRAL ALUMNI COMMUNION • PIRGANJ'}
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7]">
-            {lang === 'bn'
-              ? 'আপনি কি আরটেকের সাবেক বা বর্তমান শিক্ষার্থী?'
-              : 'Join the Central RTEC Engineering Register'}
-          </h2>
-          <p className="text-xs sm:text-sm text-[#DCD3C1] max-w-2xl mx-auto leading-relaxed font-sans">
-            {lang === 'bn'
-              ? 'আপনার ব্যাচমেটদের সাথে যুক্ত হন, অফিসিয়াল ডিরেক্টরিতে আপনার বর্তমান পদবী ও কোম্পানির তথ্য আপডেট করুন এবং প্রিয় বিদ্যাপীঠের ভবিষ্যৎ গঠনে ভূমিকা রাখুন।'
-              : 'Register your engineering credentials, link your current mill or enterprise profile, and mentor the next generation of textile engineers.'}
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Link
-              to="/auth"
-              className="btn-agency btn-agency-terracotta px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-            >
-              <span>{lang === 'bn' ? 'অ্যালামনাই একাউন্ট রেজিস্টার করুন' : 'Create Alumni Account'}</span>
-            </Link>
-            <Link
-              to="/directory"
-              className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-            >
-              <span>{lang === 'bn' ? 'ডিরেক্টরি ডাটাবেজ সার্চ' : 'Search Directory'}</span>
-            </Link>
           </div>
         </div>
       </section>

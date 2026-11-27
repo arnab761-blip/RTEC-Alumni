@@ -19,6 +19,20 @@ const sanitizeAvatar = (url) => {
   return url;
 };
 
+const isGraduateBatch = (batchStr = '') => {
+  const b = String(batchStr || '').toLowerCase();
+  return (
+    b.includes('1st') ||
+    b.includes('2nd') ||
+    b.includes('3rd') ||
+    b.includes('১ম') ||
+    b.includes('২য়') ||
+    b.includes('২য়') ||
+    b.includes('৩য়') ||
+    b.includes('৩য়')
+  );
+};
+
 export const SUPER_ADMIN_EMAILS = ['megasonic298@gmail.com', 'arnab.rts761@gmail.com'];
 export const DEFAULT_ADMIN_EMAILS = [...SUPER_ADMIN_EMAILS];
 
@@ -165,6 +179,9 @@ export function AppProvider({ children }) {
               parsed.role = 'student'; // Demote non-authorized users
             }
           }
+        }
+        if (parsed.role === 'student' && (isGraduateBatch(parsed.batch) || parsed.studentType === 'Graduate')) {
+          parsed.role = 'alumni';
         }
         return parsed;
       } catch (e) {}
@@ -783,7 +800,6 @@ export function AppProvider({ children }) {
     if (isAuthorizedAdmin && !extra.googleVerified) {
       return { error: 'ADMIN_GOOGLE_REQUIRED' };
     }
-    let effectiveRole = isAuthorizedAdmin ? 'admin' : (role === 'admin' ? 'student' : role);
 
     // Clear previous session submission tracking before switching user
     untrackSubmission();
@@ -799,14 +815,22 @@ export function AppProvider({ children }) {
 
     const verifiedStudent = cleanEmail
       ? students.find(s => s.email && s.email.toLowerCase().trim() === cleanEmail)
+      : (regNo ? students.find(s => s.regNo && s.regNo.trim().toLowerCase() === regNo.toLowerCase()) : null);
+    const verifiedAlumni = cleanEmail
+      ? alumni.find(a => a.email && a.email.toLowerCase().trim() === cleanEmail)
       : null;
+
+    const resolvedBatch = existingSub?.batch || verifiedStudent?.batch || verifiedAlumni?.batch || batch;
+    const isGrad = Boolean(verifiedAlumni) || isGraduateBatch(resolvedBatch) || verifiedStudent?.studentType === 'Graduate';
+    const effectiveRole = isAuthorizedAdmin ? 'admin' : ((role === 'alumni' || isGrad) ? 'alumni' : 'student');
 
     const newUser = {
       id: `usr-${Date.now()}`,
       name: name || existingSub?.name || verifiedStudent?.name || (effectiveRole === 'admin' ? 'Administrator' : 'Registered Member'),
       nameBn: name || existingSub?.name || verifiedStudent?.nameBn || (effectiveRole === 'admin' ? 'এডমিনিস্ট্রেটর' : 'নিবন্ধিত সদস্য'),
       role: effectiveRole, // 'admin' | 'alumni' | 'student'
-      batch: existingSub?.batch || verifiedStudent?.batch || batch,
+      studentType: existingSub?.studentType || verifiedStudent?.studentType || (effectiveRole === 'alumni' ? 'Graduate' : 'Undergraduate'),
+      batch: resolvedBatch,
       department: existingSub?.department || verifiedStudent?.department || dept,
       company: effectiveRole === 'alumni' ? 'Textile Industry' : (effectiveRole === 'admin' ? 'RTEC Administration' : 'Student at RTEC'),
       email: cleanEmail || 'user@rtec.edu.bd',
@@ -1019,13 +1043,16 @@ export function AppProvider({ children }) {
               } catch (e) {}
             }
             const isAdmin = latestAdmins.includes(curEmail) && Boolean(prevUser.googleVerified || prevUser.role === 'admin');
-            const nextRole = isAdmin ? 'admin' : (alm ? 'alumni' : (prevUser.role || 'student'));
+            const resolvedBatch = sub?.batch || std?.batch || alm?.batch || prevUser.batch;
+            const isGrad = Boolean(alm) || isGraduateBatch(resolvedBatch) || std?.studentType === 'Graduate' || prevUser.role === 'alumni';
+            const nextRole = isAdmin ? 'admin' : (isGrad ? 'alumni' : (prevUser.role || 'student'));
             const nextVerified = isAdmin || Boolean(prevUser.googleVerified) || sub?.status === 'approved' || Boolean(std || alm);
             return {
               ...prevUser,
               role: nextRole,
+              studentType: sub?.studentType || std?.studentType || (nextRole === 'alumni' ? 'Graduate' : prevUser.studentType),
               isVerified: nextVerified,
-              batch: sub?.batch || std?.batch || alm?.batch || prevUser.batch,
+              batch: resolvedBatch,
               department: sub?.department || std?.department || alm?.department || prevUser.department,
               regNo: sub?.regNo || std?.regNo || alm?.regNo || prevUser.regNo,
               submissionId: sub?.id || prevUser.submissionId,
@@ -2093,15 +2120,18 @@ export function AppProvider({ children }) {
       if (existingSub.regNo) localStorage.setItem('rtec_my_submission_reg', existingSub.regNo);
     }
 
-    const assignedRole = isMasterAdmin ? 'admin' : (verifiedAlumni ? 'alumni' : (additional.role || 'student'));
+    const resolvedBatch = existingSub?.batch || verifiedStudent?.batch || verifiedAlumni?.batch || additional.batch || '';
+    const isGrad = Boolean(verifiedAlumni) || isGraduateBatch(resolvedBatch) || verifiedStudent?.studentType === 'Graduate' || additional.role === 'alumni';
+    const assignedRole = isMasterAdmin ? 'admin' : (isGrad ? 'alumni' : (additional.role || 'student'));
 
     const newUser = {
       id: `usr-${Date.now()}`,
       name: isMasterAdmin ? (name || 'RTEC Administrator') : (name || existingSub?.name || verifiedStudent?.name || verifiedAlumni?.name || 'RTEC Member'),
       nameBn: isMasterAdmin ? (name || 'সিস্টেম অ্যাডমিনিস্ট্রেটর') : (existingSub?.name || verifiedStudent?.nameBn || verifiedAlumni?.nameBn || name || 'আরটেক সদস্য'),
       role: assignedRole,
+      studentType: existingSub?.studentType || verifiedStudent?.studentType || (assignedRole === 'alumni' ? 'Graduate' : 'Undergraduate'),
       email: userEmail,
-      batch: existingSub?.batch || verifiedStudent?.batch || verifiedAlumni?.batch || additional.batch || '',
+      batch: resolvedBatch,
       department: existingSub?.department || verifiedStudent?.department || verifiedAlumni?.department || additional.department || '',
       company: isMasterAdmin ? 'College Administration' : (existingSub?.currentJob || verifiedAlumni?.company || 'Student at RTEC'),
       avatar: sanitizeAvatar(additional.avatar || existingSub?.avatar || verifiedStudent?.avatar || verifiedAlumni?.avatar) || '',

@@ -146,7 +146,7 @@ export default function Navbar() {
     { to: '/mentorship', labelBn: 'সিনিয়র মেন্টরশিপ', labelEn: 'Mentorship', icon: Compass, descBn: 'অভিজ্ঞ গ্র্যাজুয়েটদের সান্নিধ্য', descEn: 'Guidance from senior engineers' },
     { to: '/gallery', labelBn: 'আর্কাইভাল গ্যালারি', labelEn: 'Campus Archive', icon: ImageIcon, descBn: 'ঐতিহাসিক মুহূর্ত ও স্মৃতিচারণ', descEn: 'Milestones & photo archives' },
     { to: '/news', labelBn: 'অফিসিয়াল গ্যাজেট ও নোটিশ', labelEn: 'Gazette & News', icon: Newspaper, descBn: 'কলেজ প্রশাসনের জরুরি ঘোষণা', descEn: 'Official administrative notices' },
-    { to: '/about', labelBn: 'কলেজ পরিচিতি ও ইতিহাস', labelEn: 'History & Charter', icon: Building2, descBn: 'বস্ত্র অধিদপ্তর ও বুটেক্স অধ্যাদেশ', descEn: 'Establishment & BUTEX charter' },
+    { to: '/about', labelBn: 'কলেজ পরিচিতি ও ইতিহাস', labelEn: 'Charter & History', icon: Building2, descBn: 'প্রতিষ্ঠানের ইতিহাস, বিভাগ ও ক্যাম্পাস পরিচিতি', descEn: 'Establishment, departments & campus overview' },
     { to: '/contact', labelBn: 'যোগাযোগ ও জনসংযোগ', labelEn: 'Contact Desk', icon: PhoneCall, descBn: 'অফিস ও ক্যাম্পাসের দিকনির্দেশনা', descEn: 'Administrative office & address' }
   ];
 
@@ -182,13 +182,7 @@ export default function Navbar() {
               </h1>
               <div className="flex items-center gap-1.5 text-[9px] xs:text-[10px] sm:text-[11px] text-[#854D0E] dark:text-[#DFCA9E] font-mono-tech font-bold tracking-wide mt-0.5">
                 <span>
-                  {lang === 'bn'
-                    ? 'বস্ত্র ও পাট মন্ত্রণালয় • বুটেক্স অধিভুক্ত'
-                    : 'Affiliated with BUTEX & Min. of Textiles and Jute'}
-                </span>
-                <span className="hidden sm:inline text-[#C5A880]/60">•</span>
-                <span className="hidden md:inline text-[#57534E] dark:text-[#A89884]/90 font-medium">
-                  ESTD. 2018 • 25.4311° N, 89.1500° E
+                  {lang === 'bn' ? 'প্রতিষ্ঠিত ২০১৮' : 'ESTD. 2018'}
                 </span>
               </div>
             </div>
@@ -333,8 +327,10 @@ export default function Navbar() {
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-[#A89884] font-mono-tech truncate mt-0.5">{user.email}</p>
                         <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-mono-tech uppercase font-bold bg-amber-50 text-amber-800 border border-amber-300 dark:bg-[#C5A880]/15 dark:text-[#DFCA9E] dark:border-[#C5A880]/25">
-                          {user.role === 'admin' 
-                            ? (lang === 'bn' ? 'এডমিনিস্ট্রেটর' : 'ADMINISTRATOR') 
+                          {user.role === 'admin'
+                            ? (lang === 'bn' ? 'এডমিনিস্ট্রেটর' : 'ADMINISTRATOR')
+                            : user.role === 'alumni'
+                            ? (lang === 'bn' ? 'অ্যালামনাই' : 'ALUMNI')
                             : (lang === 'bn' ? 'শিক্ষার্থী / সদস্য' : 'STUDENT / MEMBER')}
                         </span>
                       </div>
@@ -720,7 +716,7 @@ export default function Navbar() {
 
                 {/* Drawer Footer with Theme Toggle */}
                 <div className="pt-4 border-t border-[#C5A880]/20 mt-6 flex items-center justify-between text-[11px] font-mono-tech text-[#57534E] dark:text-[#A89884]">
-                  <span className="font-semibold">{lang === 'bn' ? 'আরটেক পীরগঞ্জ, রংপুর' : 'RTEC PIRGANJ, RANGPUR'}</span>
+                  <span className="font-semibold">{lang === 'bn' ? 'আরটেক অ্যালামনাই পোর্টাল' : 'RTEC ALUMNI PORTAL'}</span>
                   <button
                     type="button"
                     onClick={toggleTheme}

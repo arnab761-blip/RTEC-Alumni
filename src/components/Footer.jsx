@@ -33,12 +33,12 @@ export default function Footer() {
           
           {/* Left Column: Official College Identity & Direct Contacts */}
           <div className="lg:col-span-5 space-y-3.5">
-            <div className="flex items-center gap-3">
+            <div className="flex items-start sm:items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1A1916] border border-[#C5A880]/40 p-1 flex items-center justify-center font-serif-regal font-extrabold text-xs text-[#854D0E] dark:text-[#DFCA9E] shadow-sm overflow-hidden shrink-0">
                 <img src={rtecLogoSrc} alt="RTEC" className="w-full h-full object-contain" />
               </div>
-              <div className="min-w-0">
-                <h3 className="font-serif-regal font-bold text-sm sm:text-base text-[#0C0A09] dark:text-[#FDFBF7] tracking-wide uppercase truncate">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-serif-regal font-bold text-[13px] xs:text-sm sm:text-base text-[#0C0A09] dark:text-[#FDFBF7] tracking-wide uppercase whitespace-normal break-words leading-snug">
                   {lang === 'bn' ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ' : 'Rangpur Textile Engineering College'}
                 </h3>
               </div>
@@ -46,10 +46,17 @@ export default function Footer() {
 
             {/* Clean Contact Details */}
             <div className="space-y-1.5 text-xs text-[#4B5563] dark:text-[#A89884] font-mono-tech pt-0.5">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-[#BD452F] shrink-0" />
-                <span>{address}</span>
-              </div>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Rangpur+Textile+Engineering+College,+Tukuriya,+Pirganj,+Rangpur-5420,+Bangladesh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-start gap-2 hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors group"
+                title={lang === 'bn' ? 'Google Maps-এ কলেজের অবস্থান দেখুন' : 'Open college location in Google Maps'}
+              >
+                <MapPin className="w-3.5 h-3.5 text-[#BD452F] shrink-0 mt-0.5" />
+                <span className="group-hover:underline leading-relaxed">{address}</span>
+                <ExternalLink className="w-3 h-3 opacity-60 shrink-0 mt-0.5" />
+              </a>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
                 <div className="flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E] shrink-0" />
@@ -127,11 +134,6 @@ export default function Footer() {
                 <li>
                   <Link to="/students" className="text-[#4B5563] dark:text-[#A89884] hover:text-[#BD452F] dark:hover:text-[#FDFBF7] font-medium transition-colors block py-0.5">
                     {lang === 'bn' ? 'বর্তমান শিক্ষার্থী ও ব্যাচ' : 'Enrolled Students Body'}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/about" className="text-[#4B5563] dark:text-[#A89884] hover:text-[#BD452F] dark:hover:text-[#FDFBF7] font-medium transition-colors block py-0.5">
-                    {lang === 'bn' ? '৪টি ইঞ্জিনিয়ারিং বিভাগ' : '4 Core Departments'}
                   </Link>
                 </li>
               </ul>

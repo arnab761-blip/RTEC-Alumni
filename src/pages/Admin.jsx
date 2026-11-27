@@ -3631,7 +3631,7 @@ export default function Admin() {
                           required
                           value={formData.nameBn || ''}
                           onChange={(e) => setFormData({ ...formData, nameBn: e.target.value })}
-                          placeholder={lang === 'bn' ? 'উদা: ইঞ্জিনিয়ার মো. রঞ্জু মিয়া' : 'e.g. ইঞ্জিনিয়ার মো. রঞ্জু মিয়া'}
+                          placeholder={lang === 'bn' ? 'উদা: ইঞ্জিনিয়ার মোঃ সাইফুর রহমান' : 'e.g. ইঞ্জিনিয়ার মোঃ সাইফুর রহমান'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -3644,7 +3644,7 @@ export default function Admin() {
                           required
                           value={formData.name || ''}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder={lang === 'bn' ? 'উদা: ইঞ্জিনিয়ার মো. রঞ্জু মিয়া' : 'e.g. Engineer Md. Ronju Mia'}
+                          placeholder={lang === 'bn' ? 'উদা: Engr. Md. Saifur Rahman' : 'e.g. Engr. Md. Saifur Rahman'}
                           className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
                         />
                       </div>
@@ -4393,7 +4393,7 @@ export default function Admin() {
                           <option value="Fabric Engineering">{lang === 'bn' ? 'ফ্যাব্রিক ইঞ্জিনিয়ারিং (FE)' : 'Fabric Engineering (FE)'}</option>
                           <option value="Wet Process Engineering">{lang === 'bn' ? 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং (WPE)' : 'Wet Process Engineering (WPE)'}</option>
                           <option value="Apparel Manufacturing">{lang === 'bn' ? 'অ্যাপারেল ম্যানুফ্যাকচারিং (AE)' : 'Apparel Manufacturing (AE)'}</option>
-                          <option value="All Textile Engineering">{lang === 'bn' ? 'সকল টেক্সটাইল বিভাগ' : 'All Textile Disciplines'}</option>
+                          <option value="All Textile Engineering">{lang === 'bn' ? 'সকল টেক্সটাইল বিভাগ' : 'All Textile Departments'}</option>
                         </select>
                       </div>
                       <div>

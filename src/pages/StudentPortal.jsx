@@ -58,12 +58,27 @@ const DEPARTMENT_OPTIONS = [
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 
+const isGraduateBatch = (batchStr = '') => {
+  const b = String(batchStr || '').toLowerCase();
+  return (
+    b.includes('1st') ||
+    b.includes('2nd') ||
+    b.includes('3rd') ||
+    b.includes('১ম') ||
+    b.includes('২য়') ||
+    b.includes('২য়') ||
+    b.includes('৩য়') ||
+    b.includes('৩য়')
+  );
+};
+
 export default function StudentPortal() {
   const {
     user,
     lang,
     studentSubmissions = [],
     students = [],
+    alumni = [],
     mySubmission,
     mySubmissionId,
     trackSubmission,
@@ -75,6 +90,22 @@ export default function StudentPortal() {
     isAdminEmail,
     apiBaseUrl
   } = useApp();
+
+  const isAlumniUser = useMemo(() => {
+    if (!user || user.role === 'guest' || user.role === 'admin') return false;
+    if (user.role === 'alumni') return true;
+    if (isGraduateBatch(user.batch) || user.studentType === 'Graduate') return true;
+    const emailNorm = (user.email || '').toLowerCase().trim();
+    if (emailNorm && alumni.some((a) => a?.email && a.email.toLowerCase().trim() === emailNorm)) return true;
+    const matchedStd = students.find(
+      (s) =>
+        (emailNorm && s?.email && s.email.toLowerCase().trim() === emailNorm) ||
+        (user.regNo && s?.regNo && s.regNo.trim().toLowerCase() === String(user.regNo).trim().toLowerCase())
+    );
+    return Boolean(matchedStd && (matchedStd.studentType === 'Graduate' || isGraduateBatch(matchedStd.batch)));
+  }, [user, alumni, students]);
+
+  const canUseStudentForm = Boolean(user && user.role === 'student' && !isAlumniUser);
 
   const maskEmail = (emailStr) => {
     if (!emailStr || !emailStr.includes('@')) return '';
@@ -520,9 +551,8 @@ export default function StudentPortal() {
         <div className="pb-6 border-b border-[#C5A880]/20 text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-[10px] font-mono-tech uppercase mb-2">
             <span className="px-2.5 py-0.5 rounded bg-[#C5A880]/20 text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/40 font-bold">
-              STUDENT SELF-INPUT PORTAL
+              {lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'STUDENT PORTAL'}
             </span>
-            <span className="text-[#57534E] dark:text-[#A89884]">RTEC PIRGANJ • OFFICIAL ENROLLMENT</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-serif-regal font-black tracking-tight text-[#0C0A09] dark:text-[#FDFBF7]">
@@ -532,8 +562,8 @@ export default function StudentPortal() {
           </h1>
           <p className="text-xs sm:text-sm text-[#37332D] dark:text-[#DCD3C1] mt-2 font-sans max-w-2xl leading-relaxed">
             {lang === 'bn'
-              ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের অধ্যয়নরত বা প্রাক্তন শিক্ষার্থীবৃন্দ নিজস্ব প্রোফাইল ও আইডি তথ্য জমা দিন। জমা দেওয়ার পর আবেদনটি অ্যাডমিন যাচাই করে অনুমোদন (Approve) করলে মূল ডিরেক্টরিতে লাইভ প্রকাশিত হবে।'
-              : 'Students of Rangpur Textile Engineering College can submit their profile details. Submissions enter a pending verification state for administrative approval before publishing.'}
+              ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের বর্তমান অধ্যয়নরত শিক্ষার্থীবৃন্দ নিজস্ব প্রোফাইল ও আইডি তথ্য জমা দিন। জমা দেওয়ার পর আবেদনটি অ্যাডমিন যাচাই করে অনুমোদন (Approve) করলে মূল ডিরেক্টরিতে লাইভ প্রকাশিত হবে।'
+              : 'Current students of Rangpur Textile Engineering College can submit their profile details here. Submissions are verified by an administrator before being published.'}
           </p>
         </div>
 
@@ -607,6 +637,117 @@ export default function StudentPortal() {
           </div>
         </div>
 
+        {/* ========================================================
+            ROLE-GATED ACCESS:
+            - Alumni: Notice + Go to My Profile button (no form)
+            - Guest: Sign in as Student prompt (no form)
+            - Admin: Admin Console notice (no student form)
+            - Student: Full Student Portal (Track + Submission + Form + Dispute)
+            ======================================================== */}
+        {isAlumniUser ? (
+          <div className="plaque-elevated p-6 sm:p-10 rounded-3xl border-2 border-emerald-500/40 text-center space-y-4 shadow-xl">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/35 text-emerald-700 dark:text-emerald-300 flex items-center justify-center mx-auto">
+              <GraduationCap className="w-7 h-7" />
+            </div>
+            <div className="space-y-2 max-w-xl mx-auto">
+              <span className="inline-block px-3 py-0.5 rounded-full text-[10px] font-mono-tech uppercase font-bold bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30">
+                {lang === 'bn' ? 'অ্যালামনাই অ্যাকাউন্ট' : 'ALUMNI ACCOUNT'}
+              </span>
+              <h2 className="text-lg sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
+                {lang === 'bn'
+                  ? 'আপনি ইতিমধ্যেই একজন অ্যালামনাই হিসেবে লগইন করা আছেন। আপনার নতুন করে স্টুডেন্ট প্রোফাইল তৈরি করার প্রয়োজন নেই।'
+                  : "You are already logged in as an Alumni. You don't need to create a student profile."}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
+                {lang === 'bn'
+                  ? 'আপনার অ্যালামনাই প্রোফাইল ও কর্মক্ষেত্রের তথ্য দেখতে বা পরিবর্তন করতে নিচের বাটনে ক্লিক করুন।'
+                  : 'You can view and manage your alumni profile and career details directly from your profile page.'}
+              </p>
+            </div>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/profile"
+                className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg transition"
+              >
+                <User className="w-4 h-4" />
+                <span>{lang === 'bn' ? 'আমার প্রোফাইলে যান' : 'Go to My Profile'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        ) : !user || user.role === 'guest' ? (
+          <div className="plaque-elevated p-6 sm:p-10 rounded-3xl border border-[#C5A880]/35 text-center space-y-4 shadow-xl">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-[#854D0E] dark:text-[#DFCA9E] flex items-center justify-center mx-auto">
+              <GraduationCap className="w-7 h-7" />
+            </div>
+            <div className="space-y-2 max-w-xl mx-auto">
+              <h2 className="text-lg sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
+                {lang === 'bn'
+                  ? 'স্টুডেন্ট পোর্টাল ফর্ম শুধুমাত্র বর্তমান শিক্ষার্থীদের জন্য'
+                  : 'Student Portal Form is Reserved for Current Students'}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
+                {lang === 'bn'
+                  ? 'নতুন স্টুডেন্ট প্রোফাইল তৈরি বা তথ্য জমা দিতে অনুগ্রহ করে আপনার শিক্ষার্থী (Student) অ্যাকাউন্ট অথবা গুগল দিয়ে লগইন করুন।'
+                  : 'Only logged-in current students can view and submit the Student Profile Form. Please sign in with your Student account or Google to continue.'}
+              </p>
+            </div>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsGoogleModalOpen(true)}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition cursor-pointer"
+              >
+                <GoogleLogo className="w-4 h-4 bg-white rounded-full p-0.5" />
+                <span>{lang === 'bn' ? 'গুগল দিয়ে লগইন' : 'Sign in with Google'}</span>
+              </button>
+              <Link
+                to="/auth"
+                className="px-5 py-2.5 rounded-xl bg-[#854D0E] hover:bg-[#6D3F0B] dark:bg-[#C5A880] dark:hover:bg-[#DFCA9E] text-white dark:text-[#121110] font-bold text-xs inline-flex items-center gap-2 shadow-md transition"
+              >
+                <User className="w-4 h-4" />
+                <span>{lang === 'bn' ? 'স্টুডেন্ট লগইন / নিবন্ধন' : 'Student Sign In'}</span>
+              </Link>
+            </div>
+          </div>
+        ) : !canUseStudentForm ? (
+          <div className="plaque-elevated p-6 sm:p-10 rounded-3xl border border-[#C5A880]/35 text-center space-y-4 shadow-xl">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-[#854D0E] dark:text-[#DFCA9E] flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <div className="space-y-2 max-w-xl mx-auto">
+              <h2 className="text-lg sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
+                {lang === 'bn'
+                  ? 'স্টুডেন্ট পোর্টাল ফর্ম শুধুমাত্র বর্তমান শিক্ষার্থীদের জন্য'
+                  : 'Student Portal Form is for Current Students Only'}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
+                {lang === 'bn'
+                  ? 'আপনি বর্তমানে অ্যাডমিন হিসেবে লগইন আছেন। শিক্ষার্থীদের আবেদন যাচাই ও পরিচালনা করতে অ্যাডমিন কনসোল ব্যবহার করুন।'
+                  : 'You are currently signed in as an Administrator. Use the Admin Console to review and manage student submissions.'}
+              </p>
+            </div>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              {user.role === 'admin' && isAdminEmail?.(user.email) && (
+                <Link
+                  to="/admin"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{lang === 'bn' ? 'অ্যাডমিন কনসোল' : 'Admin Console'}</span>
+                </Link>
+              )}
+              <Link
+                to="/profile"
+                className="px-5 py-2.5 rounded-xl bg-[#854D0E] hover:bg-[#6D3F0B] dark:bg-[#C5A880] dark:hover:bg-[#DFCA9E] text-white dark:text-[#121110] font-bold text-xs inline-flex items-center gap-2 shadow-md transition"
+              >
+                <User className="w-4 h-4" />
+                <span>{lang === 'bn' ? 'আমার প্রোফাইলে যান' : 'Go to My Profile'}</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* ========================================================
             QUICK STATUS TRACKING & LOOKUP BAR
             Allows any student to check their status in 1 click
@@ -1149,7 +1290,7 @@ export default function StudentPortal() {
                                 phone: matchedStudentFromList.phone || prev.phone,
                                 currentLocation: matchedStudentFromList.address || matchedStudentFromList.currentLocation || prev.currentLocation
                               }));
-                              triggerToast(lang === 'bn' ? '✓ আপনার নাম, ব্যাচ ও বিভাগের তথ্য অটো-ফিল করা হয়েছে!' : '✓ Your name, cohort & department details auto-filled!');
+                              triggerToast(lang === 'bn' ? '✓ আপনার নাম, ব্যাচ ও বিভাগের তথ্য অটো-ফিল করা হয়েছে!' : '✓ Your name, batch & department details auto-filled!');
                             }}
                             className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 cursor-pointer shadow-sm transition flex items-center gap-1.5"
                           >
@@ -1173,7 +1314,7 @@ export default function StudentPortal() {
                     {/* Single Name Field */}
                     <div className="sm:col-span-2">
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        Name
+                        {lang === 'bn' ? 'পূর্ণ নাম (Name)' : 'Full Name'}
                       </label>
                       <input
                         type="text"
@@ -1276,14 +1417,14 @@ export default function StudentPortal() {
                 <div className="pt-4 border-t border-[#C5A880]/20">
                   <h3 className="text-xs font-mono-tech font-bold text-[#57534E] dark:text-[#A89884] uppercase tracking-wider mb-3 flex items-center gap-2">
                     <GraduationCap className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E]" />
-                    <span>{lang === 'bn' ? 'শিক্ষা ও ব্যাচ সংক্রান্ত তথ্য' : 'Academic Credentials & Cohort'}</span>
+                    <span>{lang === 'bn' ? 'শিক্ষা ও ব্যাচ সংক্রান্ত তথ্য' : 'Academic Details & Batch'}</span>
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Batch */}
                     <div ref={batchFieldRef}>
                       <label className="block text-xs font-semibold text-[#1C1917] dark:text-[#DCD3C1] mb-1.5">
-                        {lang === 'bn' ? 'কততম ব্যাচ (Batch)' : 'Cohort / Batch'}
+                        {lang === 'bn' ? 'কততম ব্যাচ (Batch)' : 'Academic Batch'}
                       </label>
                       <select
                         value={formData.batch}
@@ -1632,6 +1773,8 @@ export default function StudentPortal() {
             <span>{lang === 'bn' ? 'রিপোর্ট / কমপ্লেইন উইন্ডো খুলুন' : 'Open Dispute Report Form'}</span>
           </button>
         </div>
+        </>
+        )}
 
         {/* ========================================================
             ID DISPUTE & COMPLAINT FLOATING MODAL WINDOW

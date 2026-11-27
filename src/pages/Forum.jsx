@@ -356,15 +356,14 @@ export default function Forum() {
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#57534E] dark:text-[#A89884] uppercase mb-2">
             <span className="text-[#BD452F] font-bold">
-              {lang === 'bn' ? 'অ্যালামনাই নলেজ কমন্স • সেকশন ০৫' : 'ALUMNI KNOWLEDGE COMMONS • SECTION 05'}
+              {lang === 'bn' ? 'অভিজ্ঞতা ও প্রশ্নোত্তর' : 'ALUMNI INSIGHTS & Q&A'}
             </span>
-            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • অভিজ্ঞতা বিনিময়' : 'RTEC PIRGANJ • EXPERIENCE SHARE'}</span>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7] tracking-tight">
-                {lang === 'bn' ? 'সিনিয়র অ্যালামনাই অভিজ্ঞতা শেয়ার ও ক্যারিয়ার গল্প' : 'Senior Alumni Experience Share & Career Stories'}
+                {lang === 'bn' ? 'সিনিয়র অ্যালামনাইদের অভিজ্ঞতা ও ক্যারিয়ার গল্প' : 'Senior Alumni Insights & Experiences'}
               </h1>
               <p className="text-xs sm:text-sm text-[#44403C] dark:text-[#DCD3C1] mt-2 max-w-3xl font-sans leading-relaxed">
                 {lang === 'bn'
@@ -838,7 +837,7 @@ export default function Forum() {
             <div>
               <h3 className="font-serif-regal font-bold text-lg text-[#0C0A09] dark:text-[#FDFBF7]">
                 {forumPosts.length === 0
-                  ? (lang === 'bn' ? 'অভিজ্ঞতা ফোরাম উন্মুক্ত — প্রথম আলোচনা শুরু করুন' : 'Senior Knowledge Commons is Live — Start the First Thread')
+                  ? (lang === 'bn' ? 'অভিজ্ঞতা ফোরাম উন্মুক্ত — প্রথম আলোচনা শুরু করুন' : 'Alumni Forum is Live — Start the First Discussion')
                   : (lang === 'bn' ? 'কোনো প্রশ্নোত্তর বা গল্প পাওয়া যায়নি' : 'No Discussions Found')}
               </h3>
               <p className="text-xs text-[#57534E] dark:text-[#A89884] mt-2 font-sans max-w-md mx-auto leading-relaxed">

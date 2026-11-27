@@ -51,9 +51,8 @@ export default function Contact() {
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
             <span className="text-[#DE644E] font-bold">
-              {lang === 'bn' ? 'ক্যাম্পাস যোগাযোগ ও অনুসন্ধান ডেস্ক' : 'CAMPUS LIAISON & INQUIRY DESK'}
+              {lang === 'bn' ? 'ক্যাম্পাস যোগাযোগ ও অনুসন্ধান ডেস্ক' : 'CONTACT & INQUIRY DESK'}
             </span>
-            <span>RTEC PIRGANJ • 25.4311° N, 89.1500° E</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">

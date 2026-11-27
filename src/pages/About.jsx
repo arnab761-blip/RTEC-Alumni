@@ -1,28 +1,33 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import {
-  Building2,
   GraduationCap,
   Award,
-  Compass,
-  MapPin,
   CheckCircle2,
-  Users,
-  BookOpen,
-  Globe,
-  ArrowRight
+  Users
 } from 'lucide-react';
 
 export default function About() {
-  const { lang } = useApp();
+  const { lang, teachers = [], students = [] } = useApp();
+
+  const principal = useMemo(() => {
+    const list = Array.isArray(teachers) ? teachers : [];
+    return list.find((t) => t?.designation?.toLowerCase() === 'principal' || t?.designationBn === 'অধ্যক্ষ') || list[0] || null;
+  }, [teachers]);
+
+  const principalName = lang === 'bn'
+    ? (principal?.nameBn || 'জনাব ইঞ্জিনিয়ার মোঃ সাইফুর রহমান')
+    : (principal?.name || 'Engr. Md. Saifur Rahman');
+
+  const totalStudentsCount = Array.isArray(students) && students.length > 0 ? students.length : 834;
 
   const departments = [
     {
       titleBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং',
       titleEn: 'Yarn Engineering',
-      code: 'Yarn Engineering',
+      code: 'YE-01',
       seatsBn: '৩০টি আসন',
       seatsEn: '30 Seats',
       descBn: 'তুলা ও সিন্থেটিক ফাইবার স্পিনিং, রিং ও রোটর ইয়ার্ন প্রযুক্তি, পলিমার ব্লেন্ডিং ও কোয়ালিটি কন্ট্রোল ল্যাবরেটরি।',
@@ -31,7 +36,7 @@ export default function About() {
     {
       titleBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং',
       titleEn: 'Fabric Engineering',
-      code: 'Fabric Engineering',
+      code: 'FE-02',
       seatsBn: '৩০টি আসন',
       seatsEn: '30 Seats',
       descBn: 'উইভিং ও নিটিং প্রযুক্তি, এয়ার-জেট ও রেপিয়ার লুম অপারেশন, জ্যাকার্ড ডিজাইন এবং টেক্সটাইল ফ্যাব্রিক স্ট্রাকচার।',
@@ -40,7 +45,7 @@ export default function About() {
     {
       titleBn: 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং',
       titleEn: 'Wet Process Engineering',
-      code: 'Wet Process Engineering',
+      code: 'WPE-03',
       seatsBn: '৩০টি আসন',
       seatsEn: '30 Seats',
       descBn: 'টেক্সটাইল প্রিট্রিটমেন্ট, ডাইং, প্রিন্টিং, পরিবেশবান্ধব ফিনিশিং কেমিস্ট্রি ও ওয়াটারলেস ডাইং রিসার্চ।',
@@ -49,7 +54,7 @@ export default function About() {
     {
       titleBn: 'অ্যাপারেল ইঞ্জিনিয়ারিং',
       titleEn: 'Apparel Manufacturing',
-      code: 'Apparel Manufacturing',
+      code: 'AME-04',
       seatsBn: '৩০টি আসন',
       seatsEn: '30 Seats',
       descBn: 'পোশাক উৎপাদন প্রযুক্তি, ক্যাড প্যাটার্ন মেকিং, ইন্ডাস্ট্রিয়াল ইঞ্জিনিয়ারিং (IE), মার্চেন্ডাইজিং ও সাপ্লাই চেইন।',
@@ -122,29 +127,24 @@ export default function About() {
         <div className="plaque-elevated rounded-2xl border border-[#C5A880]/30 p-6 sm:p-12 mb-12 shadow-2xl relative">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#BD452F]/20 text-[#DE644E] text-[11px] font-mono-tech border border-[#BD452F]/40 uppercase mb-3 font-bold">
-              {lang === 'bn' ? 'প্রতিষ্ঠান চার্টার ও ইতিহাস • টুকুরিয়া, পীরগঞ্জ' : 'INSTITUTE CHARTER & HISTORY • TUKURIYA, PIRGANJ'}
+              {lang === 'bn' ? 'প্রতিষ্ঠান চার্টার ও ইতিহাস' : 'INSTITUTE CHARTER & HISTORY'}
             </span>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight leading-tight">
               {lang === 'bn' ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ (আরটেক)' : 'Rangpur Textile Engineering College (RTEC)'}
             </h1>
-            <p className="text-xs sm:text-sm text-[#DFCA9E] font-mono-tech mt-1 font-semibold">
-              {lang === 'bn'
-                ? 'প্রতিষ্ঠিত ২০১৮ (একনেক অনুমোদিত) • বুটেক্স ও বস্ত্র অধিদপ্তর (বস্ত্র ও পাট মন্ত্রণালয়) অধিভুক্ত'
-                : 'ESTABLISHED 2018 (ECNEC APPROVED) • AFFILIATED WITH BUTEX & DOT, MINISTRY OF TEXTILES'}
-            </p>
 
             <p className="text-xs sm:text-sm text-[#DCD3C1] mt-4 leading-relaxed font-sans">
               {lang === 'bn'
-                ? 'বস্ত্র ও পাট মন্ত্রণালয়, বস্ত্র অধিদপ্তর (DOT) কর্তৃক প্রতিষ্ঠিত এবং বাংলাদেশ টেক্সটাইল বিশ্ববিদ্যালয় (BUTEX) অধিভুক্ত উত্তরবঙ্গের শীর্ষস্থানীয় সরকারি টেক্সটাইল প্রযুক্তি গবেষণা প্রতিষ্ঠান। একনেক (ECNEC) কর্তৃক আগস্ট ২০১৮ সালে অনুমোদন লাভ করে এবং ২০১৮-১৯ শিক্ষাবর্ষ থেকে ৪টি বিশেষায়িত বিভাগে বিএসসি ইন টেক্সটাইল ইঞ্জিনিয়ারিং কোর্স সফলভাবে পরিচালিত হচ্ছে। ফেব্রুয়ারি ২০২৫-এ কলেজটির নাম আনুষ্ঠানিকভাবে "রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ" (RTEC) নির্ধারণ করা হয়।'
-                : 'Founded by the Department of Textiles (DOT), Ministry of Textiles and Jute, and affiliated with Bangladesh University of Textiles (BUTEX), RTEC is North Bengal\'s premier public textile technology and engineering institution. Approved by ECNEC in August 2018, RTEC offers premier B.Sc. in Textile Engineering degrees across four specialized departments since the 2018–19 academic year. In February 2025, the college was officially designated as "Rangpur Textile Engineering College" (RTEC).'}
+                ? 'বস্ত্র ও পাট মন্ত্রণালয়, বস্ত্র অধিদপ্তর (DoT) কর্তৃক প্রতিষ্ঠিত এবং বাংলাদেশ টেক্সটাইল বিশ্ববিদ্যালয় (BUTEX) অধিভুক্ত উত্তরবঙ্গের শীর্ষস্থানীয় সরকারি টেক্সটাইল প্রযুক্তি গবেষণা প্রতিষ্ঠান। একনেক (ECNEC) কর্তৃক আগস্ট ২০১৮ সালে অনুমোদন লাভ করে এবং ২০১৮-১৯ শিক্ষাবর্ষ থেকে ৪টি বিশেষায়িত বিভাগে বিএসসি ইন টেক্সটাইল ইঞ্জিনিয়ারিং কোর্স সফলভাবে পরিচালিত হচ্ছে। ফেব্রুয়ারি ২০২৫-এ কলেজটির নাম আনুষ্ঠানিকভাবে "রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ" (RTEC) নির্ধারণ করা হয়।'
+                : 'Founded by the Department of Textiles (DoT), Ministry of Textiles and Jute, and affiliated with Bangladesh University of Textiles (BUTEX), RTEC is northern Bangladesh\'s premier public textile engineering college. Approved by ECNEC in August 2018, RTEC offers 4-year B.Sc. in Textile Engineering degrees across four specialized departments since the 2018–19 academic year. In February 2025, the college was officially designated as "Rangpur Textile Engineering College" (RTEC).'}
             </p>
 
             <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex flex-wrap gap-4 text-xs font-mono-tech text-[#A89884]">
               <span>
                 {lang === 'bn' ? 'অধ্যক্ষ:' : 'Principal:'}{' '}
                 <strong className="text-[#DFCA9E]">
-                  {lang === 'bn' ? 'ইঞ্জিনিয়ার মো. রঞ্জু মিয়া' : 'Engr. Md. Ranju Mia'}
+                  {principalName}
                 </strong>
               </span>
               <span>•</span>
@@ -158,7 +158,7 @@ export default function About() {
               <span>
                 {lang === 'bn' ? 'মোট শিক্ষার্থী:' : 'Total Students:'}{' '}
                 <strong className="text-[#DFCA9E]">
-                  {lang === 'bn' ? '৬৮৭ জন' : '687 Students'}
+                  {lang === 'bn' ? `${totalStudentsCount} জন` : `${totalStudentsCount} Students`}
                 </strong>
               </span>
             </div>
@@ -169,7 +169,7 @@ export default function About() {
                 className="btn-agency btn-agency-terracotta px-5 py-2.5 rounded text-xs font-sans uppercase tracking-wider"
               >
                 <GraduationCap className="w-4 h-4" />
-                <span>{lang === 'bn' ? 'শ্রদ্ধেয় শিক্ষকমণ্ডলী' : 'Distinguished Faculty'}</span>
+                <span>{lang === 'bn' ? 'শ্রদ্ধেয় শিক্ষকমণ্ডলী' : 'Faculty & Teachers'}</span>
               </Link>
               <Link
                 to="/students"
@@ -183,7 +183,7 @@ export default function About() {
                 className="btn-agency px-5 py-2.5 rounded text-xs font-sans uppercase tracking-wider"
               >
                 <Award className="w-4 h-4 text-[#DFCA9E]" />
-                <span>{lang === 'bn' ? 'সিনিয়র অভিজ্ঞতা বিনিময়' : 'Experience Share & Stories'}</span>
+                <span>{lang === 'bn' ? 'সিনিয়র অভিজ্ঞতা বিনিময়' : 'Experience Share & Insights'}</span>
               </Link>
             </div>
           </div>

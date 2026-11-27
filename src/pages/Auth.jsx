@@ -342,7 +342,7 @@ export default function Auth() {
                 <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  {lang === 'bn' ? 'ব্যাচ' : 'Cohort / Batch'}
+                  {lang === 'bn' ? 'ব্যাচ' : 'Academic Batch'}
                 </label>
                 <select
                   value={batch}
@@ -399,24 +399,26 @@ export default function Auth() {
         </>
         )}
 
-        {/* Student Self-Registration Gateway */}
+        {/* Student Self-Registration Gateway (Hidden when logged in as Alumni) */}
+        {user?.role !== 'alumni' && (
         <div className="mt-5 p-4 rounded-2xl bg-[#141311] border border-[#C5A880]/30 text-center space-y-2">
           <p className="text-xs font-bold text-[#FDFBF7]">
             {lang === 'bn' ? 'স্টুডেন্ট আইডি ও প্রোফাইল পোর্টাল' : 'Student ID & Profile Portal'}
           </p>
           <p className="text-[11px] text-[#A89884] font-sans">
             {lang === 'bn'
-              ? 'রেজিস্ট্রেশন নম্বর দিয়ে সরাসরি ছবি, রক্তের গ্রুপ ও চাকরির তথ্য আপডেট করতে চান?'
-              : 'Want to update your photo, blood group and workplace using your student ID?'}
+              ? 'বর্তমান শিক্ষার্থীরা রেজিস্ট্রেশন নম্বর দিয়ে সরাসরি ছবি, রক্তের গ্রুপ ও তথ্য আপডেট করতে চান?'
+              : 'Current students: want to update your photo, blood group and info using your student ID?'}
           </p>
           <Link
             to="/student-portal"
             className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition"
           >
             <GraduationCap className="w-3.5 h-3.5" />
-            <span>{lang === 'bn' ? 'স্টুডেন্ট সেলফ-ইনপুট পোর্টালে যান →' : 'Go to Student Self-Input Portal →'}</span>
+            <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টালে যান →' : 'Go to Student Portal →'}</span>
           </Link>
         </div>
+        )}
 
         {/* Google Sign-in Modal */}
         <GoogleSignInModal

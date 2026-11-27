@@ -140,18 +140,18 @@ export default function Students() {
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
             <span className="text-[#DE644E]">
-              {lang === 'bn' ? 'শিক্ষার্থী তালিকা • কেন্দ্রীয় রেজিস্টার' : 'STUDENT ROSTER • CENTRAL REGISTER'}
+              {lang === 'bn' ? 'শিক্ষার্থী তালিকা' : 'STUDENT DIRECTORY'}
             </span>
-            <span>{lang === 'bn' ? 'আরটেক পীরগঞ্জ • ১ম থেকে ৮ম ব্যাচ' : 'RTEC PIRGANJ • 1ST TO 8TH BATCH'}</span>
+            <span>{lang === 'bn' ? '১ম থেকে ৮ম ব্যাচ' : '1ST TO 8TH BATCH'}</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
-            {lang === 'bn' ? 'আরটেক অধ্যয়নরত শিক্ষার্থী রেজিস্ট্রি' : 'RTEC Enrolled Student Registry'}
+            {lang === 'bn' ? 'আরটেক অধ্যয়নরত শিক্ষার্থী রেজিস্ট্রি' : 'RTEC Student Registry'}
           </h1>
           <p className="text-xs sm:text-sm text-[#DCD3C1] mt-2 max-w-3xl font-sans leading-relaxed">
             {lang === 'bn'
               ? '১ম ব্যাচ (২০১৮-১৯) থেকে শুরু করে ৮ম ব্যাচ (২০২৫-২৬) পর্যন্ত বর্তমান অধ্যয়নরত ভবিষ্যৎ বস্ত্র প্রকৌশলীবৃন্দের রেজিস্ট্রি।'
-              : 'Official student registry spanning academic cohorts from the 1st Batch (2018-19) to the 8th Batch (2025-26).'}
+              : 'Official student directory covering academic batches from the 1st Batch (2018-19) to the 8th Batch (2025-26).'}
           </p>
         </div>
 
@@ -210,7 +210,7 @@ export default function Students() {
           <div className="p-4 rounded-xl plaque-elevated text-center border border-[#C5A880]/20">
             <span className="text-2xl sm:text-3xl font-serif-regal font-black text-[#DFCA9E]">04</span>
             <p className="text-[11px] font-mono-tech text-[#A89884] mt-1">
-              {lang === 'bn' ? 'ইঞ্জিনিয়ারিং বিভাগ' : 'Core Disciplines'}
+              {lang === 'bn' ? 'ইঞ্জিনিয়ারিং বিভাগ' : 'Core Departments'}
             </p>
           </div>
         </div>

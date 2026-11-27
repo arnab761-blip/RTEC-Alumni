@@ -24,29 +24,42 @@ export default function News() {
   useScrollLock(Boolean(selectedArticle));
 
   const categories = [
-    { id: 'All', labelBn: 'সকল নোটিশ ও খবর', labelEn: 'All Notices & News' },
-    { id: 'Academic Notice', labelBn: 'একাডেমিক নোটিশ', labelEn: 'Academic Notice' },
-    { id: 'Examination', labelBn: 'পরীক্ষা সংক্রান্ত', labelEn: 'Examination' },
-    { id: 'Admission', labelBn: 'ভর্তি সংক্রান্ত', labelEn: 'Admission' },
-    { id: 'General Notice', labelBn: 'সাধারণ নোটিশ', labelEn: 'General Notice' },
-    { id: 'Holiday', labelBn: 'ছুটির নোটিশ', labelEn: 'Holiday' },
-    { id: 'Career & Placement', labelBn: 'ক্যারিয়ার ও প্লেসমেন্ট', labelEn: 'Career & Placement' },
-    { id: 'Urgent Notice', labelBn: 'জরুরি নোটিশ', labelEn: 'Urgent Notice' },
-    { id: 'Notice', labelBn: 'প্রশাসনিক নোটিশ', labelEn: 'Official Notice' },
-    { id: 'Achievement', labelBn: 'সাফল্য ও অর্জন', labelEn: 'Achievement' },
-    { id: 'Spotlight', labelBn: 'স্পটলাইট', labelEn: 'Spotlight' },
-    { id: 'Campus', labelBn: 'ক্যাম্পাস জীবন', labelEn: 'Campus News' }
+    { id: 'All', labelBn: 'সকল নোটিশ', labelEn: 'All Notices' },
+    { id: 'Academic', labelBn: 'একাডেমিক', labelEn: 'Academic' },
+    { id: 'Examination & Results', labelBn: 'পরীক্ষা ও ফলাফল', labelEn: 'Examination & Results' },
+    { id: 'General', labelBn: 'সাধারণ', labelEn: 'General' }
   ];
 
+  const isAcademicCategory = (cat = '') => {
+    const c = String(cat).toLowerCase();
+    return c === 'academic' || c === 'academic notice' || c === 'admission' || c.includes('academic') || c.includes('admission');
+  };
+
+  const isExamCategory = (cat = '') => {
+    const c = String(cat).toLowerCase();
+    return c === 'examination & results' || c === 'examination' || c.includes('exam') || c.includes('result');
+  };
+
   const getCategoryLabel = (catId) => {
+    if (catId === 'Academic' || isAcademicCategory(catId)) {
+      return lang === 'bn' ? 'একাডেমিক' : 'Academic';
+    }
+    if (catId === 'Examination & Results' || isExamCategory(catId)) {
+      return lang === 'bn' ? 'পরীক্ষা ও ফলাফল' : 'Examination & Results';
+    }
     const found = categories.find(c => c.id === catId);
     if (found) return lang === 'bn' ? found.labelBn : found.labelEn;
-    return catId || (lang === 'bn' ? 'সাধারণ নোটিশ' : 'General Notice');
+    if (catId === 'General Notice' || catId === 'Notice' || catId === 'General') {
+      return lang === 'bn' ? 'সাধারণ' : 'General';
+    }
+    return catId || (lang === 'bn' ? 'সাধারণ' : 'General');
   };
 
   const filteredNews = useMemo(() => news.filter(n => {
     if (activeCategory === 'All') return true;
-    if (activeCategory === 'Notice') return n.category === 'Notice' || String(n.category || '').includes('Notice');
+    if (activeCategory === 'Academic') return isAcademicCategory(n.category);
+    if (activeCategory === 'Examination & Results') return isExamCategory(n.category);
+    if (activeCategory === 'General') return !isAcademicCategory(n.category) && !isExamCategory(n.category);
     return n.category === activeCategory;
   }), [news, activeCategory]);
 
@@ -79,14 +92,14 @@ export default function News() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2.5 overflow-x-auto py-2 px-1 mb-8 no-scrollbar">
+        <div className="flex flex-wrap items-center gap-2.5 py-2 mb-8">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 cursor-pointer ${
                 activeCategory === cat.id
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/40 scale-110'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-900/30'
                   : 'bg-white dark:bg-slate-900 text-stone-700 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-slate-800 border border-[#C5A880]/20'
               }`}
             >

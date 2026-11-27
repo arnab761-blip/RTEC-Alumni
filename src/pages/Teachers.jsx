@@ -23,13 +23,13 @@ import {
 import UserAvatar from '../components/UserAvatar.jsx';
 
 const DEPARTMENTS = [
-  { id: 'all', nameBn: 'সকল অনুষদ ও বিভাগ', nameEn: 'All Faculty & Staff' },
+  { id: 'all', nameBn: 'সকল বিভাগ', nameEn: 'All Faculty' },
   { id: 'Administration', nameBn: 'প্রশাসন', nameEn: 'Administration' },
-  { id: 'Textile Engineering', nameBn: 'টেক্সটাইল ইঞ্জিনিয়ারিং', nameEn: 'Textile Engineering' },
-  { id: 'Wet Process', nameBn: 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং', nameEn: 'Wet Process Engineering' },
-  { id: 'Fashion', nameBn: 'ফ্যাশন ও অ্যাপারেল ডিজাইন', nameEn: 'Fashion & Design' },
-  { id: 'Basic Science', nameBn: 'বেসিক সায়েন্স (পদার্থ)', nameEn: 'Basic Science (Physics)' },
-  { id: 'Technical Workshop', nameBn: 'কারিগরি ওয়ার্কশপ ও ল্যাব', nameEn: 'Technical Workshop & Labs' }
+  { id: 'Textile Engineering', nameBn: 'টেক্সটাইল ইঞ্জি.', nameEn: 'Textile Eng.' },
+  { id: 'Wet Process', nameBn: 'ওয়েট প্রসেস', nameEn: 'Wet Process' },
+  { id: 'Fashion', nameBn: 'ফ্যাশন ও ডিজাইন', nameEn: 'Fashion & Design' },
+  { id: 'Basic Science', nameBn: 'বেসিক সায়েন্স', nameEn: 'Basic Science' },
+  { id: 'Technical Workshop', nameBn: 'ওয়ার্কশপ ও ল্যাব', nameEn: 'Workshop & Labs' }
 ];
 
 export default function Teachers() {
@@ -137,17 +137,18 @@ export default function Teachers() {
         {/* Page Archival Header */}
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
-            <span className="text-[#DFCA9E]">OFFICIAL FACULTY & STAFF ROSTER • RTEC SENATE</span>
-            <span>MINISTRY OF TEXTILES & JUTE • BUTEX AFFILIATED</span>
+            <span className="text-[#DFCA9E]">
+              {lang === 'bn' ? 'শিক্ষকমণ্ডলী ও কর্মকর্তা তালিকা' : 'FACULTY & STAFF DIRECTORY'}
+            </span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
-            {lang === 'bn' ? 'সম্মানিত শিক্ষকমণ্ডলী ও কর্মকর্তাবৃন্দ' : 'Distinguished Faculty & Officers'}
+            {lang === 'bn' ? 'সম্মানিত শিক্ষকমণ্ডলী ও কর্মকর্তাবৃন্দ' : 'Faculty & Officers'}
           </h1>
           <p className="text-xs sm:text-sm text-[#DCD3C1] mt-2 max-w-3xl font-sans leading-relaxed">
             {lang === 'bn'
-              ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ (RTEC), পীরগঞ্জ, রংপুর-এর সম্মানিত অধ্যক্ষ, বিভাগীয় প্রধান, সহকারী অধ্যাপক, প্রভাষক, কারিগরি প্রশিক্ষক ও কর্মকর্তাবৃন্দের প্রাতিষ্ঠানিক তালিকা।'
-              : 'Official roster of the Principal, Assistant Professors, Lecturers, Technical Instructors, and Officers serving at Rangpur Textile Engineering College.'}
+              ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের সম্মানিত অধ্যক্ষ, বিভাগীয় প্রধান, সহকারী অধ্যাপক, প্রভাষক, কারিগরি প্রশিক্ষক ও কর্মকর্তাবৃন্দের তালিকা।'
+              : 'Official directory of the Principal, Assistant Professors, Lecturers, Technical Instructors, and Officers at Rangpur Textile Engineering College.'}
           </p>
         </div>
 
@@ -209,14 +210,14 @@ export default function Teachers() {
           </div>
 
           {/* Department Tabs */}
-          <div className="flex flex-wrap gap-2.5 pt-2 border-t border-[#C5A880]/15">
-            {DEPARTMENTS.map((dept) => (
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-3 border-t border-[#C5A880]/15">
+            {DEPARTMENTS.map((dept, idx) => (
               <button
                 key={dept.id}
                 onClick={() => setSelectedDept(dept.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono-tech transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 cursor-pointer ${
+                className={`${idx === 0 ? 'col-span-2 sm:col-span-1' : ''} sm:flex-auto text-center px-3 py-2 rounded-lg text-xs font-sans font-semibold whitespace-nowrap transition-all duration-200 hover:-translate-y-0.5 cursor-pointer ${
                   selectedDept === dept.id
-                    ? 'bg-[#C5A880] text-[#121110] font-bold shadow scale-110'
+                    ? 'bg-[#C5A880] text-[#121110] font-bold shadow-md ring-1 ring-[#DFCA9E]'
                     : 'bg-[#141311] text-[#A89884] hover:text-[#EDE8DF] border border-[#C5A880]/20'
                 }`}
               >
@@ -224,6 +225,21 @@ export default function Teachers() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Faculty List Heading */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
+          <div>
+            <span className="text-[10px] font-mono-tech uppercase text-[#DE644E] tracking-widest block font-bold">
+              {lang === 'bn' ? 'একাডেমিক ও কারিগরি অনুষদ' : 'ACADEMIC & TECHNICAL FACULTY'}
+            </span>
+            <h2 className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7] mt-0.5">
+              {lang === 'bn' ? 'শিক্ষকমণ্ডলী ও বিভাগীয় কর্মকর্তাবৃন্দ' : 'Faculty Members & Instructors'}
+            </h2>
+          </div>
+          <span className="text-xs font-mono-tech text-[#A89884]">
+            {lang === 'bn' ? `মোট ${filteredTeachers.length} জন` : `${filteredTeachers.length} Members`}
+          </span>
         </div>
 
         {/* Teachers Grid */}
