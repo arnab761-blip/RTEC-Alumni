@@ -140,11 +140,11 @@ export default function About() {
             </p>
 
             {/* Purpose of the Alumni Website */}
-            <div className="mt-5 p-4 rounded-xl bg-[#141311]/70 border border-[#C5A880]/20 space-y-1.5">
-              <span className="text-[10px] font-mono-tech uppercase tracking-wider text-[#DFCA9E] font-bold block">
+            <div className="mt-5 p-4 sm:p-5 rounded-xl bg-[#F8F5EE] dark:bg-[#141311]/85 border border-[#C5A880]/45 dark:border-[#C5A880]/25 space-y-1.5 shadow-sm">
+              <span className="text-[10px] font-mono-tech uppercase tracking-wider text-[#854D0E] dark:text-[#DFCA9E] font-bold block">
                 {lang === 'bn' ? 'অ্যালামনাই ওয়েবসাইট কী ও আমাদের উদ্দেশ্য' : 'WHAT IS THIS ALUMNI PORTAL & OUR PURPOSE'}
               </span>
-              <p className="text-xs text-[#DCD3C1] font-sans leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#1C1917] dark:text-[#DCD3C1] font-sans leading-relaxed font-medium">
                 {lang === 'bn'
                   ? 'এই কেন্দ্রীয় ওয়েবসাইটটি আরটেকের ১ম থেকে ৮ম ব্যাচের প্রাক্তন ও বর্তমান শিক্ষার্থী এবং শিক্ষকমণ্ডলীকে এক প্ল্যাটফর্মে যুক্ত করার জন্য তৈরি করা হয়েছে—যাতে প্রাক্তনদের নির্ভুল ডিরেক্টরি সংরক্ষণ, ইন্ডাস্ট্রি অভিজ্ঞতা বিনিময়, সিনিয়র মেন্টরশিপ এবং টেক্সটাইল সেক্টরে চাকরির রেফারেল সহজতর হয়।'
                   : 'We built this central portal to unite RTEC graduates, current students across all batches, and faculty members—making it effortless to preserve verified alumni records, exchange real textile industry experiences, provide senior mentorship, and share career opportunities.'}

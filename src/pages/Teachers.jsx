@@ -283,12 +283,12 @@ export default function Teachers() {
                       )}
                     </div>
 
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between on-dark-media">
                       <span className="px-2.5 py-0.5 rounded text-[10px] font-mono-tech bg-[#181715]/90 text-[#DFCA9E] border border-[#C5A880]/30 uppercase font-medium">
                         {lang === 'bn' ? (teacher.deptBn || teacher.department) : (teacher.department || teacher.deptBn)}
                       </span>
                       {teacher.order && (
-                        <span className="text-[10px] font-mono-tech text-[#A89884] bg-black/60 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono-tech text-white keep-white bg-black/60 px-2 py-0.5 rounded">
                           #{teacher.order}
                         </span>
                       )}

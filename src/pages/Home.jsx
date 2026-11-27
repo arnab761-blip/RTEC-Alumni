@@ -761,7 +761,7 @@ export default function Home() {
                   iconClassName="w-20 h-20"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#121110] via-transparent to-transparent pointer-events-none" />
-                <span className="absolute bottom-3 left-3 right-3 text-center px-2 py-1 rounded bg-[#181715]/95 text-[#DFCA9E] text-[11px] font-mono-tech border border-[#C5A880]/30 uppercase">
+                <span className="absolute bottom-3 left-3 right-3 text-center px-2 py-1 rounded bg-[#181715]/95 text-[#DFCA9E] keep-white text-[11px] font-mono-tech border border-[#C5A880]/30 uppercase">
                   {lang === 'bn' ? 'অধ্যক্ষ' : 'Principal'}
                 </span>
               </div>
