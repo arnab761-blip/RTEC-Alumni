@@ -292,6 +292,7 @@ export default function Jobs() {
               <option value="Full-time">{lang === 'bn' ? 'ফুল-টাইম (Full-time)' : 'Full-time'}</option>
               <option value="Internship / Entry Level">{lang === 'bn' ? 'ইন্টার্নশিপ / এন্ট্রি লেভেল' : 'Internship / Entry Level'}</option>
               <option value="Remote">{lang === 'bn' ? 'রিমোট / অনলাইন' : 'Remote'}</option>
+              <option value="Others">{lang === 'bn' ? 'অন্যান্য (Others)' : 'Others'}</option>
             </select>
           </div>
         </div>
@@ -499,6 +500,7 @@ export default function Jobs() {
                         <option value="Full-time">{lang === 'bn' ? 'ফুল-টাইম (Full-time)' : 'Full-time'}</option>
                         <option value="Internship / Entry Level">{lang === 'bn' ? 'ইন্টার্নশিপ / এন্ট্রি লেভেল' : 'Internship / Entry Level'}</option>
                         <option value="Remote">{lang === 'bn' ? 'রিমোট / অনলাইন' : 'Remote'}</option>
+                        <option value="Others">{lang === 'bn' ? 'অন্যান্য (Others)' : 'Others'}</option>
                       </select>
                     </div>
                     <div>

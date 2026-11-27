@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
+import { playSubmitSuccessSound } from '../utils/sound.js';
 import GoogleSignInModal, { GoogleSignInButton } from '../components/GoogleSignInModal.jsx';
 import {
   MessageSquare,
@@ -232,7 +233,8 @@ export default function Forum() {
     { id: 'Academic & Lab', bn: 'একাডেমিক ও ল্যাব', en: 'Academic & Lab' },
     { id: 'Internship & Viva', bn: 'ইন্টার্নশিপ ও ভাইভা', en: 'Internship & Viva' },
     { id: 'Higher Studies', bn: 'বিদেশে উচ্চশিক্ষা', en: 'Higher Studies Abroad' },
-    { id: 'Campus & Facilities', bn: 'ক্যাম্পাস ও সুযোগ-সুবিধা', en: 'Campus & Facilities' }
+    { id: 'Campus & Facilities', bn: 'ক্যাম্পাস ও সুযোগ-সুবিধা', en: 'Campus & Facilities' },
+    { id: 'Others', bn: 'অন্যান্য (Others)', en: 'Others' }
   ];
 
   const experienceCategories = [
@@ -240,7 +242,8 @@ export default function Forum() {
     { id: 'Job & Interviews', bn: 'জব ও ইন্টারভিউ গল্প', en: 'Job & Interview Story' },
     { id: 'Higher Studies', bn: 'বিদেশে উচ্চশিক্ষা ও গবেষণা', en: 'Higher Studies & Research' },
     { id: 'Merchandising', bn: 'মার্চেন্ডাইজিং ও বায়িং হাউস', en: 'Merchandising & Buying House' },
-    { id: 'Entrepreneurship', bn: 'উদ্যোক্তা ও স্টার্টআপ', en: 'Entrepreneurship & Startup' }
+    { id: 'Entrepreneurship', bn: 'উদ্যোক্তা ও স্টার্টআপ', en: 'Entrepreneurship & Startup' },
+    { id: 'Others', bn: 'অন্যান্য (Others)', en: 'Others' }
   ];
 
   const audienceOptions = [
@@ -249,7 +252,8 @@ export default function Forum() {
     { id: 'Yarn Engineering Seniors', bn: 'ইয়ার্ন ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Yarn Engineering Seniors' },
     { id: 'Fabric Engineering Seniors', bn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Fabric Engineering Seniors' },
     { id: 'Wet Process Seniors', bn: 'ওয়েট প্রসেস সিনিয়রস', en: 'Wet Process Seniors' },
-    { id: 'Apparel Engineering Seniors', bn: 'অ্যাপারেল ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Apparel Engineering Seniors' }
+    { id: 'Apparel Engineering Seniors', bn: 'অ্যাপারেল ইঞ্জিনিয়ারিং সিনিয়রস', en: 'Apparel Engineering Seniors' },
+    { id: 'Others', bn: 'অন্যান্য (Others)', en: 'Others' }
   ];
 
   const categories = [
@@ -260,7 +264,8 @@ export default function Forum() {
     { id: 'Career Advice', bn: 'ক্যারিয়ার পরামর্শ', en: 'Career Guidance' },
     { id: 'Academic & Lab', bn: 'একাডেমিক ও ল্যাব', en: 'Academic & Lab' },
     { id: 'Internship & Viva', bn: 'ইন্টার্নশিপ ও ভাইভা', en: 'Internship & Viva' },
-    { id: 'Merchandising', bn: 'মার্চেন্ডাইজিং', en: 'Merchandising' }
+    { id: 'Merchandising', bn: 'মার্চেন্ডাইজিং', en: 'Merchandising' },
+    { id: 'Others', bn: 'অন্যান্য (Others)', en: 'Others' }
   ];
 
   const getCategoryLabel = (catId, targetLang = lang) => {
@@ -300,6 +305,7 @@ export default function Forum() {
     setNewRoleAndCompany('');
     setNewKeyTakeaways('');
     setNewPostModalOpen(false);
+    playSubmitSuccessSound();
     if (created?.status === 'pending') {
       showToast(
         lang === 'bn'
@@ -328,7 +334,7 @@ export default function Forum() {
   const filteredPosts = useMemo(() => forumPosts.filter(p => {
     if (!p) return false;
     const postStatus = p.status || 'approved';
-    const canSee = postStatus === 'approved' || isAdmin || isPostAuthor(p);
+    const canSee = postStatus === 'approved';
     if (!canSee) return false;
     const matchType = typeFilter === 'all' || (p.type || 'experience') === typeFilter;
     const matchCat = activeCategory === 'All' || p.category === activeCategory || p.categoryBn === activeCategory;

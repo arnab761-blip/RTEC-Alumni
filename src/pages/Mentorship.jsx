@@ -342,6 +342,7 @@ export default function Mentorship() {
                     <option value="Apparel Merchandising & Sourcing Careers">{lang === 'bn' ? 'মার্চেন্ডাইজিং ক্যারিয়ার প্রস্তুতি (Merchandising)' : 'Apparel Merchandising & Sourcing Careers'}</option>
                     <option value="Textile Mills & Manufacturing Operations">{lang === 'bn' ? 'টেক্সটাইল মিলস প্রোডাকশন লিডারশিপ' : 'Textile Mills & Manufacturing Operations'}</option>
                     <option value="CV Review & Mock Interview Preparation">{lang === 'bn' ? 'সিভি রিভিউ ও মক ইন্টারভিউ গাইডলাইন' : 'CV Review & Mock Interview Preparation'}</option>
+                    <option value="Others">{lang === 'bn' ? 'অন্যান্য (Others)' : 'Others'}</option>
                   </select>
                 </div>
                 <div>
