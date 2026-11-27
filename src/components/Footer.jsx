@@ -208,16 +208,18 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-end gap-y-1.5 gap-x-2 text-center lg:text-right">
             <span className="inline-flex flex-wrap items-center justify-center gap-x-1">
               <span className="text-[#57534E] dark:text-[#C9C0B3]">
-                {lang === 'bn' ? 'ডিজাইন ও ডেভেলপমেন্টে:' : 'Designed & Developed by'}
+                {lang === 'bn' ? 'ডেভেলপমেন্টে:' : 'Developed by'}
               </span>
               <a
                 href="https://www.linkedin.com/in/md-tahmidul-islam-arnab-580587320/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B92ju51LVShS4kPDu0W7pLw%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 hover:underline decoration-[#BD452F] dark:decoration-[#DFCA9E] underline-offset-4"
                 title="LinkedIn Profile"
               >
-                <span>{lang === 'bn' ? 'মো. তাহমিদুল ইসলাম অর্ণব' : 'Md. Tahmidul Islam Arnab'}</span>
+                <span className="text-[#1C1917] dark:text-[#F5F0E6] font-semibold">
+                  {lang === 'bn' ? 'মো. তাহমিদুল ইসলাম অর্ণব' : 'Md. Tahmidul Islam Arnab'}
+                </span>
                 <LinkedinIcon className="w-3 h-3 text-[#0A66C2] dark:text-sky-400 shrink-0" />
               </a>
               <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
@@ -235,10 +237,12 @@ export default function Footer() {
                 href="https://www.linkedin.com/in/abdur-rouf-87a449338/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BzfHUWGZzQbuZmJ8vRBe6Bg%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-full after:h-[1px] after:bg-[#BD452F] dark:after:bg-[#DFCA9E] after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300"
+                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 hover:underline decoration-[#BD452F] dark:decoration-[#DFCA9E] underline-offset-4"
                 title="LinkedIn Profile"
               >
-                <span>{lang === 'bn' ? 'আব্দুর রউফ চৌধুরী' : 'Abdur Rouf Chowdhury'}</span>
+                <span className="text-[#1C1917] dark:text-[#F5F0E6] font-semibold">
+                  {lang === 'bn' ? 'আব্দুর রউফ চৌধুরী' : 'Abdur Rouf Chowdhury'}
+                </span>
                 <LinkedinIcon className="w-3 h-3 text-[#0A66C2] dark:text-sky-400 shrink-0" />
               </a>
               <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
