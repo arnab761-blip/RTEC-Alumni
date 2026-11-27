@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import GoogleSignInModal, { GoogleSignInButton } from '../components/GoogleSignInModal.jsx';
+import { formatDriveImageUrl } from '../utils/driveImage.js';
 import {
   GraduationCap,
   Users,
@@ -38,7 +39,7 @@ const DEPARTMENT_OPTIONS = [
 ];
 
 export default function Auth() {
-  const { user, logout, login, students = [], lang } = useApp();
+  const { user, logout, login, students = [], lang, collegeLogo } = useApp();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -112,10 +113,15 @@ export default function Auth() {
         
         {/* Logo and Welcome */}
         <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 p-0.5 shadow-lg mx-auto mb-3">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center font-extrabold text-emerald-400">
-              RTEC
-            </div>
+          <div className="w-16 h-16 rounded-2xl bg-white dark:bg-[#1E1C18] border border-[#C5A880]/50 dark:border-[#C5A880]/40 p-2 shadow-lg mx-auto mb-3 flex items-center justify-center overflow-hidden">
+            <img
+              src={collegeLogo ? formatDriveImageUrl(collegeLogo) : '/images/rtec-logo.png'}
+              alt="Rangpur Textile Engineering College Logo"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.currentTarget.src = '/images/rtec-logo.png';
+              }}
+            />
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-white">
             {mode === 'login'
