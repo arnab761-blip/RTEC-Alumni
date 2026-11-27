@@ -39,26 +39,26 @@ export default function Mentorship() {
     {
       titleBn: 'উচ্চশিক্ষা ও স্কলারশিপ',
       titleEn: 'Higher Studies & Scholarships',
-      descBn: 'আইইএলটিএস, জিআরই ও ফান্ডিং',
-      descEn: 'IELTS, GRE & global graduate funding'
+      descBn: 'আইইএলটিএস, জিআরই ও বিদেশে আবেদনের পরামর্শ',
+      descEn: 'IELTS, GRE & scholarship application tips'
     },
     {
-      titleBn: 'মার্চেন্ডাইজিং ট্রেইনিং',
+      titleBn: 'মার্চেন্ডাইজিং ও সোর্সিং',
       titleEn: 'Merchandising & Sourcing',
-      descBn: 'কস্টিং ও আন্তর্জাতিক বায়ার ডিল',
-      descEn: 'Costing, compliance & buyer negotiations'
+      descBn: 'কস্টিং ও বায়ার কমিউনিকেশন অভিজ্ঞতা',
+      descEn: 'Costing, buyer communication & practical tips'
     },
     {
-      titleBn: 'ফ্যাক্টরি অপারেশন',
-      titleEn: 'Plant & Mill Leadership',
-      descBn: 'স্পিনিং, ডাইং ও ফিনিশিং প্ল্যান্ট',
-      descEn: 'Spinning, weaving & wet processing plants'
+      titleBn: 'মিল ও ফ্যাক্টরি অভিজ্ঞতা',
+      titleEn: 'Mill & Factory Life',
+      descBn: 'স্পিনিং, উইভিং ও ডাইং ফ্লোরের বাস্তব ধারণা',
+      descEn: 'Real insights on spinning, weaving & dyeing floors'
     },
     {
-      titleBn: 'সিভি ও ইন্টারভিউ গাইড',
-      titleEn: 'Career & Interview Prep',
-      descBn: 'অন-স্পট মক ইন্টারভিউ প্রস্তুতি',
-      descEn: 'CV reviews & mock panel interview mastery'
+      titleBn: 'সিভি ও ইন্টারভিউ প্রস্তুতি',
+      titleEn: 'CV & Interview Prep',
+      descBn: 'সিভি ফিডব্যাক ও আন্তরিক ইন্টারভিউ টিপস',
+      descEn: 'Friendly CV feedback & interview advice'
     }
   ];
 
@@ -100,17 +100,17 @@ export default function Mentorship() {
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-500/30 mb-3">
               <Sparkles className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-              <span>{lang === 'bn' ? 'ক্যারিয়ার গাইডলাইন • মেন্টরশিপ প্রোগ্রাম' : 'CAREER GUIDELINES • SENIOR MENTORSHIP'}</span>
+              <span>{lang === 'bn' ? 'স্বেচ্ছাসেবী মেন্টরশিপ • জুনিয়রদের পাশে সিনিয়ররা' : 'VOLUNTARY ALUMNI MENTORSHIP • COMMUNITY SUPPORT'}</span>
             </span>
 
             <h1 className="text-2xl sm:text-4xl font-serif-regal font-black text-[#FDFBF7] tracking-tight leading-snug">
-              {lang === 'bn' ? 'অভিজ্ঞ অ্যালামনাইদের সাথে সরাসরি মেন্টরশিপ' : 'Direct 1-on-1 Mentorship with Senior Alumni'}
+              {lang === 'bn' ? 'সিনিয়র অ্যালামনাইদের সাথে আন্তরিক মেন্টরশিপ ও পরামর্শ' : 'Friendly Guidance & Mentorship from Senior Alumni'}
             </h1>
 
             <p className="text-xs sm:text-sm text-[#DCD3C1] mt-2 leading-relaxed font-sans">
               {lang === 'bn'
-                ? 'টেক্সটাইল শিল্পের শীর্ষস্থানীয় বিশেষজ্ঞ, গবেষক এবং বহুজাতিক প্রতিষ্ঠানের সিনিয়র প্রাক্তন প্রকৌশলীদের কাছ থেকে ক্যারিয়ার ও উচ্চশিক্ষার দিকনির্দেশনা নিন।'
-                : 'Receive personalized guidance on industrial manufacturing, global merchandising, academic research, and international higher studies from experienced graduates.'}
+                ? 'চাকরি, উচ্চশিক্ষা ও টেক্সটাইল ইন্ডাস্ট্রির অভিজ্ঞতা নিয়ে স্বেচ্ছায় জুনিয়রদের পাশে থাকা সিনিয়র অ্যালামনাইদের কাছ থেকে সহজ ও বন্ধুত্বপূর্ণ দিকনির্দেশনা নিন।'
+                : 'Connect with friendly senior graduates who volunteer their time to share advice on textile jobs, higher studies, and career growth—no formality needed.'}
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
@@ -132,12 +132,12 @@ export default function Mentorship() {
         <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7]">
-              {lang === 'bn' ? `আমাদের সম্মানিত মেন্টরবৃন্দ (${mentors.length} জন)` : `Distinguished Mentors (${mentors.length})`}
+              {lang === 'bn' ? `আমাদের স্বেচ্ছাসেবী মেন্টরবৃন্দ (${mentors.length} জন)` : `Volunteer Alumni Mentors (${mentors.length})`}
             </h2>
             <p className="text-xs text-[#A89884] mt-0.5">
               {lang === 'bn'
-                ? 'যেকোনো মেন্টরের সাথে ফ্রী ১-অন-১ সেশন বুকিং করতে ক্লিক করুন।'
-                : 'Click on any mentor profile below to schedule a complimentary one-on-one session.'}
+                ? 'যেকোনো সিনিয়রের সাথে ফ্রি ও সহজ পরামর্শ সেশনের জন্য অনুরোধ পাঠান।'
+                : 'Pick a mentor below to request a friendly, free 1-on-1 guidance chat.'}
             </p>
           </div>
           <button
@@ -145,8 +145,8 @@ export default function Mentorship() {
             onClick={() => {
               setSelectedMentor({
                 id: 'general-desk',
-                name: lang === 'bn' ? 'আরটেক ক্যারিয়ার ও মেন্টরশিপ ডেস্ক' : 'RTEC Career & Mentorship Desk',
-                company: lang === 'bn' ? 'অফিসিয়াল অ্যালামনাই মেন্টরশিপ প্যানেল' : 'Official Alumni Mentorship Panel',
+                name: lang === 'bn' ? 'আরটেক অ্যালামনাই মেন্টরশিপ কমিউনিটি' : 'RTEC Alumni Mentorship Community',
+                company: lang === 'bn' ? 'স্বেচ্ছাসেবী অ্যালামনাই নেটওয়ার্ক' : 'Voluntary Alumni Support Network',
                 email: ''
               });
               setBookingModalOpen(true);
@@ -154,7 +154,7 @@ export default function Mentorship() {
             className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition shrink-0 cursor-pointer"
           >
             <Calendar className="w-4 h-4 text-white" />
-            <span>{lang === 'bn' ? 'মেন্টরশিপ সেশনের অনুরোধ করুন' : 'Request 1-on-1 Mentorship'}</span>
+            <span>{lang === 'bn' ? 'পরামর্শের অনুরোধ করুন' : 'Ask for Guidance'}</span>
           </button>
         </div>
 
@@ -216,7 +216,7 @@ export default function Mentorship() {
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-white" />
-                  <span>{lang === 'bn' ? 'মেন্টরশিপ সেশন বুক করুন (ফ্রী)' : 'Book Mentorship Session (Free Slot)'}</span>
+                  <span>{lang === 'bn' ? 'ফ্রি সেশনের অনুরোধ করুন' : 'Request a Free Chat'}</span>
                 </button>
               </div>
             ))}
@@ -225,20 +225,20 @@ export default function Mentorship() {
           <div className="text-center py-14 px-4 rounded-3xl plaque-elevated border border-[#C5A880]/25 space-y-3">
             <GraduationCap className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
             <h3 className="text-lg font-serif-regal font-bold text-[#0C0A09] dark:text-[#FDFBF7]">
-              {lang === 'bn' ? 'অভিজ্ঞ অ্যালামনাই মেন্টর প্যানেল সক্রিয় হচ্ছে' : 'Senior Alumni Mentorship Panel Open'}
+              {lang === 'bn' ? 'অ্যালামনাই মেন্টরশিপ কমিউনিটি উন্মুক্ত' : 'Alumni Mentorship Community is Open'}
             </h3>
             <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] max-w-lg mx-auto leading-relaxed">
               {lang === 'bn'
-                ? 'অ্যাডমিন প্যানেল থেকে সিনিয়র অ্যালামনাইদের মেন্টর হিসেবে যুক্ত করলে তারা এখানে প্রদর্শিত হবেন। তবে আপনি এখনই সরাসরি আপনার ক্যারিয়ার পরামর্শ বা মেন্টরশিপের অনুরোধ পাঠাতে পারেন।'
-                : 'Verified senior graduates designated as mentors appear here. You can submit a 1-on-1 career mentorship request right now using the button below.'}
+                ? 'যেকোনো সিনিয়র অ্যালামনাই স্বেচ্ছায় জুনিয়রদের গাইড করতে যুক্ত হতে পারেন। আপনার কোনো প্রশ্ন বা পরামর্শের প্রয়োজন হলে নিচের বাটনে ক্লিক করে এখনই বার্তা পাঠাতে পারেন।'
+                : 'Senior graduates who volunteer as mentors appear here. Meanwhile, feel free to send a friendly mentorship request below and our alumni community will connect with you.'}
             </p>
             <button
               type="button"
               onClick={() => {
                 setSelectedMentor({
                   id: 'general-desk',
-                  name: lang === 'bn' ? 'আরটেক ক্যারিয়ার ও মেন্টরশিপ ডেস্ক' : 'RTEC Career & Mentorship Desk',
-                  company: lang === 'bn' ? 'অফিসিয়াল অ্যালামনাই মেন্টরশিপ প্যানেল' : 'Official Alumni Mentorship Panel',
+                  name: lang === 'bn' ? 'আরটেক অ্যালামনাই মেন্টরশিপ কমিউনিটি' : 'RTEC Alumni Mentorship Community',
+                  company: lang === 'bn' ? 'স্বেচ্ছাসেবী অ্যালামনাই নেটওয়ার্ক' : 'Voluntary Alumni Support Network',
                   email: ''
                 });
                 setBookingModalOpen(true);
@@ -246,7 +246,7 @@ export default function Mentorship() {
               className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition cursor-pointer"
             >
               <Calendar className="w-4 h-4" />
-              <span>{lang === 'bn' ? 'এখনই সেশন রিকোয়েস্ট পাঠান' : 'Request Mentorship Session Now'}</span>
+              <span>{lang === 'bn' ? 'পরামর্শের অনুরোধ পাঠান' : 'Send a Mentorship Request'}</span>
             </button>
           </div>
         )}
@@ -285,7 +285,7 @@ export default function Mentorship() {
             </button>
 
             <h3 className="text-base font-bold text-[#FDFBF7] mb-1">
-              {lang === 'bn' ? `${selectedMentor.name}-এর সাথে সেশন বুকিং` : `Book Session with ${selectedMentor.name}`}
+              {lang === 'bn' ? `${selectedMentor.name}-এর সাথে কথা বলুন` : `Connect with ${selectedMentor.name}`}
             </h3>
             <p className="text-xs text-emerald-800 dark:text-emerald-400 font-bold mb-4">{selectedMentor.company}</p>
 
@@ -293,12 +293,12 @@ export default function Mentorship() {
               <div className="p-6 text-center bg-emerald-100 dark:bg-emerald-950/40 rounded-2xl border border-emerald-300 dark:border-emerald-500/40 space-y-2">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto" />
                 <h4 className="font-bold text-emerald-950 dark:text-white text-sm">
-                  {lang === 'bn' ? 'সেশন রিকোয়েস্ট নিশ্চিত হয়েছে!' : 'Mentorship Request Confirmed!'}
+                  {lang === 'bn' ? 'আপনার অনুরোধ পৌঁছে গেছে!' : 'Request Sent!'}
                 </h4>
                 <p className="text-xs text-emerald-900 dark:text-slate-300">
                   {lang === 'bn'
-                    ? 'মেন্টর মহোদয় আপনার দেওয়া ইমেইলে গুগল মিট (Google Meet) লিংক পাঠিয়ে দেবেন।'
-                    : 'The mentor will dispatch a Google Meet invitation to your designated email.'}
+                    ? 'সিনিয়র মেন্টর সময় মিলিয়ে আপনার ইমেইলে একটি Google Meet লিংক শেয়ার করবেন।'
+                    : 'Your mentor will reach out to your email with a Google Meet link when available.'}
                 </p>
               </div>
             ) : (
@@ -346,22 +346,22 @@ export default function Mentorship() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#1C1917] dark:text-slate-300 mb-1">
-                    {lang === 'bn' ? 'আপনার নির্দিষ্ট প্রশ্ন বা লক্ষ্য' : 'Specific Inquiries or Goals'}
+                    {lang === 'bn' ? 'কোন বিষয়ে কথা বলতে চান?' : 'How can a senior help you?'}
                   </label>
                   <textarea
                     rows="3"
                     required
                     value={bookingForm.details}
                     onChange={(e) => setBookingForm({ ...bookingForm, details: e.target.value })}
-                    placeholder={lang === 'bn' ? 'আপনি ঠিক কোন বিষয়ে পরামর্শ চান...' : 'Describe what guidance you are seeking...'}
+                    placeholder={lang === 'bn' ? 'আপনার প্রশ্ন বা যে বিষয়ে পরামর্শ নিতে চান লিখুন...' : 'Share your questions or what you would like to discuss...'}
                     className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow"
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow cursor-pointer"
                 >
-                  {lang === 'bn' ? 'সেশন রিকোয়েস্ট পাঠান (Confirm Slot)' : 'Confirm Slot & Send Request'}
+                  {lang === 'bn' ? 'অনুরোধ পাঠান' : 'Send Request'}
                 </button>
               </form>
             )}

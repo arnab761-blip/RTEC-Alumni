@@ -6,12 +6,7 @@ import {
   Phone,
   Mail,
   Send,
-  Clock,
-  Compass,
-  CheckCircle2,
-  Navigation,
-  Building2,
-  ArrowRight
+  CheckCircle2
 } from 'lucide-react';
 
 export default function Contact() {
@@ -56,12 +51,12 @@ export default function Contact() {
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
-            {lang === 'bn' ? 'যোগাযোগ ও প্রাতিষ্ঠানিক তথ্য কেন্দ্র' : 'Contact & Institutional Information Desk'}
+            {lang === 'bn' ? 'যোগাযোগ ও তথ্য কেন্দ্র' : 'Contact Desk'}
           </h1>
           <p className="text-xs sm:text-sm text-[#DCD3C1] mt-2 max-w-3xl font-sans leading-relaxed">
             {lang === 'bn'
-              ? 'অধ্যক্ষের দপ্তর, একাডেমিক রেজিস্ট্রি, অ্যালামনাই অ্যাসোসিয়েশন এবং ক্যাম্পাসে পৌঁছানোর দিকনির্দেশনা।'
-              : 'Principal’s Secretariat, Academic Registry, Alumni Relations Office, and Campus Transit Directions.'}
+              ? 'অধ্যক্ষের দপ্তর, একাডেমিক অফিস ও অ্যালামনাই অ্যাসোসিয়েশনের সাথে যোগাযোগের মাধ্যম।'
+              : 'Get in touch with the college office, academic desk, or alumni association.'}
           </p>
         </div>
 
@@ -80,14 +75,12 @@ export default function Contact() {
                 {lang === 'bn' ? (
                   <>
                     রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ (আরটেক)<br />
-                    {footerContact?.addressBn || 'টুকুরিয়া, পীরগঞ্জ উপজেলা, রংপুর - ৫৪২০, বাংলাদেশ।'}<br />
-                    (পীরগঞ্জ সদর থেকে পীরগাছা রোড)
+                    {footerContact?.addressBn || 'টুকুরিয়া, পীরগঞ্জ, রংপুর - ৫৪২০, বাংলাদেশ।'}
                   </>
                 ) : (
                   <>
                     Rangpur Textile Engineering College (RTEC)<br />
-                    {footerContact?.addressEn || 'Tukuriya, Pirganj Upazila, Rangpur - 5420, Bangladesh.'}<br />
-                    (Pirganj Sadar to Pirgacha Road)
+                    {footerContact?.addressEn || 'Tukuriya, Pirganj, Rangpur - 5420, Bangladesh.'}
                   </>
                 )}
               </p>
@@ -124,22 +117,22 @@ export default function Contact() {
           {/* Inquiry Form */}
           <div className="lg:col-span-2 plaque-elevated p-6 sm:p-8 rounded-2xl border border-[#C5A880]/30">
             <h2 className="font-serif-regal font-bold text-lg sm:text-xl text-[#FDFBF7] mb-1">
-              {lang === 'bn' ? 'বার্তা বা প্রাতিষ্ঠানিক জিজ্ঞাসা প্রেরণ করুন' : 'Send an Inquiry or Official Correspondence'}
+              {lang === 'bn' ? 'বার্তা বা জিজ্ঞাসা পাঠান' : 'Send a Message or Inquiry'}
             </h2>
             <p className="text-xs text-[#A89884] mb-6 font-sans">
               {lang === 'bn'
-                ? 'আপনার বার্তা সরাসরি সংশ্লিষ্ট প্রশাসনিক ডেস্কে পৌঁছে দেওয়া হবে।'
-                : 'Your message will be securely routed directly to the designated administrative secretariat.'}
+                ? 'আপনার বার্তা সরাসরি সংশ্লিষ্ট অফিসে পৌঁছে দেওয়া হবে।'
+                : 'Your message will be shared directly with the college and alumni team.'}
             </p>
 
             {sent ? (
               <div className="p-8 text-center bg-[#141311] rounded-xl border border-[#C5A880]/40 space-y-2">
                 <CheckCircle2 className="w-10 h-10 text-[#DFCA9E] mx-auto" />
                 <h3 className="font-serif-regal font-bold text-base text-[#FDFBF7]">
-                  {lang === 'bn' ? 'ধন্যবাদ! বার্তাটি সফলভাবে পাঠানো হয়েছে' : 'Thank you! Your dispatch has been transmitted'}
+                  {lang === 'bn' ? 'ধন্যবাদ! বার্তাটি সফলভাবে পাঠানো হয়েছে' : 'Thank you! Your message has been sent'}
                 </h3>
                 <p className="text-xs text-[#A89884] font-mono-tech">
-                  {lang === 'bn' ? 'আমরা শীঘ্রই আপনার ইমেইলে ফিরতি যোগাযোগ করব।' : 'The registry will respond to your stated email shortly.'}
+                  {lang === 'bn' ? 'আমরা শীঘ্রই আপনার ইমেইলে ফিরতি যোগাযোগ করব।' : 'We will reply to your email soon.'}
                 </p>
               </div>
             ) : (
@@ -206,23 +199,10 @@ export default function Contact() {
                   className="btn-agency btn-agency-terracotta py-2.5 px-6 rounded text-xs uppercase tracking-wider inline-flex items-center gap-2 font-bold"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{lang === 'bn' ? 'বার্তা প্রেরণ করুন' : 'Dispatch Message'}</span>
+                  <span>{lang === 'bn' ? 'বার্তা পাঠান' : 'Send Message'}</span>
                 </button>
               </form>
             )}
-
-            {/* Travel Directions Note */}
-            <div className="mt-8 pt-6 border-t border-[#C5A880]/15 text-xs text-[#DCD3C1] space-y-2">
-              <h4 className="font-serif-regal font-bold text-sm text-[#DFCA9E] flex items-center gap-1.5">
-                <Navigation className="w-4 h-4 text-[#DE644E]" />
-                <span>{lang === 'bn' ? 'কীভাবে আরটেক সেন্ট্রাল ক্যাম্পাসে পৌঁছাবেন:' : 'How to Reach RTEC Central Campus:'}</span>
-              </h4>
-              <p className="leading-relaxed font-sans">
-                {lang === 'bn'
-                  ? 'ঢাকা গাবতলী বা মহাখালী থেকে রংপুরগামী যেকোনো দূরপাল্লার বাসে উঠে পীরগঞ্জ বাসস্ট্যান্ডে নামতে হবে। সেখান থেকে অটো বা রিকশাযোগে পীরগাছা রোড ধরে ৫ মিনিট এগোলেই হাতের বাম পাশে ঐতিহ্যবাহী রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের প্রধান ফটক (Main Gate) দেখতে পাবেন।'
-                  : 'Board any inter-district coach bound for Rangpur from Dhaka (Gabtoli or Mohakhali) and disembark at Pirganj Bus Station. From Pirganj Sadar, take a 5-minute electric rickshaw ride eastward along Pirgacha Road. The grand gates of Rangpur Textile Engineering College will greet you on the left side of the highway.'}
-              </p>
-            </div>
           </div>
 
         </div>

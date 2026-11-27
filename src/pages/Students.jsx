@@ -44,8 +44,25 @@ const DEPARTMENTS = [
   { id: 'Apparel Manufacturing', nameBn: 'অ্যাপারেল', nameEn: 'Apparel' }
 ];
 
+const isGraduateStudent = (std) => {
+  if (!std) return false;
+  if (String(std.studentType || '').toLowerCase() === 'graduate') return true;
+  const b = String(std.batch || '').toLowerCase();
+  return (
+    b.includes('1st') ||
+    b.includes('2nd') ||
+    b.includes('3rd') ||
+    b.includes('১ম') ||
+    b.includes('২য়') ||
+    b.includes('২য়') ||
+    b.includes('৩য়') ||
+    b.includes('৩য়')
+  );
+};
+
 export default function Students() {
   const { students, lang } = useApp();
+  const [activeGroup, setActiveGroup] = useState('current'); // 'current' | 'alumni'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('all');
   const [selectedDept, setSelectedDept] = useState('all');
@@ -54,6 +71,29 @@ export default function Students() {
   const [modalScrollLocked, setModalScrollLocked] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(24);
+
+  const currentStudentsCount = useMemo(
+    () => (students || []).filter((std) => !isGraduateStudent(std)).length,
+    [students]
+  );
+  const alumniGraduatesCount = useMemo(
+    () => (students || []).filter((std) => isGraduateStudent(std)).length,
+    [students]
+  );
+
+  const availableBatches = useMemo(() => {
+    const gradIds = ['1st', '2nd', '3rd'];
+    return BATCHES.filter((b) => {
+      if (b.id === 'all') return true;
+      return activeGroup === 'alumni' ? gradIds.includes(b.id) : !gradIds.includes(b.id);
+    });
+  }, [activeGroup]);
+
+  const handleGroupChange = (nextGroup) => {
+    setActiveGroup(nextGroup);
+    setSelectedBatch('all');
+    setCurrentPage(1);
+  };
 
   const openStudentModal = (student) => {
     setSelectedStudent(student);
@@ -87,6 +127,10 @@ export default function Students() {
   const filteredStudents = useMemo(() => {
     return students
       .filter((std) => {
+        const isGrad = isGraduateStudent(std);
+        const matchesGroup = activeGroup === 'alumni' ? isGrad : !isGrad;
+        if (!matchesGroup) return false;
+
         const matchesBatch =
           selectedBatch === 'all' ||
           std.batch?.toLowerCase().includes(selectedBatch.toLowerCase());
@@ -115,7 +159,7 @@ export default function Students() {
         if (slA !== slB) return slA - slB;
         return String(a.regNo || '').localeCompare(String(b.regNo || ''));
       });
-  }, [students, selectedBatch, selectedDept, searchTerm]);
+  }, [students, activeGroup, selectedBatch, selectedDept, searchTerm]);
 
   // Paginated students for ultra-fast rendering (0ms lag)
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / (pageSize === 'all' ? filteredStudents.length || 1 : Number(pageSize))));
@@ -215,6 +259,69 @@ export default function Students() {
           </div>
         </div>
 
+        {/* Two Clear Category Tabs: Current Students vs Alumni (Graduates) */}
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => handleGroupChange('current')}
+            className={`p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 shadow-sm ${
+              activeGroup === 'current'
+                ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg'
+                : 'plaque-elevated border-[#C5A880]/25 hover:border-emerald-500/50 text-[#1C1917] dark:text-[#FDFBF7]'
+            }`}
+          >
+            <div>
+              <span className={`text-sm sm:text-base font-serif-regal font-black block ${
+                activeGroup === 'current' ? 'text-white keep-white' : 'text-[#0C0A09] dark:text-[#FDFBF7]'
+              }`}>
+                {lang === 'bn' ? 'বর্তমান শিক্ষার্থী (Current Students)' : 'Current Students'}
+              </span>
+              <span className={`text-[11px] font-mono-tech mt-0.5 block ${
+                activeGroup === 'current' ? 'text-emerald-100 keep-white' : 'text-[#57534E] dark:text-[#A89884]'
+              }`}>
+                {lang === 'bn' ? '৪র্থ — ৮ম ব্যাচ (অধ্যয়নরত)' : '4th — 8th Batch (Undergraduate)'}
+              </span>
+            </div>
+            <span className={`px-3 py-1 rounded-xl font-mono-tech font-black text-sm shrink-0 ${
+              activeGroup === 'current'
+                ? 'bg-white/20 text-white keep-white'
+                : 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
+            }`}>
+              {currentStudentsCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleGroupChange('alumni')}
+            className={`p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 shadow-sm ${
+              activeGroup === 'alumni'
+                ? 'bg-[#BD452F] border-[#DE644E] text-white shadow-lg'
+                : 'plaque-elevated border-[#C5A880]/25 hover:border-[#BD452F]/50 text-[#1C1917] dark:text-[#FDFBF7]'
+            }`}
+          >
+            <div>
+              <span className={`text-sm sm:text-base font-serif-regal font-black block ${
+                activeGroup === 'alumni' ? 'text-white keep-white' : 'text-[#0C0A09] dark:text-[#FDFBF7]'
+              }`}>
+                {lang === 'bn' ? 'অ্যালামনাই / গ্র্যাজুয়েটস' : 'Alumni (Graduates)'}
+              </span>
+              <span className={`text-[11px] font-mono-tech mt-0.5 block ${
+                activeGroup === 'alumni' ? 'text-rose-100 keep-white' : 'text-[#57534E] dark:text-[#A89884]'
+              }`}>
+                {lang === 'bn' ? '১ম — ৩য় ব্যাচ (উত্তীর্ণ)' : '1st — 3rd Batch (Graduated)'}
+              </span>
+            </div>
+            <span className={`px-3 py-1 rounded-xl font-mono-tech font-black text-sm shrink-0 ${
+              activeGroup === 'alumni'
+                ? 'bg-white/20 text-white keep-white'
+                : 'bg-[#BD452F]/15 text-[#991B1B] dark:text-[#DE644E] border border-[#BD452F]/30'
+            }`}>
+              {alumniGraduatesCount}
+            </span>
+          </button>
+        </div>
+
         {/* Search & Filter Bar */}
         <div className="plaque-elevated p-4 sm:p-6 rounded-xl border border-[#C5A880]/25 mb-10 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -246,9 +353,13 @@ export default function Students() {
                 onChange={(e) => setSelectedBatch(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-lg bg-[#141311] border border-[#C5A880]/25 text-xs sm:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C5A880] transition font-mono-tech"
               >
-                {BATCHES.map((b) => (
+                {availableBatches.map((b) => (
                   <option key={b.id} value={b.id} className="bg-[#141311] text-[#EDE8DF]">
-                    {lang === 'bn' ? b.nameBn : b.nameEn}
+                    {b.id === 'all'
+                      ? (activeGroup === 'alumni'
+                          ? (lang === 'bn' ? 'সকল গ্র্যাজুয়েট ব্যাচ' : 'All Graduate Batches')
+                          : (lang === 'bn' ? 'সকল বর্তমান ব্যাচ' : 'All Current Batches'))
+                      : (lang === 'bn' ? b.nameBn : b.nameEn)}
                   </option>
                 ))}
               </select>

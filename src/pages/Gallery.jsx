@@ -28,7 +28,7 @@ export default function Gallery() {
   const [newMemory, setNewMemory] = useState({
     title: '',
     titleBn: '',
-    category: 'Rag Day',
+    category: 'Campus Life',
     batch: user?.batch || '1st Batch (2018-19)',
     year: new Date().getFullYear().toString(),
     image: ''
@@ -36,11 +36,9 @@ export default function Gallery() {
 
   const categories = [
     { id: 'All', bn: 'সকল ছবি', en: 'All Photos' },
-    { id: 'Rag Day', bn: 'র‍্যাগ ডে', en: 'Rag Day' },
+    { id: 'Campus Life', bn: 'ক্যাম্পাস জীবন', en: 'Campus Life' },
     { id: 'Lab Memories', bn: 'ল্যাব স্মৃতি', en: 'Lab Memories' },
     { id: 'Sports', bn: 'খেলাধুলা', en: 'Sports' },
-    { id: 'Campus Life', bn: 'ক্যাম্পাস জীবন', en: 'Campus Life' },
-    { id: 'Cultural', bn: 'সাংস্কৃতিক অনুষ্ঠান', en: 'Cultural' },
     { id: 'Convocation', bn: 'সমাবর্তন', en: 'Convocation' }
   ];
 
@@ -73,7 +71,7 @@ export default function Gallery() {
       setNewMemory({
         title: '',
         titleBn: '',
-        category: 'Rag Day',
+        category: 'Campus Life',
         batch: user?.batch || '1st Batch (2018-19)',
         year: new Date().getFullYear().toString(),
         image: ''
@@ -103,8 +101,8 @@ export default function Gallery() {
             </h1>
             <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] mt-1 max-w-xl font-medium">
               {lang === 'bn'
-                ? 'র‍্যাগ ডে, উইভিং শেডের রাতজাগা প্রজেক্ট, সেন্ট্রাল মাঠের খেলাধুলা ও ক্যাম্পাসের সোনালী দিনগুলোর ছবির আর্কাইভ।'
-                : 'Rag Day milestones, late-night weaving shed projects, central sports tournaments, and campus memories.'}
+                ? 'ক্যাম্পাস জীবন, ল্যাব ও প্রজেক্টের কাজ, সেন্ট্রাল মাঠের খেলাধুলা ও সমাবর্তনের শালীন ও স্মরণীয় মুহূর্তগুলোর ছবির আর্কাইভ।'
+                : 'A gallery of memorable campus life, laboratory projects, central sports events, and convocation photos.'}
             </p>
           </div>
 
@@ -192,8 +190,8 @@ export default function Gallery() {
             </h3>
             <p className="text-xs sm:text-sm text-[#374151] dark:text-[#DCD3C1] max-w-md mx-auto leading-relaxed font-medium">
               {lang === 'bn'
-                ? 'ক্যাম্পাস জীবন, র‍্যাগ ডে, ল্যাব বা খেলার মাঠের আসল ছবিগুলো এখানে সংরক্ষিত হবে। প্রথম ছবিটি যুক্ত করতে নিচের বাটনে ক্লিক করুন।'
-                : 'Real campus moments, Rag Day celebrations, lab projects, and sports memories will appear here once submitted.'}
+                ? 'ক্যাম্পাস জীবন, ল্যাব প্রজেক্ট, খেলাধুলা ও সমাবর্তনের শালীন ও স্মরণীয় ছবিগুলো এখানে সংরক্ষিত হবে। প্রথম ছবিটি যুক্ত করতে নিচের বাটনে ক্লিক করুন।'
+                : 'Respectful campus life moments, lab projects, sports events, and convocation memories will appear here once submitted.'}
             </p>
             <div className="pt-2">
               <button
@@ -303,9 +301,14 @@ export default function Gallery() {
             <h3 className="text-base font-bold text-[#0C0A09] dark:text-white mb-1">
               {lang === 'bn' ? 'ক্যাম্পাস জীবনের ছবি যুক্ত করুন' : 'Submit Campus Memory Photo'}
             </h3>
-            <p className="text-xs text-[#374151] dark:text-[#DCD3C1] mb-4 font-medium">
-              {lang === 'bn' ? 'আপনার স্মৃতি আমাদের আর্কাইভের অংশ হবে।' : 'Your photo will be archived in the official memory gallery.'}
+            <p className="text-xs text-[#374151] dark:text-[#DCD3C1] mb-3 font-medium">
+              {lang === 'bn' ? 'আপনার স্মৃতি আমাদের ক্যাম্পাস গ্যালারিতে সংরক্ষিত হবে।' : 'Your photo will be shared in the campus memory gallery.'}
             </p>
+            <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/35 border border-amber-300/70 dark:border-amber-500/30 text-[11px] text-amber-900 dark:text-amber-200 font-medium leading-relaxed">
+              {lang === 'bn'
+                ? 'সাবমিশন গাইডলাইন: গ্যালারির জন্য শুধুমাত্র শালীন ও মার্জিত ক্যাম্পাস এবং অ্যালামনাই স্মৃতিমূলক ছবিই অনুমোদন (Approve) করা হবে।'
+                : 'Submission Guideline: Only respectful, appropriate campus and alumni memory photos will be approved for the gallery.'}
+            </div>
 
             {uploadSuccess ? (
               <div className="p-6 text-center bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-300 dark:border-emerald-500/40 space-y-2">

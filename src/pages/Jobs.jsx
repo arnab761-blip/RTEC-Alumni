@@ -237,10 +237,10 @@ export default function Jobs() {
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold mb-2">
               <Briefcase className="w-4 h-4" />
-              <span>{lang === 'bn' ? 'ক্যারিয়ার ও কর্মসংস্থান' : 'Career & Employment Portal'}</span>
+              <span>{lang === 'bn' ? 'ক্যারিয়ার ও কর্মসংস্থান' : 'Career Opportunities'}</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              {lang === 'bn' ? 'টেক্সটাইল জব বোর্ড ও রেফারেন্স' : 'Textile Job Board & Referrals'}
+              {lang === 'bn' ? 'ক্যারিয়ার ও জব বোর্ড' : 'Career & Job Board'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
               {lang === 'bn'

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext.jsx';
 import {
   GraduationCap,
-  Award,
   CheckCircle2,
   Users
 } from 'lucide-react';
@@ -127,7 +126,7 @@ export default function About() {
         <div className="plaque-elevated rounded-2xl border border-[#C5A880]/30 p-6 sm:p-12 mb-12 shadow-2xl relative">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#BD452F]/20 text-[#DE644E] text-[11px] font-mono-tech border border-[#BD452F]/40 uppercase mb-3 font-bold">
-              {lang === 'bn' ? 'প্রতিষ্ঠান চার্টার ও ইতিহাস' : 'INSTITUTE CHARTER & HISTORY'}
+              {lang === 'bn' ? 'কলেজ পরিচিতি ও ইতিহাস' : 'ABOUT & HISTORY'}
             </span>
 
             <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight leading-tight">
@@ -136,8 +135,8 @@ export default function About() {
 
             <p className="text-xs sm:text-sm text-[#DCD3C1] mt-4 leading-relaxed font-sans">
               {lang === 'bn'
-                ? 'বস্ত্র ও পাট মন্ত্রণালয়, বস্ত্র অধিদপ্তর (DoT) কর্তৃক প্রতিষ্ঠিত এবং বাংলাদেশ টেক্সটাইল বিশ্ববিদ্যালয় (BUTEX) অধিভুক্ত উত্তরবঙ্গের শীর্ষস্থানীয় সরকারি টেক্সটাইল প্রযুক্তি গবেষণা প্রতিষ্ঠান। একনেক (ECNEC) কর্তৃক আগস্ট ২০১৮ সালে অনুমোদন লাভ করে এবং ২০১৮-১৯ শিক্ষাবর্ষ থেকে ৪টি বিশেষায়িত বিভাগে বিএসসি ইন টেক্সটাইল ইঞ্জিনিয়ারিং কোর্স সফলভাবে পরিচালিত হচ্ছে। ফেব্রুয়ারি ২০২৫-এ কলেজটির নাম আনুষ্ঠানিকভাবে "রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ" (RTEC) নির্ধারণ করা হয়।'
-                : 'Founded by the Department of Textiles (DoT), Ministry of Textiles and Jute, and affiliated with Bangladesh University of Textiles (BUTEX), RTEC is northern Bangladesh\'s premier public textile engineering college. Approved by ECNEC in August 2018, RTEC offers 4-year B.Sc. in Textile Engineering degrees across four specialized departments since the 2018–19 academic year. In February 2025, the college was officially designated as "Rangpur Textile Engineering College" (RTEC).'}
+                ? 'বস্ত্র ও পাট মন্ত্রণালয়, বস্ত্র অধিদপ্তর (DoT) কর্তৃক প্রতিষ্ঠিত এবং বাংলাদেশ টেক্সটাইল বিশ্ববিদ্যালয় (BUTEX) অধিভুক্ত উত্তরবঙ্গের একটি সরকারি টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ। ২০১৮ সালে প্রতিষ্ঠিত হয়ে ২০১৮-১৯ শিক্ষাবর্ষ থেকে ৪টি বিশেষায়িত বিভাগে বিএসসি ইন টেক্সটাইল ইঞ্জিনিয়ারিং কোর্স সফলভাবে পরিচালিত হচ্ছে। ফেব্রুয়ারি ২০২৫-এ কলেজটির নাম আনুষ্ঠানিকভাবে "রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজ" (RTEC) নির্ধারণ করা হয়।'
+                : 'Established under the Department of Textiles (DoT), Ministry of Textiles and Jute, and affiliated with Bangladesh University of Textiles (BUTEX), RTEC is a public textile engineering college in northern Bangladesh. Since the 2018–19 academic year, it has offered 4-year B.Sc. in Textile Engineering degrees across four specialized departments. In February 2025, the institution was officially designated as "Rangpur Textile Engineering College" (RTEC).'}
             </p>
 
             <div className="mt-4 pt-3 border-t border-[#C5A880]/15 flex flex-wrap gap-4 text-xs font-mono-tech text-[#A89884]">
@@ -169,7 +168,7 @@ export default function About() {
                 className="btn-agency btn-agency-terracotta px-5 py-2.5 rounded text-xs font-sans uppercase tracking-wider"
               >
                 <GraduationCap className="w-4 h-4" />
-                <span>{lang === 'bn' ? 'শ্রদ্ধেয় শিক্ষকমণ্ডলী' : 'Faculty & Teachers'}</span>
+                <span>{lang === 'bn' ? 'শিক্ষকমণ্ডলী দেখুন' : 'Explore Faculty'}</span>
               </Link>
               <Link
                 to="/students"
@@ -177,13 +176,6 @@ export default function About() {
               >
                 <Users className="w-4 h-4" />
                 <span>{lang === 'bn' ? 'শিক্ষার্থী তালিকা' : 'Student Directory'}</span>
-              </Link>
-              <Link
-                to="/forum"
-                className="btn-agency px-5 py-2.5 rounded text-xs font-sans uppercase tracking-wider"
-              >
-                <Award className="w-4 h-4 text-[#DFCA9E]" />
-                <span>{lang === 'bn' ? 'সিনিয়র অভিজ্ঞতা বিনিময়' : 'Experience Share & Insights'}</span>
               </Link>
             </div>
           </div>

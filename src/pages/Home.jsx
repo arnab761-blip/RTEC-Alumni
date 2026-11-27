@@ -783,7 +783,7 @@ export default function Home() {
                     to="/about"
                     className="px-4 py-2 rounded bg-[#1A1916] hover:bg-[#201E1A] border border-[#C5A880]/25 text-xs text-[#EDE8DF] font-mono-tech transition"
                   >
-                    {lang === 'bn' ? 'কলেজের ইতিহাস' : 'Charter & History'}
+                    {lang === 'bn' ? 'কলেজের ইতিহাস' : 'About & History'}
                   </Link>
                 </div>
               </div>
@@ -1048,7 +1048,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="font-serif-regal font-bold text-xl sm:text-2xl text-[#0C0A09] dark:text-[#FDFBF7]">
-                    {lang === 'bn' ? 'অ্যালামনাই জব ও ক্যারিয়ার রেফারাল ডেস্ক' : 'Alumni Employment & Career Referral Desk'}
+                    {lang === 'bn' ? 'ক্যারিয়ার ও জব বোর্ড' : 'Career & Job Board'}
                   </h3>
                   <p className="text-xs text-[#57534E] dark:text-[#A89884] font-sans mt-0.5">
                     {lang === 'bn'

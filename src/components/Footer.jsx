@@ -157,7 +157,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link to="/jobs" className="text-[#4B5563] dark:text-[#A89884] hover:text-[#BD452F] dark:hover:text-[#FDFBF7] font-medium transition-colors block py-0.5">
-                    {lang === 'bn' ? 'অ্যালামনাই জব সার্কুলার' : 'Alumni Job Openings'}
+                    {lang === 'bn' ? 'ক্যারিয়ার ও জব বোর্ড' : 'Career & Job Board'}
                   </Link>
                 </li>
                 <li>
