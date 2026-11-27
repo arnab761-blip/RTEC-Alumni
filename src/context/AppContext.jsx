@@ -2157,19 +2157,56 @@ export function AppProvider({ children }) {
     return newUser;
   };
 
-  // Update authenticated user's own profile (name, organization/role, phone, address, bio) across session & directory
-  const updateOwnProfile = ({ name, company, phone, address, location, bio }) => {
-    const cleanAddress = (address !== undefined ? address : location) || '';
+  // Update authenticated user's own profile (unified with Student Portal fields) across session & directory
+  const updateOwnProfile = (payload = {}) => {
+    const {
+      regNo,
+      name,
+      phone,
+      batch,
+      department,
+      deptBn,
+      designation,
+      company,
+      jobSector,
+      workLocation,
+      experienceYears,
+      address,
+      currentLocation,
+      location,
+      linkedin,
+      bloodGroup,
+      avatar,
+      bio
+    } = payload;
+
+    const cleanAddress = (address !== undefined ? address : (currentLocation !== undefined ? currentLocation : location)) || '';
     const cleanEmail = (user?.email || '').trim().toLowerCase();
-    const cleanReg = (user?.regNo || mySubmission?.regNo || '').trim().toLowerCase();
+    const cleanReg = (regNo || user?.regNo || mySubmission?.regNo || '').trim().toLowerCase();
+    const resolvedCurrentJob = designation && company
+      ? `${designation}, ${company}`
+      : (company || designation || user?.company || '');
 
     const updatedUser = {
       ...user,
+      regNo: regNo !== undefined ? regNo : user?.regNo,
       name: name !== undefined ? name : user?.name,
-      company: company !== undefined ? company : user?.company,
       phone: phone !== undefined ? phone : user?.phone,
+      batch: batch !== undefined ? batch : user?.batch,
+      department: department !== undefined ? department : user?.department,
+      deptBn: deptBn !== undefined ? deptBn : user?.deptBn,
+      designation: designation !== undefined ? designation : user?.designation,
+      company: resolvedCurrentJob,
+      companyName: company !== undefined ? company : user?.companyName,
+      jobSector: jobSector !== undefined ? jobSector : user?.jobSector,
+      workLocation: workLocation !== undefined ? workLocation : user?.workLocation,
+      experienceYears: experienceYears !== undefined ? experienceYears : user?.experienceYears,
       address: cleanAddress,
+      currentLocation: cleanAddress,
       location: cleanAddress,
+      linkedin: linkedin !== undefined ? linkedin : user?.linkedin,
+      bloodGroup: bloodGroup !== undefined ? bloodGroup : user?.bloodGroup,
+      avatar: avatar !== undefined ? sanitizeAvatar(avatar) : user?.avatar,
       bio: bio !== undefined ? bio : user?.bio
     };
     setUser(updatedUser);
@@ -2180,12 +2217,24 @@ export function AppProvider({ children }) {
         if (s.email && s.email.trim().toLowerCase() === cleanEmail) {
           const nextSub = {
             ...s,
+            regNo: regNo !== undefined ? regNo : s.regNo,
             name: name || s.name,
             nameEn: name || s.nameEn,
             phone: phone !== undefined ? phone : s.phone,
-            address: cleanAddress,
+            batch: batch !== undefined ? batch : s.batch,
+            department: department !== undefined ? department : s.department,
+            deptBn: deptBn !== undefined ? deptBn : s.deptBn,
+            designation: designation !== undefined ? designation : s.designation,
+            company: company !== undefined ? company : s.company,
+            currentJob: resolvedCurrentJob || s.currentJob,
+            jobSector: jobSector !== undefined ? jobSector : s.jobSector,
+            workLocation: workLocation !== undefined ? workLocation : s.workLocation,
+            experienceYears: experienceYears !== undefined ? experienceYears : s.experienceYears,
+            address: cleanAddress || s.address,
             currentLocation: cleanAddress || s.currentLocation,
-            currentJob: company !== undefined ? company : s.currentJob,
+            linkedin: linkedin !== undefined ? linkedin : s.linkedin,
+            bloodGroup: bloodGroup !== undefined ? bloodGroup : s.bloodGroup,
+            avatar: avatar !== undefined ? sanitizeAvatar(avatar) : s.avatar,
             bio: bio !== undefined ? bio : s.bio
           };
           syncEntityToMongo('/api/submissions', 'POST', nextSub);
@@ -2200,9 +2249,22 @@ export function AppProvider({ children }) {
         if (ownsByEmail || ownsByReg) {
           const nextStd = {
             ...st,
+            name: name || st.name,
             phone: phone !== undefined ? phone : st.phone,
-            address: cleanAddress,
+            batch: batch !== undefined ? batch : st.batch,
+            department: department !== undefined ? department : st.department,
+            deptBn: deptBn !== undefined ? deptBn : st.deptBn,
+            designation: designation !== undefined ? designation : st.designation,
+            company: company !== undefined ? company : st.company,
+            currentJob: resolvedCurrentJob || st.currentJob,
+            jobSector: jobSector !== undefined ? jobSector : st.jobSector,
+            workLocation: workLocation !== undefined ? workLocation : st.workLocation,
+            experienceYears: experienceYears !== undefined ? experienceYears : st.experienceYears,
+            address: cleanAddress || st.address,
             currentLocation: cleanAddress || st.currentLocation,
+            linkedin: linkedin !== undefined ? linkedin : st.linkedin,
+            bloodGroup: bloodGroup !== undefined ? bloodGroup : st.bloodGroup,
+            avatar: avatar !== undefined ? sanitizeAvatar(avatar) : st.avatar,
             activities: bio !== undefined ? bio : st.activities
           };
           syncEntityToMongo('/api/students', 'POST', nextStd);
@@ -2216,10 +2278,19 @@ export function AppProvider({ children }) {
           const nextAl = {
             ...al,
             name: name || al.name,
-            company: company !== undefined ? company : al.company,
+            batch: batch !== undefined ? batch : al.batch,
+            department: department !== undefined ? department : al.department,
+            designation: designation !== undefined ? designation : al.designation,
+            company: company !== undefined ? company : (resolvedCurrentJob || al.company),
+            jobSector: jobSector !== undefined ? jobSector : al.jobSector,
+            workLocation: workLocation !== undefined ? workLocation : al.workLocation,
+            experienceYears: experienceYears !== undefined ? experienceYears : al.experienceYears,
             phone: phone !== undefined ? phone : al.phone,
             location: cleanAddress || al.location,
-            address: cleanAddress,
+            address: cleanAddress || al.address,
+            linkedin: linkedin !== undefined ? linkedin : al.linkedin,
+            bloodGroup: bloodGroup !== undefined ? bloodGroup : al.bloodGroup,
+            avatar: avatar !== undefined ? sanitizeAvatar(avatar) : al.avatar,
             bio: bio !== undefined ? bio : al.bio
           };
           syncEntityToMongo('/api/alumni', 'POST', nextAl);

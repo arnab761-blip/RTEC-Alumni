@@ -38,8 +38,22 @@ import GoogleSignInModal, { GoogleLogo } from './GoogleSignInModal.jsx';
 
 export default function Navbar() {
   const location = useLocation();
-  const { user, logout, lang, setLang, collegeLogo, theme, toggleTheme, isAdminEmail, openSupportModal } = useApp();
+  const { user, logout, lang, setLang, collegeLogo, theme, toggleTheme, isAdminEmail, openSupportModal, mySubmission, students = [], alumni = [] } = useApp();
   const isAuthorizedAdmin = Boolean(user?.role === 'admin' && isAdminEmail?.(user?.email));
+  const isPendingProfile = Boolean(user?.submissionStatus === 'pending' || mySubmission?.status === 'pending');
+  const userEmailLower = (user?.email || '').toLowerCase().trim();
+  const hasApprovedProfile = Boolean(
+    user &&
+    user.role &&
+    user.role !== 'guest' &&
+    !isPendingProfile && (
+      isAuthorizedAdmin ||
+      mySubmission?.status === 'approved' ||
+      user?.submissionStatus === 'approved' ||
+      (userEmailLower && students.some(s => s.email?.toLowerCase().trim() === userEmailLower)) ||
+      (userEmailLower && alumni.some(a => a.email?.toLowerCase().trim() === userEmailLower && a.isVerified !== false))
+    )
+  );
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerScrollLocked, setDrawerScrollLocked] = useState(false);
@@ -359,23 +373,25 @@ export default function Navbar() {
                           </Link>
                         )}
 
-                        <Link
-                          to="/student-portal"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="dropdown-menu-item dropdown-item-portal"
-                        >
-                          <GraduationCap className="w-4 h-4 shrink-0" />
-                          <span>{lang === 'bn' ? 'স্টুডেন্ট আইডি পোর্টাল' : 'Student Portal'}</span>
-                        </Link>
-
-                        <Link
-                          to="/profile"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="dropdown-menu-item dropdown-item-profile"
-                        >
-                          <User className="w-4 h-4 shrink-0" />
-                          <span>{lang === 'bn' ? 'আমার প্রোফাইল' : 'My Profile'}</span>
-                        </Link>
+                        {hasApprovedProfile ? (
+                          <Link
+                            to="/profile"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="dropdown-menu-item dropdown-item-profile"
+                          >
+                            <User className="w-4 h-4 shrink-0" />
+                            <span>{lang === 'bn' ? 'আমার প্রোফাইল' : 'My Profile'}</span>
+                          </Link>
+                        ) : (
+                          <Link
+                            to="/student-portal"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="dropdown-menu-item dropdown-item-portal"
+                          >
+                            <GraduationCap className="w-4 h-4 shrink-0" />
+                            <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'Student Portal'}</span>
+                          </Link>
+                        )}
                       </div>
 
                       <div className="pt-2 mt-1.5 border-t border-slate-100 dark:border-[#C5A880]/15">
@@ -645,13 +661,13 @@ export default function Navbar() {
                       </Link>
                     ) : (
                       <Link
-                        to={user && user.role !== 'guest' ? '/profile' : '/student-portal'}
+                        to={hasApprovedProfile ? '/profile' : '/student-portal'}
                         onClick={() => setDrawerOpen(false)}
                         className="flex items-center justify-center gap-1.5 p-2 rounded-xl text-xs font-bold transition shadow-sm bg-emerald-700 hover:bg-emerald-600 text-white"
                       >
                         <GraduationCap className="w-3.5 h-3.5 shrink-0" />
                         <span>
-                          {user && user.role !== 'guest'
+                          {hasApprovedProfile
                             ? (lang === 'bn' ? 'আমার প্রোফাইল' : 'My Profile')
                             : (lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'Student Portal')}
                         </span>
