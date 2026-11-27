@@ -87,6 +87,11 @@ export default function Home() {
     return count || 320;
   }, [students]);
 
+  const undergraduateStudentsCount = useMemo(() => {
+    const total = (students || []).length || 834;
+    return Math.max(0, total - graduatedStudentsCount);
+  }, [students, graduatedStudentsCount]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -577,11 +582,11 @@ export default function Home() {
                 numClass: 'text-rose-800 dark:text-[#DE644E]'
               },
               {
-                num: `${students.length || 834}`,
-                labelBn: 'মোট শিক্ষার্থী ও গবেষক',
-                labelEn: 'Undergraduate Scholars',
-                subBn: 'বস্ত্র অধিদপ্তর (DoT) পরিচালিত কেন্দ্রীয় ভর্তি পরীক্ষার মাধ্যমে মনোনীত',
-                subEn: 'Admitted through the Department of Textiles (DoT) admission test',
+                num: `${undergraduateStudentsCount}`,
+                labelBn: 'আন্ডারগ্র্যাজুয়েট শিক্ষার্থী',
+                labelEn: 'Undergraduate Students',
+                subBn: `৪র্থ থেকে ৮ম ব্যাচের অধ্যয়নরত শিক্ষার্থী (মোট ভর্তি: ${(students || []).length || 834} জন)`,
+                subEn: `Current students across 4th–8th Batches (out of ${(students || []).length || 834} total enrolled)`,
                 cardClass: 'bg-indigo-50/90 dark:bg-[#161924] border-indigo-300/75 dark:border-indigo-500/30',
                 numClass: 'text-indigo-800 dark:text-indigo-300'
               }
