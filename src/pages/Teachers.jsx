@@ -138,17 +138,17 @@ export default function Teachers() {
         <div className="mb-8 pb-6 border-b border-[#C5A880]/20">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono-tech text-[#A89884] uppercase mb-2">
             <span className="text-[#DFCA9E]">
-              {lang === 'bn' ? 'শিক্ষকমণ্ডলী ও কর্মকর্তা তালিকা' : 'FACULTY & STAFF DIRECTORY'}
+              {lang === 'bn' ? 'শিক্ষকমণ্ডলী ও স্টাফ তালিকা' : 'TEACHERS & FACULTY STAFF DIRECTORY'}
             </span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif-regal font-black text-[#FDFBF7] tracking-tight">
-            {lang === 'bn' ? 'সম্মানিত শিক্ষকমণ্ডলী ও কর্মকর্তাবৃন্দ' : 'Faculty & Officers'}
+            {lang === 'bn' ? 'সম্মানিত শিক্ষকমণ্ডলী ও স্টাফবৃন্দ' : 'Teachers & Faculty Staff'}
           </h1>
           <p className="text-xs sm:text-sm text-[#DCD3C1] mt-2 max-w-3xl font-sans leading-relaxed">
             {lang === 'bn'
-              ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের সম্মানিত অধ্যক্ষ, বিভাগীয় প্রধান, সহকারী অধ্যাপক, প্রভাষক, কারিগরি প্রশিক্ষক ও কর্মকর্তাবৃন্দের তালিকা।'
-              : 'Official directory of the Principal, Assistant Professors, Lecturers, Technical Instructors, and Officers at Rangpur Textile Engineering College.'}
+              ? 'রংপুর টেক্সটাইল ইঞ্জিনিয়ারিং কলেজের সম্মানিত অধ্যক্ষ, বিভাগীয় প্রধান, সহকারী অধ্যাপক, প্রভাষক, কারিগরি প্রশিক্ষক ও ফ্যাকাল্টি স্টাফদের তালিকা।'
+              : 'Official directory of the Principal, Assistant Professors, Lecturers, Technical Instructors, and Faculty Staff at Rangpur Textile Engineering College.'}
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export default function Teachers() {
           <div className="p-4 rounded-xl plaque-elevated text-center border border-[#C5A880]/20">
             <span className="text-2xl sm:text-3xl font-serif-regal font-black text-[#DFCA9E]">{(teachers || []).length}</span>
             <p className="text-[11px] font-mono-tech text-[#A89884] mt-1">
-              {lang === 'bn' ? 'মোট অনুষদ ও কর্মকর্তা' : 'Total Faculty & Officers'}
+              {lang === 'bn' ? 'মোট শিক্ষক' : 'Total Teachers'}
             </p>
           </div>
           <div className="p-4 rounded-xl plaque-elevated text-center border border-[#C5A880]/20">
@@ -234,7 +234,7 @@ export default function Teachers() {
               {lang === 'bn' ? 'একাডেমিক ও কারিগরি অনুষদ' : 'ACADEMIC & TECHNICAL FACULTY'}
             </span>
             <h2 className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7] mt-0.5">
-              {lang === 'bn' ? 'শিক্ষকমণ্ডলী ও বিভাগীয় কর্মকর্তাবৃন্দ' : 'Faculty Members & Instructors'}
+              {lang === 'bn' ? 'ফ্যাকাল্টি টিচার্স ও ইনস্ট্রাক্টরবৃন্দ' : 'Faculty Teachers & Instructors'}
             </h2>
           </div>
           <span className="text-xs font-mono-tech text-[#A89884]">
