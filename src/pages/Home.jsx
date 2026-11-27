@@ -111,14 +111,8 @@ export default function Home() {
               initial="hidden"
               animate="visible"
               variants={staggerContainer}
-              className="lg:col-span-7 space-y-6"
+              className="lg:col-span-7 order-1 lg:order-1 space-y-6"
             >
-              <motion.div variants={fadeInUp} custom={0}>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-rose-50 border border-rose-300 text-rose-900 dark:bg-[#BD452F]/20 dark:border-[#BD452F]/40 dark:text-[#DE644E] text-[11px] font-mono-tech tracking-wider uppercase font-bold shadow-sm">
-                  <span>{lang === 'bn' ? 'প্রতিষ্ঠিত ২০১৮' : 'ESTD. 2018'}</span>
-                </div>
-              </motion.div>
-
               <motion.h1
                 variants={fadeInUp}
                 custom={1}
@@ -242,12 +236,12 @@ export default function Home() {
               )}
             </motion.div>
 
-            {/* Right 5 Columns: Institute Charter Card */}
+            {/* Right 5 Columns: Institute Charter Card (Appears after Join CTA on mobile, right column on desktop) */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-5"
+              className="lg:col-span-5 order-3 lg:order-2"
             >
               <div className="plaque-elevated rounded-xl p-6 border border-[#C5A880]/30 relative overflow-hidden">
                 
@@ -347,14 +341,48 @@ export default function Home() {
               </div>
             </motion.div>
 
+            {/* Join the Central RTEC Engineering Register (Above Institute Charter on Mobile, Below Hero Row on Desktop) */}
+            <div className="lg:col-span-12 order-2 lg:order-3 pt-4 lg:pt-8 border-t border-[#C5A880]/15">
+              <div className="max-w-4xl mx-auto text-center space-y-4 sm:space-y-5">
+                <span className="inline-block px-3 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] text-[11px] font-mono-tech tracking-wider uppercase border border-[#C5A880]/25">
+                  {lang === 'bn' ? 'কেন্দ্রীয় অ্যালামনাই নেটওয়ার্ক' : 'CENTRAL ALUMNI NETWORK'}
+                </span>
+                <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7]">
+                  {lang === 'bn'
+                    ? 'আপনি কি আরটেকের সাবেক বা বর্তমান শিক্ষার্থী?'
+                    : 'Join the Central RTEC Engineering Register'}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#DCD3C1] max-w-2xl mx-auto leading-relaxed font-sans">
+                  {lang === 'bn'
+                    ? 'আপনার ব্যাচমেটদের সাথে যুক্ত হন, অফিসিয়াল ডিরেক্টরিতে আপনার বর্তমান পদবী ও কোম্পানির তথ্য আপডেট করুন এবং প্রিয় বিদ্যাপীঠের ভবিষ্যৎ গঠনে ভূমিকা রাখুন।'
+                    : 'Register your profile, link your current mill or company details, and mentor the next generation of textile engineers.'}
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+                  <Link
+                    to="/auth"
+                    className="btn-agency btn-agency-terracotta px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
+                  >
+                    <span>{lang === 'bn' ? 'অ্যালামনাই একাউন্ট রেজিস্টার করুন' : 'Create Alumni Account'}</span>
+                  </Link>
+                  <Link
+                    to="/directory"
+                    className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
+                  >
+                    <span>{lang === 'bn' ? 'ডিরেক্টরি ডাটাবেজ সার্চ' : 'Search Directory'}</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>
       </section>
 
-      {/* 3. WHY WE BUILT THIS PORTAL + JOIN THE CENTRAL RTEC ENGINEERING REGISTER */}
-      <section className="py-12 sm:py-16 bg-transparent border-b border-[#C5A880]/15">
-        <div className="max-w-5xl mx-auto px-4 space-y-10">
+      {/* 3. WHY WE BUILT THIS PORTAL */}
+      <section className="py-10 sm:py-14 bg-transparent border-b border-[#C5A880]/15">
+        <div className="max-w-5xl mx-auto px-4">
           {/* Purpose & Overview Card (Avoids duplicating "About RTEC") */}
           <div className="plaque-elevated rounded-2xl p-6 sm:p-8 border border-[#C5A880]/30 shadow-md">
             <div className="flex flex-col md:flex-row md:items-start gap-5">
@@ -377,37 +405,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-          </div>
-
-          <div className="max-w-4xl mx-auto text-center space-y-5">
-          <span className="inline-block px-3 py-1 rounded bg-[#C5A880]/15 text-[#DFCA9E] text-[11px] font-mono-tech tracking-wider uppercase border border-[#C5A880]/25">
-            {lang === 'bn' ? 'কেন্দ্রীয় অ্যালামনাই নেটওয়ার্ক' : 'CENTRAL ALUMNI NETWORK'}
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7]">
-            {lang === 'bn'
-              ? 'আপনি কি আরটেকের সাবেক বা বর্তমান শিক্ষার্থী?'
-              : 'Join the Central RTEC Engineering Register'}
-          </h2>
-          <p className="text-xs sm:text-sm text-[#DCD3C1] max-w-2xl mx-auto leading-relaxed font-sans">
-            {lang === 'bn'
-              ? 'আপনার ব্যাচমেটদের সাথে যুক্ত হন, অফিসিয়াল ডিরেক্টরিতে আপনার বর্তমান পদবী ও কোম্পানির তথ্য আপডেট করুন এবং প্রিয় বিদ্যাপীঠের ভবিষ্যৎ গঠনে ভূমিকা রাখুন।'
-              : 'Register your profile, link your current mill or company details, and mentor the next generation of textile engineers.'}
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Link
-              to="/auth"
-              className="btn-agency btn-agency-terracotta px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-            >
-              <span>{lang === 'bn' ? 'অ্যালামনাই একাউন্ট রেজিস্টার করুন' : 'Create Alumni Account'}</span>
-            </Link>
-            <Link
-              to="/directory"
-              className="btn-agency px-6 py-3 rounded text-xs sm:text-sm font-sans uppercase tracking-wider"
-            >
-              <span>{lang === 'bn' ? 'ডিরেক্টরি ডাটাবেজ সার্চ' : 'Search Directory'}</span>
-            </Link>
-          </div>
           </div>
         </div>
       </section>
@@ -741,10 +738,10 @@ export default function Home() {
 
           <div className="mb-8">
             <span className="text-[10px] font-mono-tech uppercase text-[#DE644E] tracking-widest block">
-              {lang === 'bn' ? 'প্রশাসন ও শিক্ষকমণ্ডলী' : 'COLLEGE LEADERSHIP & FACULTY'}
+              {lang === 'bn' ? 'শিক্ষকমণ্ডলী' : 'FACULTY TEACHERS'}
             </span>
             <h2 className="text-2xl sm:text-4xl font-serif-regal font-extrabold text-[#FDFBF7] mt-1">
-              {lang === 'bn' ? 'আমাদের নেতৃত্ব ও শিক্ষকমণ্ডলী' : 'Our Leadership & Teachers'}
+              {lang === 'bn' ? 'শ্রদ্ধেয় শিক্ষকমণ্ডলী' : 'Respected Teachers'}
             </h2>
           </div>
 

@@ -214,13 +214,12 @@ export default function Footer() {
                 href="https://www.linkedin.com/in/md-tahmidul-islam-arnab-580587320/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B92ju51LVShS4kPDu0W7pLw%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 hover:underline decoration-[#BD452F] dark:decoration-[#DFCA9E] underline-offset-4"
+                className="relative inline-flex items-center whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 hover:underline decoration-[#BD452F] dark:decoration-[#DFCA9E] underline-offset-4"
                 title="LinkedIn Profile"
               >
                 <span className="text-[#1C1917] dark:text-[#F5F0E6] font-semibold">
                   {lang === 'bn' ? 'মো. তাহমিদুল ইসলাম অর্ণব' : 'Md. Tahmidul Islam Arnab'}
                 </span>
-                <LinkedinIcon className="w-3 h-3 text-[#0A66C2] dark:text-sky-400 shrink-0" />
               </a>
               <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
                 {lang === 'bn' ? '(৫ম ব্যাচ)' : '(5th Batch)'}
@@ -237,13 +236,12 @@ export default function Footer() {
                 href="https://www.linkedin.com/in/abdur-rouf-87a449338/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BzfHUWGZzQbuZmJ8vRBe6Bg%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative inline-flex items-center gap-1 whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 hover:underline decoration-[#BD452F] dark:decoration-[#DFCA9E] underline-offset-4"
+                className="relative inline-flex items-center whitespace-nowrap font-semibold text-[#1C1917] dark:text-[#F5F0E6] hover:text-[#BD452F] dark:hover:text-[#DFCA9E] transition-colors duration-200 hover:underline decoration-[#BD452F] dark:decoration-[#DFCA9E] underline-offset-4"
                 title="LinkedIn Profile"
               >
                 <span className="text-[#1C1917] dark:text-[#F5F0E6] font-semibold">
                   {lang === 'bn' ? 'আব্দুর রউফ চৌধুরী' : 'Abdur Rouf Chowdhury'}
                 </span>
-                <LinkedinIcon className="w-3 h-3 text-[#0A66C2] dark:text-sky-400 shrink-0" />
               </a>
               <span className="whitespace-nowrap text-[#57534E] dark:text-[#C9C0B3] text-[11.5px]">
                 {lang === 'bn' ? '(৫ম ব্যাচ)' : '(5th Batch)'}
