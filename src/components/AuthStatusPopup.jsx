@@ -93,7 +93,7 @@ export default function AuthStatusPopup() {
                   : (lang === 'bn' ? 'লগআউট সম্পন্ন হয়েছে' : 'Logged Out Successfully')}
               </h4>
 
-              <p className="text-xs text-slate-600 dark:text-slate-200 truncate mt-0.5 font-sans font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-200 mt-0.5 font-sans font-medium leading-relaxed break-words">
                 {isLogin
                   ? (lang === 'bn'
                       ? `স্বাগতম, ${authFeedback.name || authFeedback.email}`
