@@ -945,21 +945,27 @@ export default function Forum() {
               <h3 className="font-serif-regal font-black text-xl sm:text-2xl text-[#0C0A09] dark:text-[#FDFBF7]">
                 {isPendingUser
                   ? (lang === 'bn' ? 'অ্যাকাউন্ট অনুমোদনের অপেক্ষায় রয়েছে' : 'Account Pending Admin Approval')
-                  : (lang === 'bn' ? 'প্রশ্ন বা অভিজ্ঞতা পোস্ট করতে ভেরিফায়েড লগইন প্রয়োজন' : 'Verified Sign-In Required to Post')}
+                  : (user && user.role !== 'guest'
+                      ? (lang === 'bn' ? 'স্টুডেন্ট পোর্টালে আইডি ভেরিফাই করুন' : 'Verify ID in Student Portal')
+                      : (lang === 'bn' ? 'প্রশ্ন বা অভিজ্ঞতা পোস্ট করতে লগইন করুন' : 'Sign In to Ask or Share'))}
               </h3>
               <p className="text-xs text-[#57534E] dark:text-[#A89884] mt-1 font-sans leading-relaxed">
                 {isPendingUser
                   ? (lang === 'bn'
                       ? 'আপনার অ্যাকাউন্টটি এখনো অ্যাডমিন অনুমোদনের (Pending Approval) অপেক্ষায় আছে। অনুমোদন না পাওয়া পর্যন্ত আপনি কেবল সব পোস্ট দেখতে পারবেন; কোনো প্রশ্ন, অভিজ্ঞতা বা মন্তব্য পোস্ট করতে পারবেন না।'
                       : 'Your account is currently awaiting Admin approval. Until approved, you can view all posts and discussions, but cannot post questions, experiences, or replies.')
-                  : (lang === 'bn'
-                      ? 'লগইন ছাড়া বা পেন্ডিং ইউজাররা কোনো পোস্ট করতে পারবেন না—তারা শুধু সবকিছু দেখতে পারবেন। অনুমোদিত শিক্ষার্থী (Student) এবং অ্যালামনাইরাই কেবল প্রশ্ন ও অভিজ্ঞতা শেয়ার করতে পারবেন।'
-                      : 'Guests and pending users can view everything, but only approved Students and Alumni can post questions, experiences, or replies.')}
+                  : (user && user.role !== 'guest'
+                      ? (lang === 'bn'
+                          ? 'আপনি লগইন করেছেন, তবে স্টুডেন্ট পোর্টাল থেকে ফর্ম পূরণ করে অ্যাডমিন অ্যাপ্রুভাল না পাওয়া পর্যন্ত পোস্ট করতে পারবেন না। অনুমোদনের আগে আপনি শুধু সবকিছু দেখতে পারবেন।'
+                          : 'You are signed in, but you must submit your ID in the Student Portal and receive Admin approval before posting. You can view everything in the meantime.')
+                      : (lang === 'bn'
+                          ? 'লগইন ছাড়া বা পেন্ডিং ইউজাররা কোনো পোস্ট করতে পারবেন না—তারা শুধু সবকিছু দেখতে পারবেন। অনুমোদিত শিক্ষার্থী (Student) এবং অ্যালামনাইরাই কেবল প্রশ্ন ও অভিজ্ঞতা শেয়ার করতে পারবেন।'
+                          : 'Guests and pending users can view everything, but only approved Students and Alumni can post questions, experiences, or replies.'))}
               </p>
             </div>
 
-            {/* 1-Click Google Sign-In Box */}
-            {!isPendingUser && (
+            {/* Guest: Show Google Sign-In | Logged-in Unverified/Pending: Show ONLY Student Portal link */}
+            {(!user || user.role === 'guest') ? (
               <div className="p-4 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 space-y-3">
                 <GoogleSignInButton
                   onClick={() => setIsGoogleModalOpen(true)}
@@ -974,6 +980,21 @@ export default function Forum() {
                     <span>{lang === 'bn' ? 'অথবা স্টুডেন্ট পোর্টালে প্রোফাইল জমা দিন →' : 'Or verify ID in Student Portal →'}</span>
                   </Link>
                 </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl bg-[#F8F5EE] dark:bg-[#141311] border border-[#C5A880]/30 text-center">
+                <Link
+                  to="/student-portal"
+                  onClick={() => setApprovalGateModalOpen(false)}
+                  className="inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md transition"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>
+                    {isPendingUser
+                      ? (lang === 'bn' ? 'স্টুডেন্ট পোর্টালে স্ট্যাটাস দেখুন →' : 'Check Status in Student Portal →')
+                      : (lang === 'bn' ? 'স্টুডেন্ট পোর্টালে আইডি ভেরিফাই করুন →' : 'Verify ID in Student Portal →')}
+                  </span>
+                </Link>
               </div>
             )}
 
