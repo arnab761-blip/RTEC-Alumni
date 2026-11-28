@@ -176,23 +176,27 @@ export default function Admin() {
     setAnalyticsLoading(true);
     setAnalyticsError('');
     try {
-      const res = await apiFetch('/api/analytics/stats', {
-        headers: {
-          'x-admin-email': user?.email || ''
-        }
-      });
+      const emailParam = encodeURIComponent(user?.email || '');
+      const res = await apiFetch(`/api/analytics/stats?adminEmail=${emailParam}`);
       const data = await res.json();
       if (data && data.success) {
         setAnalyticsData(data);
       } else {
-        setAnalyticsError(data?.error || 'Failed to load visitor analytics');
+        setAnalyticsError(data?.error || (lang === 'bn' ? 'ভিজিটর তথ্য লোড করা যায়নি' : 'Failed to load visitor analytics'));
       }
     } catch (err) {
-      setAnalyticsError(err.message || 'Error fetching visitor analytics');
+      const msg = err.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        setAnalyticsError(lang === 'bn' 
+          ? 'সার্ভার সংযোগ হচ্ছে (Render ওয়াক-আপ)... অনুগ্রহ করে কয়েক সেকেন্ড পর রিফ্রেশ আইকনে ক্লিক করুন।' 
+          : 'Connecting to server (waking up)... Please wait a few seconds and click refresh.');
+      } else {
+        setAnalyticsError(msg || (lang === 'bn' ? 'সার্ভার রেসপন্স করছে না' : 'Server not responding'));
+      }
     } finally {
       setAnalyticsLoading(false);
     }
-  }, [user, apiFetch]);
+  }, [user, apiFetch, lang]);
 
   useEffect(() => {
     if (activeTab === 'analytics' || activeTab === 'overview') {
