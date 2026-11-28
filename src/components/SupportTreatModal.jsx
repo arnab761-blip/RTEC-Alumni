@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext.jsx';
 import { useScrollLock } from '../utils/useScrollLock.js';
+import { playTreatCelebrationSound } from '../utils/sound.js';
 
 const TREAT_OPTIONS = {
   coffee: {
@@ -155,11 +156,27 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
       });
     }
 
+    playTreatCelebrationSound();
+
     confetti({
-      particleCount: selectedTreat === 'biryani' ? 110 : 75,
+      particleCount: selectedTreat === 'biryani' ? 110 : 80,
       spread: 75,
       origin: { y: 0.6 }
     });
+    setTimeout(() => {
+      confetti({
+        particleCount: 35,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0.15, y: 0.65 }
+      });
+      confetti({
+        particleCount: 35,
+        angle: 120,
+        spread: 55,
+        origin: { x: 0.85, y: 0.65 }
+      });
+    }, 180);
     setIsSubmitted(true);
   };
 
@@ -224,37 +241,58 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
 
             {isSubmitted ? (
               <motion.div
-                initial={{ opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="py-8 px-4 text-center space-y-4 rounded-2xl bg-emerald-50 dark:bg-[#13201B] border border-emerald-300 dark:border-emerald-500/35"
+                initial={{ opacity: 0, scale: 0.9, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+                className="py-8 px-5 text-center space-y-5 rounded-2xl bg-gradient-to-b from-emerald-50 to-teal-50/70 dark:from-[#13201B] dark:to-[#111B17] border border-emerald-300 dark:border-emerald-500/35 relative overflow-hidden"
               >
+                <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+                  <motion.span
+                    initial={{ scale: 0.6, opacity: 0.7 }}
+                    animate={{ scale: [1, 1.45, 1.65], opacity: [0.55, 0.2, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+                    className="absolute inset-0 rounded-full bg-emerald-400/40 dark:bg-emerald-500/30"
+                  />
+                  <motion.div
+                    initial={{ scale: 0, rotate: -35 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 420, damping: 16, delay: 0.08 }}
+                    className="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg ring-4 ring-emerald-200 dark:ring-emerald-800"
+                  >
+                    <CheckCircle2 className="w-8 h-8 text-white keep-white" />
+                  </motion.div>
+                </div>
+
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
-                  className="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg ring-4 ring-emerald-200 dark:ring-emerald-800"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.18 }}
+                  className="space-y-2"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-white keep-white" />
-                </motion.div>
-                <div className="space-y-1.5">
-                  <h4 className="text-lg font-serif-regal font-black text-emerald-950 dark:text-white">
+                  <h4 className="text-lg font-serif-regal font-black text-emerald-950 dark:text-white leading-snug">
                     {lang === 'bn'
-                      ? `ধন্যবাদ! আপনার ${quantity}x ${activeTreat.titleBn} গ্রহণ করা হয়েছে`
-                      : `Thank you for your support — you made our day! 💛`}
+                      ? 'অসংখ্য ধন্যবাদ! আপনার ভালোবাসা আমাদের অনুপ্রেরণা 💛'
+                      : 'Thank you for your support — you made our day! 💛'}
                   </h4>
                   <p className="text-xs text-emerald-800 dark:text-emerald-200 max-w-sm mx-auto leading-relaxed">
                     {lang === 'bn'
-                      ? 'আপনার ভালোবাসা ও অনুপ্রেরণা আমাদের RTEC Alumni ওয়েবসাইটকে আরও সুন্দর ও সমৃদ্ধ রাখতে সাহায্য করবে।'
+                      ? 'আপনার এই ছোট্ট সহায়তা আমাদের কাছে অনেক বড়। আমরা সত্যিই কৃতজ্ঞ।'
                       : 'Your little contribution is big to us. We are truly grateful for your kindness.'}
                   </p>
-                </div>
-                <button
+                </motion.div>
+
+                <motion.button
                   type="button"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.28 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition cursor-pointer"
+                  className="px-7 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md transition cursor-pointer"
                 >
                   {lang === 'bn' ? 'সম্পন্ন করুন' : 'Done'}
-                </button>
+                </motion.button>
               </motion.div>
             ) : (
               <form onSubmit={handleSendTreat} className="space-y-4">
