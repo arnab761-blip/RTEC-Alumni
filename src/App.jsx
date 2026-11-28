@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
+import { tracker } from './utils/analyticsTracker.js';
 import { AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext.jsx';
 import Navbar from './components/Navbar.jsx';
@@ -161,6 +162,10 @@ function AnimatedRoutes() {
   const fallbackTimerRef = useRef(null);
 
   // Take full control of scroll restoration so AnimatePresence exit/enter doesn't clash with browser Back
+  useEffect(() => {
+    tracker.onPageChange(location.pathname);
+  }, [location.pathname]);
+
   useEffect(() => {
     if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';

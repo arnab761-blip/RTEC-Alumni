@@ -22,6 +22,7 @@ import { ContactMessage } from './models/ContactMessage.js';
 import { MentorshipRequest } from './models/MentorshipRequest.js';
 import { EventRegistration } from './models/EventRegistration.js';
 import { JobApplication } from './models/JobApplication.js';
+import { VisitorLog } from './models/VisitorLog.js';
 import fs from 'fs';
 import crypto from 'crypto';
 import {
@@ -1173,6 +1174,177 @@ app.post('/api/cloudinary-signature', (req, res) => {
     signature,
     folder
   });
+});
+
+// ==========================================
+// 12. VISITOR ANALYTICS & ACTIVITY TRACKING
+// ==========================================
+
+// Lightweight non-blocking ping from frontend (navigator.sendBeacon / fetch)
+app.post('/api/analytics/track', async (req, res) => {
+  try {
+    const {
+      sessionId,
+      visitorId,
+      isLoggedIn,
+      user,
+      page,
+      pageTitle,
+      device,
+      browser,
+      referrer,
+      durationSeconds
+    } = req.body || {};
+
+    if (!sessionId || !visitorId) {
+      return res.status(200).json({ success: true, ignored: true });
+    }
+
+    const now = new Date();
+    const update = {
+      visitorId,
+      page: String(page || '/').substring(0, 150),
+      pageTitle: String(pageTitle || '').substring(0, 150),
+      device: String(device || 'Desktop').substring(0, 30),
+      browser: String(browser || 'Browser').substring(0, 40),
+      referrer: String(referrer || '').substring(0, 200),
+      lastActive: now
+    };
+
+    if (typeof durationSeconds === 'number' && durationSeconds >= 0) {
+      update.durationSeconds = Math.min(Math.round(durationSeconds), 86400);
+    }
+
+    if (isLoggedIn && user && typeof user === 'object') {
+      update.isLoggedIn = true;
+      update.userId = String(user.id || user._id || '').substring(0, 60);
+      update.userName = String(user.name || user.nameBn || user.email || 'Member').substring(0, 80);
+      update.userEmail = String(user.email || '').toLowerCase().trim().substring(0, 100);
+      update.userRole = String(user.role || 'Member').substring(0, 40);
+    } else {
+      update.isLoggedIn = false;
+      update.userName = 'Guest Visitor';
+      update.userRole = 'Guest';
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      await VisitorLog.findOneAndUpdate(
+        { sessionId },
+        { 
+          $set: update,
+          $setOnInsert: { startTime: now, createdAt: now }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(200).json({ success: false, error: err.message });
+  }
+});
+
+// Admin-only Analytics Stats & Visitor Activity Log
+app.get('/api/analytics/stats', requireDb, async (req, res) => {
+  try {
+    const requesterEmail = String(req.headers['x-admin-email'] || req.query.adminEmail || '').toLowerCase().trim();
+    
+    // Check if requester is authorized admin
+    const adminDocs = await AdminEmail.find({}).lean();
+    const validEmails = new Set([
+      'arnab.rts761@gmail.com',
+      ...adminDocs.map(a => a.email.toLowerCase().trim())
+    ]);
+
+    if (!requesterEmail || !validEmails.has(requesterEmail)) {
+      return res.status(403).json({ success: false, error: 'Unauthorized. Admin access required.' });
+    }
+
+    const now = new Date();
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // Active Now (lastActive in last 5 mins)
+    const activeNowCount = await VisitorLog.countDocuments({ lastActive: { $gte: fiveMinutesAgo } });
+
+    // Today's total sessions
+    const todayCount = await VisitorLog.countDocuments({ startTime: { $gte: twentyFourHoursAgo } });
+
+    // 7 Days total sessions
+    const weekCount = await VisitorLog.countDocuments({ startTime: { $gte: sevenDaysAgo } });
+
+    // All time total
+    const totalCount = await VisitorLog.countDocuments({});
+
+    // Logged-in vs Guest breakdown (last 7 days or all time)
+    const loggedInCount = await VisitorLog.countDocuments({ isLoggedIn: true, startTime: { $gte: sevenDaysAgo } });
+    const guestCount = Math.max(0, weekCount - loggedInCount);
+
+    // Average duration (sessions that stayed at least 2 seconds, up to 2 hours)
+    const durationAgg = await VisitorLog.aggregate([
+      { $match: { startTime: { $gte: sevenDaysAgo }, durationSeconds: { $gt: 2, $lt: 7200 } } },
+      { $group: { _id: null, avgDuration: { $avg: '$durationSeconds' } } }
+    ]);
+    const avgDurationSeconds = Math.round(durationAgg[0]?.avgDuration || 0);
+
+    // Top pages visited (last 7 days)
+    const topPagesAgg = await VisitorLog.aggregate([
+      { $match: { startTime: { $gte: sevenDaysAgo } } },
+      { $group: { _id: '$page', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 8 }
+    ]);
+    const topPages = topPagesAgg.map(p => ({ page: p._id || '/', count: p.count }));
+
+    // Device breakdown
+    const devicesAgg = await VisitorLog.aggregate([
+      { $match: { startTime: { $gte: sevenDaysAgo } } },
+      { $group: { _id: '$device', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    const devices = devicesAgg.map(d => ({ device: d._id || 'Desktop', count: d.count }));
+
+    // Recent 50 visitor activity logs
+    const recentLogs = await VisitorLog.find({})
+      .sort({ lastActive: -1 })
+      .limit(50)
+      .lean();
+
+    res.json({
+      success: true,
+      stats: {
+        activeNow: activeNowCount,
+        todayCount,
+        weekCount,
+        totalCount,
+        loggedInCount,
+        guestCount,
+        avgDurationSeconds,
+        topPages,
+        devices
+      },
+      recentLogs: recentLogs.map(l => ({
+        id: l._id,
+        sessionId: l.sessionId,
+        isLoggedIn: l.isLoggedIn,
+        userName: l.userName,
+        userEmail: l.userEmail,
+        userRole: l.userRole,
+        page: l.page,
+        pageTitle: l.pageTitle,
+        device: l.device,
+        browser: l.browser,
+        durationSeconds: l.durationSeconds || 0,
+        startTime: l.startTime,
+        lastActive: l.lastActive,
+        isLive: new Date(l.lastActive) >= fiveMinutesAgo
+      }))
+    });
+  } catch (err) {
+    console.error('[Analytics Error]:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.listen(PORT, '0.0.0.0', () => {

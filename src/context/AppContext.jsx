@@ -12,6 +12,7 @@ import {
   INITIAL_STUDENT_SUBMISSIONS
 } from '../data/mockData.js';
 import confetti from 'canvas-confetti';
+import { tracker } from '../utils/analyticsTracker.js';
 
 const sanitizeAvatar = (url) => {
   if (!url || typeof url !== 'string') return '';
@@ -208,6 +209,19 @@ export function AppProvider({ children }) {
 
   // 2. Language State (Defaults to English 'en' on first visit; persists user's choice)
   const [lang, setLangState] = useState(() => localStorage.getItem('rtec_lang') || 'en');
+
+  // Lightweight Background Visitor Analytics initialization
+  useEffect(() => {
+    tracker.init(apiBaseUrl, user);
+  }, []);
+
+  useEffect(() => {
+    tracker.setUser(user);
+  }, [user]);
+
+  useEffect(() => {
+    tracker.setApiBaseUrl(apiBaseUrl);
+  }, [apiBaseUrl]);
 
   const setLang = (newLang) => {
     localStorage.setItem('rtec_lang', newLang);
@@ -2691,6 +2705,7 @@ export function AppProvider({ children }) {
         updateGoogleClientId,
         apiBaseUrl,
         updateApiBaseUrl,
+        apiFetch,
         bootstrapFromMongo,
         // Auth Popup Feedback
         authFeedback,
