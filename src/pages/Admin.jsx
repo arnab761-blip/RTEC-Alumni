@@ -208,7 +208,7 @@ export default function Admin() {
     if (activeTab !== 'analytics' || !analyticsAutoRefresh) return;
     const interval = setInterval(() => {
       fetchAnalytics();
-    }, 25000);
+    }, 8000);
     return () => clearInterval(interval);
   }, [activeTab, analyticsAutoRefresh, fetchAnalytics]);
 
@@ -3709,7 +3709,7 @@ export default function Admin() {
                         ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 border-emerald-400/50'
                         : 'bg-stone-100 dark:bg-[#1E1C18] text-[#57534E] dark:text-[#A89884] border-[#C5A880]/30'
                     }`}
-                    title={lang === 'bn' ? 'স্বয়ংক্রিয় রিফ্রেশ (২৫ সেকেন্ড পরপর)' : 'Auto-refresh every 25s'}
+                    title={lang === 'bn' ? 'স্বয়ংক্রিয় লাইভ রিফ্রেশ (৮ সেকেন্ড পরপর)' : 'Live auto-refresh every 8s'}
                   >
                     <span className={`w-2 h-2 rounded-full ${analyticsAutoRefresh ? 'bg-emerald-500 animate-ping' : 'bg-stone-400'}`} />
                     <span>{lang === 'bn' ? (analyticsAutoRefresh ? 'লাইভ অটো: চালু' : 'অটো রিফ্রেশ: বন্ধ') : (analyticsAutoRefresh ? 'Live Auto: ON' : 'Live Auto: OFF')}</span>
