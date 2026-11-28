@@ -211,7 +211,7 @@ export default function Home() {
                     className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/40 text-xs sm:text-sm font-bold shadow-md hover:-translate-y-0.5 transition font-sans"
                   >
                     <GraduationCap className="w-4 h-4 shrink-0" />
-                    <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টাল (নিবন্ধন ও আইডি)' : 'Student Portal'}</span>
+                    <span>{lang === 'bn' ? 'স্টুডেন্ট প্রোফাইল (নিবন্ধন ও আইডি)' : 'Student Profile'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -1054,7 +1054,7 @@ export default function Home() {
             <div className="plaque-elevated rounded-xl p-8 border border-[#C5A880]/25 text-center space-y-3">
               <p className="text-sm text-[#374151] dark:text-[#DCD3C1] font-sans font-medium max-w-xl mx-auto">
                 {lang === 'bn'
-                  ? 'ভেরিফায়েড অ্যালামনাই প্রোফাইলগুলো অনুমোদিত হলে এখানে প্রদর্শিত হবে। স্টুডেন্ট পোর্টাল থেকে আপনার প্রোফাইল জমা দিন অথবা ডিরেক্টরি দেখুন।'
+                  ? 'ভেরিফায়েড অ্যালামনাই প্রোফাইলগুলো অনুমোদিত হলে এখানে প্রদর্শিত হবে। স্টুডেন্ট প্রোফাইল থেকে আপনার প্রোফাইল জমা দিন অথবা ডিরেক্টরি দেখুন।'
                   : 'Verified RTEC alumni profiles will be showcased here as graduates register and verify their profiles.'}
               </p>
               <Link

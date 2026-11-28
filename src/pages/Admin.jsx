@@ -1324,8 +1324,8 @@ export default function Admin() {
                 </h4>
                 <p className="text-xs text-[#A89884] mt-1 font-sans">
                   {lang === 'bn'
-                    ? 'শিক্ষার্থীরা যখন স্টুডেন্ট পোর্টাল থেকে নিজস্ব তথ্য জমা দিবে, তখন তা এখানে প্রদর্শিত হবে।'
-                    : 'When students submit their profiles from the Student Portal, they will appear here for review.'}
+                    ? 'শিক্ষার্থীরা যখন স্টুডেন্ট প্রোফাইল থেকে নিজস্ব তথ্য জমা দিবে, তখন তা এখানে প্রদর্শিত হবে।'
+                    : 'When students submit their profiles from Student Profile, they will appear here for review.'}
                 </p>
               </div>
             )}

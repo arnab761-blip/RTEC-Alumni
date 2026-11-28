@@ -421,7 +421,7 @@ export default function Auth() {
             className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition"
           >
             <GraduationCap className="w-3.5 h-3.5" />
-            <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টালে যান →' : 'Go to Student Portal →'}</span>
+            <span>{lang === 'bn' ? 'স্টুডেন্ট প্রোফাইলে যান →' : 'Go to Student Profile →'}</span>
           </Link>
         </div>
         )}

@@ -946,7 +946,7 @@ export default function Forum() {
                 {isPendingUser
                   ? (lang === 'bn' ? 'অ্যাকাউন্ট অনুমোদনের অপেক্ষায় রয়েছে' : 'Account Pending Admin Approval')
                   : (user && user.role !== 'guest'
-                      ? (lang === 'bn' ? 'স্টুডেন্ট পোর্টালে আইডি ভেরিফাই করুন' : 'Verify ID in Student Portal')
+                      ? (lang === 'bn' ? 'স্টুডেন্ট প্রোফাইলে আইডি ভেরিফাই করুন' : 'Verify ID in Student Profile')
                       : (lang === 'bn' ? 'প্রশ্ন বা অভিজ্ঞতা পোস্ট করতে লগইন করুন' : 'Sign In to Ask or Share'))}
               </h3>
               <p className="text-xs text-[#57534E] dark:text-[#A89884] mt-1 font-sans leading-relaxed">
@@ -956,8 +956,8 @@ export default function Forum() {
                       : 'Your account is currently awaiting Admin approval. Until approved, you can view all posts and discussions, but cannot post questions, experiences, or replies.')
                   : (user && user.role !== 'guest'
                       ? (lang === 'bn'
-                          ? 'আপনি লগইন করেছেন, তবে স্টুডেন্ট পোর্টাল থেকে ফর্ম পূরণ করে অ্যাডমিন অ্যাপ্রুভাল না পাওয়া পর্যন্ত পোস্ট করতে পারবেন না। অনুমোদনের আগে আপনি শুধু সবকিছু দেখতে পারবেন।'
-                          : 'You are signed in, but you must submit your ID in the Student Portal and receive Admin approval before posting. You can view everything in the meantime.')
+                          ? 'আপনি লগইন করেছেন, তবে স্টুডেন্ট প্রোফাইল থেকে ফর্ম পূরণ করে অ্যাডমিন অ্যাপ্রুভাল না পাওয়া পর্যন্ত পোস্ট করতে পারবেন না। অনুমোদনের আগে আপনি শুধু সবকিছু দেখতে পারবেন।'
+                          : 'You are signed in, but you must submit your ID in Student Profile and receive Admin approval before posting. You can view everything in the meantime.')
                       : (lang === 'bn'
                           ? 'লগইন ছাড়া বা পেন্ডিং ইউজাররা কোনো পোস্ট করতে পারবেন না—তারা শুধু সবকিছু দেখতে পারবেন। অনুমোদিত শিক্ষার্থী (Student) এবং অ্যালামনাইরাই কেবল প্রশ্ন ও অভিজ্ঞতা শেয়ার করতে পারবেন।'
                           : 'Guests and pending users can view everything, but only approved Students and Alumni can post questions, experiences, or replies.'))}
@@ -977,7 +977,7 @@ export default function Forum() {
                     onClick={() => setApprovalGateModalOpen(false)}
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-[#854D0E] dark:text-[#DFCA9E] hover:underline"
                   >
-                    <span>{lang === 'bn' ? 'অথবা স্টুডেন্ট পোর্টালে প্রোফাইল জমা দিন →' : 'Or verify ID in Student Portal →'}</span>
+                    <span>{lang === 'bn' ? 'অথবা স্টুডেন্ট প্রোফাইলে তথ্য জমা দিন →' : 'Or verify ID in Student Profile →'}</span>
                   </Link>
                 </div>
               </div>
@@ -991,8 +991,8 @@ export default function Forum() {
                   <GraduationCap className="w-4 h-4" />
                   <span>
                     {isPendingUser
-                      ? (lang === 'bn' ? 'স্টুডেন্ট পোর্টালে স্ট্যাটাস দেখুন →' : 'Check Status in Student Portal →')
-                      : (lang === 'bn' ? 'স্টুডেন্ট পোর্টালে আইডি ভেরিফাই করুন →' : 'Verify ID in Student Portal →')}
+                      ? (lang === 'bn' ? 'স্টুডেন্ট প্রোফাইলে স্ট্যাটাস দেখুন →' : 'Check Status in Student Profile →')
+                      : (lang === 'bn' ? 'স্টুডেন্ট প্রোফাইলে আইডি ভেরিফাই করুন →' : 'Verify ID in Student Profile →')}
                   </span>
                 </Link>
               </div>

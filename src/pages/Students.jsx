@@ -761,8 +761,8 @@ export default function Students() {
                   {!selectedStudent.email && !selectedStudent.phone && (
                     <p className="text-[11px] text-teal-800 dark:text-teal-300 font-sans pt-1">
                       {lang === 'bn' 
-                        ? '💡 শিক্ষার্থী নিজে স্টুডেন্ট পোর্টাল থেকে লগইন করে ফোন, ইমেইল, রক্তের গ্রুপ ও চাকরির তথ্য ইনপুট করতে পারবে।'
-                        : '💡 The student can claim and update contact and job info directly via the Student Portal.'}
+                        ? '💡 শিক্ষার্থী নিজে স্টুডেন্ট প্রোফাইল থেকে লগইন করে ফোন, ইমেইল, রক্তের গ্রুপ ও চাকরির তথ্য ইনপুট করতে পারবে।'
+                        : '💡 The student can claim and update contact and job info directly via Student Profile.'}
                     </p>
                   )}
                 </div>

@@ -775,7 +775,7 @@ export default function Jobs() {
                       onClick={() => setGraduateGateModalOpen(false)}
                       className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition text-center"
                     >
-                      {lang === 'bn' ? 'স্টুডেন্ট পোর্টাল দেখুন' : 'Verify via Student Portal'}
+                      {lang === 'bn' ? 'স্টুডেন্ট প্রোফাইল দেখুন' : 'Verify via Student Profile'}
                     </Link>
                   )}
                   <button

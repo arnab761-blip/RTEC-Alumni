@@ -288,7 +288,7 @@ export default function Profile() {
               to="/student-portal"
               className="px-3.5 py-1.5 rounded-xl bg-[#201E1A] hover:bg-[#25221E] border border-[#C5A880]/30 text-xs font-bold text-[#DFCA9E] transition whitespace-nowrap shrink-0"
             >
-              {lang === 'bn' ? 'স্টুডেন্ট পোর্টাল →' : 'Student Portal →'}
+              {lang === 'bn' ? 'স্টুডেন্ট প্রোফাইল →' : 'Student Profile →'}
             </Link>
           </div>
         )}
