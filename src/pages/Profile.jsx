@@ -33,10 +33,10 @@ const BATCH_OPTIONS = [
 ];
 
 const DEPARTMENT_OPTIONS = [
-  { id: 'Yarn Engineering', nameEn: 'Yarn Engineering', nameBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং' },
-  { id: 'Fabric Engineering', nameEn: 'Fabric Engineering', nameBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং' },
-  { id: 'Wet Process Engineering', nameEn: 'Wet Process Engineering', nameBn: 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং' },
-  { id: 'Apparel Engineering', nameEn: 'Apparel Engineering', nameBn: 'অ্যাপারেল ইঞ্জিনিয়ারিং' }
+  { id: 'Yarn Engineering', nameEn: 'Yarn Engineering (YE)', nameBn: 'ইয়ার্ন ইঞ্জিনিয়ারিং' },
+  { id: 'Fabric Engineering', nameEn: 'Fabric Engineering (FE)', nameBn: 'ফ্যাব্রিক ইঞ্জিনিয়ারিং' },
+  { id: 'Wet Process Engineering', nameEn: 'Wet Process Engineering (WPE)', nameBn: 'ওয়েট প্রসেস ইঞ্জিনিয়ারিং' },
+  { id: 'Apparel Engineering', nameEn: 'Apparel Engineering (AE)', nameBn: 'অ্যাপারেল ইঞ্জিনিয়ারিং' }
 ];
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
