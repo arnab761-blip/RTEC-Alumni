@@ -68,8 +68,13 @@ const colsConfig = [
   { wch: 22 }, // Batch
   { wch: 14 }, // Session
   { wch: 16 }, // Student_Type
-  { wch: 28 }, // Current_Job
-  { wch: 20 }, // Job_Location
+  { wch: 28 }, // Job_Title_Designation
+  { wch: 30 }, // Company_Organization
+  { wch: 30 }, // Current_Job
+  { wch: 22 }, // Work_Location
+  { wch: 24 }, // Industry_Sector
+  { wch: 14 }, // Experience
+  { wch: 40 }, // LinkedIn
   { wch: 13 }, // Blood_Group
   { wch: 16 }, // Phone
   { wch: 28 }, // Email
@@ -90,8 +95,13 @@ const formatRows = (list) => {
     'Batch': s.batch,
     'Session': s.session,
     'Student_Type': s.studentType || (s.batch && (s.batch.includes('4th') || s.batch.includes('5th') || s.batch.includes('6th') || s.batch.includes('7th') || s.batch.includes('8th')) ? 'Undergraduate' : 'Graduate'),
+    'Job_Title_Designation': s.designation || '',
+    'Company_Organization': s.company || '',
     'Current_Job': s.currentJob || '',
-    'Job_Location': s.currentLocation || '',
+    'Work_Location': s.workLocation || s.currentLocation || '',
+    'Industry_Sector': s.jobSector || '',
+    'Experience': s.experienceYears || '',
+    'LinkedIn': s.linkedin || '',
     'Blood_Group': s.bloodGroup || '',
     'Phone': s.phone || '',
     'Email': s.email || '',

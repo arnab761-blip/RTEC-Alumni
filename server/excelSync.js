@@ -34,8 +34,13 @@ export const formatStudentToExcelRow = (s, idx) => {
     'Batch': s.batch || '1st Batch (2018-19)',
     'Session': s.session || '2018-2019',
     'Student_Type': s.studentType || 'Graduate',
+    'Job_Title_Designation': s.designation || '',
+    'Company_Organization': s.company || '',
     'Current_Job': s.currentJob || '',
-    'Job_Location': s.currentLocation || '',
+    'Work_Location': s.workLocation || s.currentLocation || '',
+    'Industry_Sector': s.jobSector || '',
+    'Experience': s.experienceYears || '',
+    'LinkedIn': s.linkedin || '',
     'Blood_Group': s.bloodGroup || '',
     'Phone': s.phone || '',
     'Email': s.email || '',
@@ -66,8 +71,13 @@ export const normalizeExcelRowToStudent = (row, idx) => {
   const batch = getVal(['batch', 'ব্যাচ', 'session', 'শিক্ষাবর্ষ']);
   const session = getVal(['session', 'সেশন', 'academicsession']);
   const studentType = getVal(['studenttype', 'student_type', 'type', 'স্টুডেন্টটাইপ', 'স্টুডেন্ট টাইপ', 'টাইপ', 'status']) || 'Graduate';
-  const currentJob = getVal(['currentjob', 'current_job', 'job', 'workplace', 'company', 'কর্মক্ষেত্র', 'চাকরি', 'পদবি']);
-  const currentLocation = getVal(['currentlocation', 'current_location', 'location', 'city', 'ঠিকানা', 'অবস্থান']);
+  const designation = getVal(['jobtitledesignation', 'jobtitle', 'job_title_designation', 'designation', 'পদবী', 'পেশা']);
+  const company = getVal(['companyorganization', 'company_organization', 'company', 'organization', 'কোম্পানি', 'প্রতিষ্ঠান']);
+  const currentJob = getVal(['currentjob', 'current_job', 'job', 'workplace', 'কর্মক্ষেত্র', 'চাকরি', 'পদবি']);
+  const workLocation = getVal(['worklocation', 'work_location', 'currentlocation', 'current_location', 'joblocation', 'job_location', 'location', 'city', 'ঠিকানা', 'অবস্থান']);
+  const jobSector = getVal(['industrysector', 'industry_sector', 'sector', 'industry', 'ইন্ডাস্ট্রি', 'সেক্টর']);
+  const experienceYears = getVal(['experience', 'experienceyears', 'experience_years', 'অভিজ্ঞতা']);
+  const linkedin = getVal(['linkedin', 'linkedinurl', 'linkedin_portfolio_url', 'portfoliourl', 'portfolio', 'লিঙ্কডইন']);
   const bloodGroup = getVal(['bloodgroup', 'blood', 'blood_group', 'রক্তের গ্রুপ']);
   const phone = getVal(['phone', 'mobile', 'cell', 'ফোন', 'মোবাইল']);
   const email = getVal(['email', 'mail', 'জিমেইল', 'ইমেইল']);
@@ -169,8 +179,13 @@ export const normalizeExcelRowToStudent = (row, idx) => {
     session: resolvedSession,
     year: resolvedYear,
     studentType: resolvedStudentType,
+    designation: designation || '',
+    company: company || '',
     currentJob: currentJob || '',
-    currentLocation: currentLocation || '',
+    workLocation: workLocation || '',
+    jobSector: jobSector || '',
+    experienceYears: experienceYears || '',
+    linkedin: linkedin || '',
     bloodGroup: bloodGroup ? bloodGroup.toUpperCase() : '',
     phone: phone || '',
     email: email || '',
@@ -229,14 +244,21 @@ export const writeStudentsToExcel = (studentsList) => {
     { wch: 6 },  // SL
     { wch: 8 },  // Dept_SL
     { wch: 18 }, // Exam_Roll_RegNo
+    { wch: 14 }, // Student_ID
+    { wch: 16 }, // Admission_Merit
     { wch: 32 }, // Student_Name
     { wch: 25 }, // Department
     { wch: 25 }, // Department_BN
     { wch: 22 }, // Batch
     { wch: 14 }, // Session
     { wch: 14 }, // Student_Type
-    { wch: 28 }, // Current_Job
-    { wch: 20 }, // Job_Location
+    { wch: 28 }, // Job_Title_Designation
+    { wch: 30 }, // Company_Organization
+    { wch: 30 }, // Current_Job
+    { wch: 22 }, // Work_Location
+    { wch: 24 }, // Industry_Sector
+    { wch: 14 }, // Experience
+    { wch: 40 }, // LinkedIn
     { wch: 13 }, // Blood_Group
     { wch: 16 }, // Phone
     { wch: 28 }, // Email

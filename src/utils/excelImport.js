@@ -23,6 +23,13 @@ const normalizeStudentRow = (row, idx) => {
   const deptBn = getVal(['departmentbn', 'deptbn', 'বিভাগবাংলা']);
   const batch = getVal(['batch', 'ব্যাচ', 'session', 'শিক্ষাবর্ষ']);
   const session = getVal(['session', 'সেশন', 'academicsession']);
+  const designation = getVal(['jobtitledesignation', 'jobtitle', 'job_title_designation', 'designation', 'পদবী', 'পেশা']);
+  const company = getVal(['companyorganization', 'company_organization', 'company', 'organization', 'কোম্পানি', 'প্রতিষ্ঠান']);
+  const currentJob = getVal(['currentjob', 'current_job', 'job', 'workplace', 'কর্মক্ষেত্র', 'চাকরি', 'পদবি']);
+  const workLocation = getVal(['worklocation', 'work_location', 'currentlocation', 'current_location', 'joblocation', 'job_location', 'location', 'city', 'ঠিকানা', 'অবস্থান']);
+  const jobSector = getVal(['industrysector', 'industry_sector', 'sector', 'industry', 'ইন্ডাস্ট্রি', 'সেক্টর']);
+  const experienceYears = getVal(['experience', 'experienceyears', 'experience_years', 'অভিজ্ঞতা']);
+  const linkedin = getVal(['linkedin', 'linkedinurl', 'linkedin_portfolio_url', 'portfoliourl', 'portfolio', 'লিঙ্কডইন']);
   const bloodGroup = getVal(['bloodgroup', 'blood', 'blood_group', 'রক্তের গ্রুপ', 'রক্ত']);
   const phone = getVal(['phone', 'mobile', 'cell', 'ফোন', 'মোবাইল']);
   const email = getVal(['email', 'mail', 'জিমেইল', 'ইমেইল']);
@@ -73,6 +80,13 @@ const normalizeStudentRow = (row, idx) => {
     status: result || 'Passed',
     result: result || 'Passed',
     remarks: remarks || '',
+    designation: designation || '',
+    company: company || '',
+    currentJob: currentJob || '',
+    workLocation: workLocation || '',
+    jobSector: jobSector || '',
+    experienceYears: experienceYears || '',
+    linkedin: linkedin || '',
     activities: ''
   };
 };
