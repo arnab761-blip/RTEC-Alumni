@@ -551,14 +551,14 @@ export default function StudentPortal() {
         <div className="pb-6 border-b border-[#C5A880]/20 text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-[10px] font-mono-tech uppercase mb-2">
             <span className="px-2.5 py-0.5 rounded bg-[#C5A880]/20 text-[#854D0E] dark:text-[#DFCA9E] border border-[#C5A880]/40 font-bold">
-              {lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'STUDENT PORTAL'}
+              {lang === 'bn' ? 'স্টুডেন্ট প্রোফাইল' : 'STUDENT PROFILE'}
             </span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-serif-regal font-black tracking-tight text-[#0C0A09] dark:text-[#FDFBF7]">
             {lang === 'bn'
-              ? 'শিক্ষার্থী আইডি ও তথ্য সংযোজন পোর্টাল'
-              : 'Student Self-Registration & Profile Portal'}
+              ? 'শিক্ষার্থী আইডি ও প্রোফাইল আপডেট'
+              : 'Student Self-Registration & Profile'}
           </h1>
           <p className="text-xs sm:text-sm text-[#37332D] dark:text-[#DCD3C1] mt-2 font-sans max-w-2xl leading-relaxed">
             {lang === 'bn'
@@ -683,8 +683,8 @@ export default function StudentPortal() {
             <div className="space-y-2 max-w-xl mx-auto">
               <h2 className="text-lg sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
                 {lang === 'bn'
-                  ? 'স্টুডেন্ট পোর্টাল ফর্ম শুধুমাত্র বর্তমান শিক্ষার্থীদের জন্য'
-                  : 'Student Portal Form is Reserved for Current Students'}
+                  ? 'স্টুডেন্ট প্রোফাইল ফর্ম শুধুমাত্র বর্তমান শিক্ষার্থীদের জন্য'
+                  : 'Student Profile Form is Reserved for Current Students'}
               </h2>
               <p className="text-xs sm:text-sm text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
                 {lang === 'bn'
@@ -718,8 +718,8 @@ export default function StudentPortal() {
             <div className="space-y-2 max-w-xl mx-auto">
               <h2 className="text-lg sm:text-2xl font-serif-regal font-black text-[#0C0A09] dark:text-[#FDFBF7]">
                 {lang === 'bn'
-                  ? 'স্টুডেন্ট পোর্টাল ফর্ম শুধুমাত্র বর্তমান শিক্ষার্থীদের জন্য'
-                  : 'Student Portal Form is for Current Students Only'}
+                  ? 'স্টুডেন্ট প্রোফাইল ফর্ম শুধুমাত্র বর্তমান শিক্ষার্থীদের জন্য'
+                  : 'Student Profile Form is for Current Students Only'}
               </h2>
               <p className="text-xs sm:text-sm text-[#57534E] dark:text-[#A89884] font-sans leading-relaxed">
                 {lang === 'bn'

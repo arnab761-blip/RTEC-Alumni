@@ -56,7 +56,7 @@ const PAYMENT_CHANNELS = [
     type: 'mfs',
     labelBn: 'Personal / Send Money',
     labelEn: 'Personal / Send Money',
-    account: '01XXX-XXXXXX',
+    account: '01873275283',
     noteBn: 'রেফারেন্সে লিখুন: RTEC Coffee / Biryani',
     noteEn: 'Reference: RTEC Coffee / Biryani',
     accent: 'border-pink-400/60 bg-pink-50 dark:bg-[#26141C] text-pink-800 dark:text-pink-300'
@@ -68,7 +68,7 @@ const PAYMENT_CHANNELS = [
     type: 'mfs',
     labelBn: 'Personal / Send Money',
     labelEn: 'Personal / Send Money',
-    account: '01XXX-XXXXXX',
+    account: '01873275283',
     noteBn: 'রেফারেন্সে লিখুন: RTEC Treat',
     noteEn: 'Reference: RTEC Treat',
     accent: 'border-orange-400/60 bg-orange-50 dark:bg-[#261A12] text-orange-800 dark:text-orange-300'
@@ -80,22 +80,10 @@ const PAYMENT_CHANNELS = [
     type: 'mfs',
     labelBn: 'Personal / Send Money',
     labelEn: 'Personal / Send Money',
-    account: '01XXX-XXXXXX-X',
+    account: '01925251621',
     noteBn: 'রেফারেন্সে লিখুন: RTEC',
     noteEn: 'Reference: RTEC',
     accent: 'border-purple-400/60 bg-purple-50 dark:bg-[#1E1426] text-purple-800 dark:text-purple-300'
-  },
-  {
-    id: 'international',
-    name: 'International',
-    nameBn: 'আন্তর্জাতিক / কার্ড',
-    type: 'intl',
-    labelBn: 'Outside Bangladesh (Card / Global)',
-    labelEn: 'Outside Bangladesh (Card / Global)',
-    account: 'arnab.rts761@gmail.com',
-    noteBn: 'দেশের বাইরে থেকে পেমেন্ট করতে ইমেইলে যোগাযোগ করুন বা নিচে তথ্য দিন',
-    noteEn: 'For international support (Card / PayPal / Wise), reach out or leave a note below',
-    accent: 'border-sky-400/60 bg-sky-50 dark:bg-[#131E29] text-sky-800 dark:text-sky-300'
   }
 ];
 
@@ -118,9 +106,7 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
       setIsSubmitted(false);
       setTrxId('');
       setNote('');
-      if (user && user.role !== 'guest' && user.name) {
-        setSenderName(user.name);
-      }
+      // Name stays empty; user's name shown as placeholder only
     }
   }, [isOpen, initialTreat, user]);
 
@@ -245,8 +231,8 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-                  className="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg"
+                  transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.1 }}
+                  className="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-lg ring-4 ring-emerald-200 dark:ring-emerald-800"
                 >
                   <CheckCircle2 className="w-8 h-8 text-white keep-white" />
                 </motion.div>
@@ -254,12 +240,12 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                   <h4 className="text-lg font-serif-regal font-black text-emerald-950 dark:text-white">
                     {lang === 'bn'
                       ? `ধন্যবাদ! আপনার ${quantity}x ${activeTreat.titleBn} গ্রহণ করা হয়েছে`
-                      : `Thank You for the ${quantity}x ${activeTreat.titleEn}!`}
+                      : `Thank you for your support — you made our day! 💛`}
                   </h4>
                   <p className="text-xs text-emerald-800 dark:text-emerald-200 max-w-sm mx-auto leading-relaxed">
                     {lang === 'bn'
                       ? 'আপনার ভালোবাসা ও অনুপ্রেরণা আমাদের RTEC Alumni ওয়েবসাইটকে আরও সুন্দর ও সমৃদ্ধ রাখতে সাহায্য করবে।'
-                      : 'Your generosity helps keep the RTEC Alumni platform running smoothly for everyone.'}
+                      : 'Your little contribution is big to us. We are truly grateful for your kindness.'}
                   </p>
                 </div>
                 <button
@@ -297,7 +283,7 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                               ? 'bg-[#BD452F] text-white keep-white'
                               : 'bg-stone-200 dark:bg-[#201E1A] text-stone-700 dark:text-[#DFCA9E]'
                           }`}>
-                            ৳{item.unitBdt} / ${item.unitUsd}
+                          ৳{item.unitBdt}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -337,7 +323,7 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                       {lang === 'bn' ? 'মোট পরিমাণ' : 'Total Treat'}
                     </span>
                     <strong className="text-sm sm:text-base font-mono-tech font-black text-[#854D0E] dark:text-[#DFCA9E]">
-                      ৳{totalBdt} <span className="text-xs font-normal opacity-75">(${totalUsd})</span>
+                      ৳{totalBdt}
                     </strong>
                   </div>
                 </div>
@@ -345,9 +331,9 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                 {/* Payment Method Selector (Local BD & International) */}
                 <div className="space-y-2.5">
                   <label className="block text-xs font-bold text-[#1C1917] dark:text-[#FDFBF7]">
-                    {lang === 'bn' ? 'পেমেন্ট মাধ্যম নির্বাচন করুন (দেশীয় ও আন্তর্জাতিক):' : 'Choose Payment Method (Local & International):'}
+                    {lang === 'bn' ? 'পেমেন্ট মাধ্যম নির্বাচন করুন (দেশীয় ও আন্তর্জাতিক):' : 'Choose Payment Method:'}
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {PAYMENT_CHANNELS.map((ch) => (
                       <button
                         key={ch.id}
@@ -411,7 +397,7 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                       type="text"
                       value={senderName}
                       onChange={(e) => setSenderName(e.target.value)}
-                      placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Your name'}
+                      placeholder={user && user.role !== 'guest' && user.name ? user.name : (lang === 'bn' ? 'আপনার নাম লিখুন' : 'Your name')}
                       className="w-full px-3 py-2 rounded-xl bg-stone-50 dark:bg-[#141311] border border-[#C5A880]/30 text-xs text-[#0C0A09] dark:text-[#FDFBF7] focus:outline-none focus:border-[#BD452F]"
                     />
                   </div>
@@ -449,7 +435,7 @@ export default function SupportTreatModal({ isOpen, initialTreat = 'coffee', onC
                   <span>
                     {lang === 'bn'
                       ? `${quantity}x ${activeTreat.titleBn} নিশ্চিত করুন (৳${totalBdt})`
-                      : `Confirm ${quantity}x ${activeTreat.titleEn} (৳${totalBdt} / $${totalUsd})`}
+                      : `Confirm ${quantity}x ${activeTreat.titleEn} (৳${totalBdt})`}
                   </span>
                   <Send className="w-3.5 h-3.5 text-white keep-white" />
                 </motion.button>

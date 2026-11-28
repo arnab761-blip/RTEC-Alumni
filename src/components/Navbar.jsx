@@ -158,7 +158,7 @@ export default function Navbar() {
 
   // Extended architectural archive menu items
   const archiveLinks = [
-    { to: '/student-portal', labelBn: 'স্টুডেন্ট পোর্টাল', labelEn: 'Student Portal', icon: GraduationCap, descBn: 'শিক্ষার্থীদের প্রোফাইল ও তথ্য জমা', descEn: 'Submit or update your student profile' },
+    { to: '/student-portal', labelBn: 'স্টুডেন্ট প্রোফাইল', labelEn: 'Student Profile', icon: GraduationCap, descBn: 'শিক্ষার্থীদের প্রোফাইল ও তথ্য জমা', descEn: 'View or update your student profile' },
     { to: '/jobs', labelBn: 'ক্যারিয়ার ও জব বোর্ড', labelEn: 'Career & Job Board', icon: Briefcase, descBn: 'চাকরির সুযোগ ও অ্যালামনাই রেফারেল', descEn: 'Textile jobs & alumni referrals' },
     { to: '/mentorship', labelBn: 'সিনিয়র মেন্টরশিপ', labelEn: 'Mentorship', icon: Compass, descBn: 'অভিজ্ঞ গ্র্যাজুয়েটদের পরামর্শ ও দিকনির্দেশনা', descEn: 'Guidance from senior engineers' },
     { to: '/forum', labelBn: 'অভিজ্ঞতা ও প্রশ্নোত্তর', labelEn: 'Experience Share', icon: MessageSquareQuote, descBn: 'সিনিয়রদের অভিজ্ঞতা ও প্রশ্নোত্তর ফোরাম', descEn: 'Alumni insights, stories & Q&A' },
@@ -286,7 +286,7 @@ export default function Navbar() {
                     ? 'bg-[#854D0E] text-white dark:bg-[#C5A880] dark:text-[#121110] border-[#854D0E] scale-105'
                     : 'bg-white dark:bg-[#1E1C18] text-[#854D0E] dark:text-[#DFCA9E] border-[#C5A880]/40 dark:border-[#C5A880]/30 hover:border-[#854D0E] dark:hover:border-[#C5A880]'
                 }`}
-                title={lang === 'bn' ? 'শিক্ষার্থী আইডি ও তথ্য জমা' : 'Student Portal'}
+                title={lang === 'bn' ? 'শিক্ষার্থী প্রোফাইল' : 'Student Profile'}
               >
                 <GraduationCap className="w-3.5 h-3.5 text-[#854D0E] dark:text-[#DFCA9E]" />
                 <span className="text-[10px]">{lang === 'bn' ? 'আইডি পোর্টাল' : 'Student ID'}</span>
@@ -389,7 +389,7 @@ export default function Navbar() {
                             className="dropdown-menu-item dropdown-item-portal"
                           >
                             <GraduationCap className="w-4 h-4 shrink-0" />
-                            <span>{lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'Student Portal'}</span>
+                            <span>{lang === 'bn' ? 'স্টুডেন্ট প্রোফাইল' : 'Student Profile'}</span>
                           </Link>
                         )}
                       </div>
@@ -669,7 +669,7 @@ export default function Navbar() {
                         <span>
                           {hasApprovedProfile
                             ? (lang === 'bn' ? 'আমার প্রোফাইল' : 'My Profile')
-                            : (lang === 'bn' ? 'স্টুডেন্ট পোর্টাল' : 'Student Portal')}
+                            : (lang === 'bn' ? 'স্টুডেন্ট প্রোফাইল' : 'Student Profile')}
                         </span>
                       </Link>
                     )}
