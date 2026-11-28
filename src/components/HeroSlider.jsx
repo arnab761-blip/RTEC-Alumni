@@ -204,8 +204,8 @@ export default function HeroSlider() {
           );
         })}
 
-        {/* Clean, crystal-clear Landmark Caption in the bottom-left corner */}
-        <div className="absolute bottom-2.5 left-2.5 sm:bottom-4.5 sm:left-5 z-30 pointer-events-none max-w-[calc(100%-4rem)]">
+        {/* Clean, crystal-clear Landmark Caption & Attribution in the bottom-left corner */}
+        <div className="absolute bottom-2.5 left-2.5 sm:bottom-4.5 sm:left-5 z-30 pointer-events-none max-w-[calc(100%-8rem)] flex items-center gap-2">
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/85 backdrop-blur-md border border-white/30 text-white shadow-2xl max-w-full">
             <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 shrink-0" style={{ color: '#FBBF24' }} />
             <span
@@ -214,7 +214,19 @@ export default function HeroSlider() {
             >
               {lang === 'bn' ? currentSlide.titleBn : currentSlide.titleEn}
             </span>
+            <span
+              className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-amber-200/90 pl-1.5 sm:pl-2 border-l border-white/25 shrink-0 font-bold"
+            >
+              {lang === 'bn' ? 'সংগৃহীত' : 'Collected'}
+            </span>
           </div>
+        </div>
+
+        {/* Small Discreet Copyright Attribution Badge in bottom-right corner */}
+        <div className="absolute bottom-2.5 right-2.5 sm:bottom-4.5 sm:right-5 z-30 pointer-events-none">
+          <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md bg-black/75 backdrop-blur-md border border-white/20 text-white/75 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider font-medium shadow-md">
+            Photo: Collected
+          </span>
         </div>
 
         {/* Subtle Side Navigation Arrows (Minimal & Clean) */}
