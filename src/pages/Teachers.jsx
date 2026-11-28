@@ -201,12 +201,6 @@ export default function Teachers() {
                 </button>
               )}
             </div>
-
-            <p className="text-xs text-[#A89884] font-mono-tech">
-              {lang === 'bn'
-                ? `প্রদর্শিত: ${filteredTeachers.length} জন সম্মানিত সদস্য`
-                : `Active Roster: ${filteredTeachers.length} Members`}
-            </p>
           </div>
 
           {/* Department Tabs */}
@@ -402,7 +396,7 @@ export default function Teachers() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div>
               <span className="text-[10px] font-mono-tech text-[#DFCA9E] uppercase tracking-widest">
-                ADMINISTRATIVE &amp; SUPPORT STAFF ROSTER • RTEC
+                ADMINISTRATIVE &amp; SUPPORT STAFF DIRECTORY • RTEC
               </span>
               <h2 id="office-staff-heading" className="text-xl sm:text-2xl font-serif-regal font-bold text-[#FDFBF7] mt-1">
                 {lang === 'bn' ? 'অফিস কর্মচারী ও সহায়কবৃন্দ' : 'Office & Support Staff'}
